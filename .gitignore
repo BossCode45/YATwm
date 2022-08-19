@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# The executable on linux
+YATwm

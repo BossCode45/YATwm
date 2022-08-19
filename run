@@ -1,0 +1,11 @@
+#!/bin/bash
+
+make
+
+Xephyr :100 -screen 1600x900 &
+
+sleep 0.1
+
+DISPLAY=:100 ./YATwm
+
+pkill Xephyr
