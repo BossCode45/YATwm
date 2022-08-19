@@ -1,0 +1,17 @@
+#+TITLE: YATwm
+#+OPTIONS: \n:t
+
+* [WIP]
+
+* Disclaimer: This is still very much before even beta or even a working state (it barely functions)
+It currently barely works (only reason this is public is because others may want to see for reference.
+I wouldn't suggest using this at all and it may undergo heavy changes as the code currently isn't very clean or good.
+
+* For people that have brain damage (anyone who wants to use it)
+** Keybinds
+mod1 is alt
+- mod1 + enter: alacritty
+- mod1 + d: rofi
+- mod1 + t: change next tile direction
+- mod1 + e: exit
+There is currently no good system for keybinds, but it is coming later.
