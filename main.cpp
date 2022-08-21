@@ -222,7 +222,7 @@ int main(int argc, char** argv)
 	sH = DisplayHeight(dpy, screenNum);
 
 	XSetErrorHandler(OnXError);
-	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | EnterWindowMask);
+	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask);
 
 	for(int i = 0; i < sizeof(keyBinds)/sizeof(keyBinds[0]); i++)
 	{
@@ -257,7 +257,7 @@ int main(int argc, char** argv)
 				destroyNotify(e.xdestroywindow);
 			case EnterNotify:
 				//cout << e.xcrossing.window << "\n";
-				if(e.xcrossing.window == 1310)
+				if(e.xcrossing.window == root)
 					break;
 				XSetInputFocus(dpy, e.xcrossing.window, RevertToNone, CurrentTime);
 
