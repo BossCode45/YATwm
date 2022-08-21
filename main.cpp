@@ -257,7 +257,7 @@ int main(int argc, char** argv)
 				destroyNotify(e.xdestroywindow);
 			case EnterNotify:
 				//cout << e.xcrossing.window << "\n";
-				if(e.xcrossing.window == 1326)
+				if(e.xcrossing.window == 1310)
 					break;
 				XSetInputFocus(dpy, e.xcrossing.window, RevertToNone, CurrentTime);
 

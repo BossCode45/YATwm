@@ -10,7 +10,7 @@ SOURCES = \
 	main.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
-newwm: $(HEADERS) $(OBJECTS)
+YATwm: $(HEADERS) $(OBJECTS)
 	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS)
 
 .PHONY: clean
