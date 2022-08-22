@@ -10,8 +10,13 @@ I wouldn't suggest using this at all and it may undergo heavy changes as the cod
 * For people that have brain damage (anyone who wants to use it)
 ** Keybinds
 mod1 is alt
-- mod1 + enter : alacritty
-- mod1 + d     : rofi
-- mod1 + t     : change next tile direction
-- mod1 + e     : exit
-There is currently no good system for keybinds, but it is coming later.
+- mod1 + enter	: alacritty
+- mod1 + d		: rofi
+- mod1 + t		: change next tile direction
+- mod1 + e		: exit
+- mod1 + q		: quit focused window
+Add new keybinds reffering to the pre existing ones - docs coming later
+
+* Credits
+Catwm (https://github.com/pyknite/catwm)
+basic_wm (https://github.com/jichu4n/basic_wm)

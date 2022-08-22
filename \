@@ -233,9 +233,9 @@ void tile(int frameID, int x, int y, int w, int h)
 {
 	if(frameID == 0)
 	{
-		//printf("\nTILING ROOT:\n");
+		printf("\nTILING ROOT:\n");
 	}
-	//printf("Tiling frame - ID: %i\n\tx: %i, y: %i, w: %i, h: %i\n", frameID, x, y, w, h);
+	printf("Tiling frame - ID: %i\n\tx: %i, y: %i, w: %i, h: %i\n", frameID, x, y, w, h);
 	int i = 0;
 	vector<int>& subFrameIDs = frames.find(frameID)->second.subFrameIDs;
 	TileDir dir = frames.find(frameID)->second.dir;
@@ -253,7 +253,7 @@ void tile(int frameID, int x, int y, int w, int h)
 			continue;
 		}
 		Client c = clients.find(f.cID)->second;
-		//printf("Arranging client with frame ID %i, client ID %i:\n\tx: %i, y: %i, w: %i, h: %i\n", fID, c.ID, wX, wY, wW, wH);
+		printf("Arranging client with frame ID %i, client ID %i:\n\tx: %i, y: %i, w: %i, h: %i\n", fID, c.ID, wX, wY, wW, wH);
 		XMoveWindow(dpy, c.w,
 					wX, wY);
 		XResizeWindow(dpy, c.w,
@@ -261,7 +261,7 @@ void tile(int frameID, int x, int y, int w, int h)
 	}
 	if(frameID == 0)
 	{
-		//printf("DONE TILING ROOT\n\n");
+		printf("DONE TILING ROOT\n\n");
 	}
 }
 
@@ -282,6 +282,7 @@ int main(int argc, char** argv)
 		XGrabKey(dpy, XKeysymToKeycode(dpy, keyBinds[i].keysym), keyBinds[i].modifiers, root, false, GrabModeAsync, GrabModeAsync);
 	}
 
+
 	vector<int> v;
 	Frame rootFrame = {0, noID, false, noID, horizontal, v};
 	currFrameID++;
@@ -297,6 +298,7 @@ int main(int argc, char** argv)
 		switch(e.type)
 		{
 			case KeyPress:
+				cout << "Keypress\n";
 				keyPress(e.xkey);
 				break;
 			case ConfigureRequest:
