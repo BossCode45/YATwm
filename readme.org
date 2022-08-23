@@ -7,15 +7,22 @@
 It currently barely works (only reason this is public is because others may want to see for reference.
 I wouldn't suggest using this at all and it may undergo heavy changes as the code currently isn't very clean or good.
 
-* For people that have brain damage (anyone who wants to use it)
-** Keybinds
-mod1 is alt
+* For people that have brain damage (anyone who wants to use it `while it is unfinished`)
+** Config
+*** Startup
+Add a bash command to the `startup` string in config.h and it will execute on startup.
+*** General
+You can change either the inner gaps (padding around each window - so double it for space between windows), or the outer gaps (padding around the display - add to inner gaps to get space between window and screen edges).
+They can be changed with the integers `gaps` and `outerGaps` in the config.h file.
+*** Keybinds
+Current keybinds: 
 - mod1 + enter	: alacritty
 - mod1 + d		: rofi
 - mod1 + t		: change next tile direction
 - mod1 + e		: exit
 - mod1 + q		: quit focused window
-Add new keybinds reffering to the pre existing ones - docs coming later
+(mod1 is alt)
+Add new keybinds reffering to the pre existing ones - more docs coming later
 
 * Credits
 Catwm (https://github.com/pyknite/catwm)

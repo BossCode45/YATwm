@@ -1,5 +1,16 @@
 #include <X11/keysym.h>
 
+#include <vector>
+
+//Startup
+std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png"};
+
+//Main config
+int gaps = 3;
+int outerGaps = 3;
+
+//Keys
+//The types and perhaps functions likely to be moved to seperate header file later
 typedef union
 {
 	const char** str;

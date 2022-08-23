@@ -180,7 +180,7 @@ void mapRequest(XMapRequestEvent e)
 	//Add to frames map
 	frames.insert(pair<int, Frame>(f.ID, f));
 
-	tile(0, 0, 0, sW, sH);
+	tile(0, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
 }
 
 void destroyNotify(XDestroyWindowEvent e)
@@ -220,7 +220,7 @@ void destroyNotify(XDestroyWindowEvent e)
 			break;
 		}
 	}
-	tile(0, 0, 0, sW, sH);
+	tile(0, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
 }
 
 static int OnXError(Display* display, XErrorEvent* e)
@@ -247,11 +247,20 @@ void tile(int frameID, int x, int y, int w, int h)
 		int wW = (dir==horizontal) ? w/subFrameIDs.size() : w;
 		int wH = (dir==vertical) ? h/subFrameIDs.size() : h;
 		i++;
+		if(i==subFrameIDs.size())
+		{
+			wW = (dir==horizontal) ? w - wX : w;
+			wH = (dir==vertical) ? h - wY : h;
+		}
 		if(!f.isClient)
 		{
 			tile(fID, wX, wY, wW, wH);
 			continue;
 		}
+		wX += gaps;
+		wY += gaps;
+		wW -= gaps*2;
+		wH -= gaps*2;
 		Client c = clients.find(f.cID)->second;
 		//printf("Arranging client with frame ID %i, client ID %i:\n\tx: %i, y: %i, w: %i, h: %i\n", fID, c.ID, wX, wY, wW, wH);
 		XMoveWindow(dpy, c.w,
@@ -286,6 +295,15 @@ int main(int argc, char** argv)
 	Frame rootFrame = {0, noID, false, noID, horizontal, v};
 	currFrameID++;
 	frames.insert(pair<int, Frame>(0, rootFrame));
+
+	for(int i = 0; i < sizeof(startup)/sizeof(startup[0]); i++)
+	{
+		if(fork() == 0)
+		{
+			system(startup[i].c_str());
+			exit(0);
+		}
+	}
 
 	cout << "Begin mainloop\n";
 
