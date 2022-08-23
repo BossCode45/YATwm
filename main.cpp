@@ -9,6 +9,8 @@
 #include <algorithm>
 
 #include "structs.h"
+#include "util.h"
+
 #include "config.h"
 
 using std::cout;
@@ -91,7 +93,6 @@ void kill(const KeyArg arg)
 void keyPress(XKeyEvent e)
 {
 	if(e.same_screen!=1) return;
-	//TODO: Make this into a for loop
 	KeySym keysym = XLookupKeysym(&e, 1);
 	for(int i = 0; i < sizeof(keyBinds)/sizeof(keyBinds[0]); i++)
 	{
@@ -226,6 +227,9 @@ void destroyNotify(XDestroyWindowEvent e)
 static int OnXError(Display* display, XErrorEvent* e)
 {
 	cout << "XError " << e->type << ":\n";
+	char buffer_return[100];
+	XGetErrorText(dpy, e->type, buffer_return, sizeof(buffer_return));
+	printf("\t%s\n", buffer_return);
 	return 0;
 }
 
@@ -249,8 +253,8 @@ void tile(int frameID, int x, int y, int w, int h)
 		i++;
 		if(i==subFrameIDs.size())
 		{
-			wW = (dir==horizontal) ? w - wX + outerGaps : w;
-			wH = (dir==vertical) ? h - wY + outerGaps : h;
+			wW = (dir==horizontal) ? w - (wX - x) : w;
+			wH = (dir==vertical) ? h - (wY - y) : h;
 		}
 		if(!f.isClient)
 		{
@@ -262,7 +266,7 @@ void tile(int frameID, int x, int y, int w, int h)
 		wW -= gaps * 2;
 		wH -= gaps * 2;
 		Client c = clients.find(f.cID)->second;
-		printf("Arranging client with frame ID %i, client ID %i:\n\tx: %i, y: %i, w: %i, h: %i\n", fID, c.ID, wX, wY, wW, wH);
+		//printf("Arranging client with frame ID %i, client ID %i:\n\tx: %i, y: %i, w: %i, h: %i\n", fID, c.ID, wX, wY, wW, wH);
 		XMoveWindow(dpy, c.w,
 					wX, wY);
 		XResizeWindow(dpy, c.w,
@@ -332,7 +336,7 @@ int main(int argc, char** argv)
 				XSetInputFocus(dpy, e.xcrossing.window, RevertToNone, CurrentTime);
 				break;
 			default:
-				//cout << "Unhandled event, code: " << e.type << "!\n";
+				//cout << "Unhandled event, code: " << evNames[e.type] << "!\n";
 				break;
 		}
 	}

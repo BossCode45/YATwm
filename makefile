@@ -5,7 +5,8 @@ all: YATwm
 
 HEADERS = \
 	config.h \
-	structs.h
+	structs.h \
+	util.h
 SOURCES = \
 	main.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
