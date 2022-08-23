@@ -6,8 +6,8 @@
 std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png"};
 
 //Main config
-int gaps = 3;
-int outerGaps = 3;
+int gaps = 10;
+int outerGaps = 30;
 
 //Keys
 //The types and perhaps functions likely to be moved to seperate header file later

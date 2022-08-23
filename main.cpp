@@ -225,7 +225,7 @@ void destroyNotify(XDestroyWindowEvent e)
 
 static int OnXError(Display* display, XErrorEvent* e)
 {
-	cout << "XError\n";
+	cout << "XError " << e->type << ":\n";
 	return 0;
 }
 
@@ -249,8 +249,8 @@ void tile(int frameID, int x, int y, int w, int h)
 		i++;
 		if(i==subFrameIDs.size())
 		{
-			wW = (dir==horizontal) ? w - wX : w;
-			wH = (dir==vertical) ? h - wY : h;
+			wW = (dir==horizontal) ? w - wX + outerGaps : w;
+			wH = (dir==vertical) ? h - wY + outerGaps : h;
 		}
 		if(!f.isClient)
 		{
@@ -259,10 +259,10 @@ void tile(int frameID, int x, int y, int w, int h)
 		}
 		wX += gaps;
 		wY += gaps;
-		wW -= gaps*2;
-		wH -= gaps*2;
+		wW -= gaps * 2;
+		wH -= gaps * 2;
 		Client c = clients.find(f.cID)->second;
-		//printf("Arranging client with frame ID %i, client ID %i:\n\tx: %i, y: %i, w: %i, h: %i\n", fID, c.ID, wX, wY, wW, wH);
+		printf("Arranging client with frame ID %i, client ID %i:\n\tx: %i, y: %i, w: %i, h: %i\n", fID, c.ID, wX, wY, wW, wH);
 		XMoveWindow(dpy, c.w,
 					wX, wY);
 		XResizeWindow(dpy, c.w,
