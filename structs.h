@@ -30,4 +30,5 @@ struct Frame
 	//If it isn't a client
 	TileDir dir;
 	std::vector<int> subFrameIDs;
+	bool isRoot;
 };

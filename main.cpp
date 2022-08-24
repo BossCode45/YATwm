@@ -1,3 +1,4 @@
+#include <X11/X.h>
 #include <X11/Xlib.h>
 
 #include <cstdlib>
@@ -23,14 +24,15 @@ Window root;
 int sW, sH;
 TileDir nextDir = horizontal;
 
-
 bool keepGoing = true;
 
 map<int, Client> clients;
 int currClientID = 0;
 map<int, Frame> frames;
-int currFrameID = 0;
+int currFrameID = 1;
 map<Window, int> frameIDS;
+
+int currWS = 1;
 
 void keyPress(XKeyEvent e);
 void configureRequest(XConfigureRequestEvent e);
@@ -40,6 +42,7 @@ void destroyNotify(XDestroyWindowEvent e);
 static int OnXError(Display* display, XErrorEvent* e);
 
 void tile(int frameID, int x, int y, int w, int h);
+void untile(int frameID);
 
 //Keybind commands
 void exit(const KeyArg arg)
@@ -89,11 +92,23 @@ void kill(const KeyArg arg)
       XKillClient(dpy, w);
     }
 }
+void changeWS(const KeyArg arg)
+{
+	int prevWS = currWS;
+	currWS = arg.num;
+
+	if(prevWS == currWS)
+		return;
+
+	untile(prevWS);
+	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+}
 
 void keyPress(XKeyEvent e)
 {
 	if(e.same_screen!=1) return;
-	KeySym keysym = XLookupKeysym(&e, 1);
+	KeySym keysym = XLookupKeysym(&e, 0);
 	for(int i = 0; i < sizeof(keyBinds)/sizeof(keyBinds[0]); i++)
 	{
 		if(keyBinds[i].keysym == keysym && keyBinds[i].modifiers == e.state)
@@ -133,9 +148,9 @@ void mapRequest(XMapRequestEvent e)
 	clients.insert(pair<int, Client>(c.ID, c));
 
 	//Make frame
-	int pID = (frameIDS.count(focusedWindow)>0)? frames.find(frameIDS.find(focusedWindow)->second)->second.pID : 0;
+	int pID = (frameIDS.count(focusedWindow)>0)? frames.find(frameIDS.find(focusedWindow)->second)->second.pID : currWS;
 	vector<int> v;
-	Frame f = {currFrameID, pID, true, c.ID, noDir, v};
+	Frame f = {currFrameID, pID, true, c.ID, noDir, v, false};
 	currFrameID++;
 
 
@@ -165,7 +180,7 @@ void mapRequest(XMapRequestEvent e)
 		vector<int> v;
 		v.push_back(frames.find(frameIDS.find(focusedWindow)->second)->second.ID);
 		v.push_back(f.ID);
-		Frame pF = {currFrameID, pID, false, noID, nextDir, v};
+		Frame pF = {currFrameID, pID, false, noID, nextDir, v, false};
 
 		//Update the IDS
 		f.pID = currFrameID;
@@ -181,7 +196,7 @@ void mapRequest(XMapRequestEvent e)
 	//Add to frames map
 	frames.insert(pair<int, Frame>(f.ID, f));
 
-	tile(0, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
 }
 
 void destroyNotify(XDestroyWindowEvent e)
@@ -201,7 +216,7 @@ void destroyNotify(XDestroyWindowEvent e)
 			frames.erase(fID);
 			frameIDS.erase(e.window);
 
-			if(pS.size() < 2 && pID != 0)
+			if(pS.size() < 2 && !frames.find(pID)->second.isRoot)
 			{
 				//Erase parent frame
 				int lastChildID = frames.find(frames.find(pID)->second.subFrameIDs[0])->second.ID;
@@ -221,7 +236,7 @@ void destroyNotify(XDestroyWindowEvent e)
 			break;
 		}
 	}
-	tile(0, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
 }
 
 static int OnXError(Display* display, XErrorEvent* e)
@@ -267,6 +282,7 @@ void tile(int frameID, int x, int y, int w, int h)
 		wH -= gaps * 2;
 		Client c = clients.find(f.cID)->second;
 		//printf("Arranging client with frame ID %i, client ID %i:\n\tx: %i, y: %i, w: %i, h: %i\n", fID, c.ID, wX, wY, wW, wH);
+		XMapWindow(dpy, c.w);
 		XMoveWindow(dpy, c.w,
 					wX, wY);
 		XResizeWindow(dpy, c.w,
@@ -275,6 +291,23 @@ void tile(int frameID, int x, int y, int w, int h)
 	if(frameID == 0)
 	{
 		//printf("DONE TILING ROOT\n\n");
+	}
+}
+
+void untile(int frameID)
+{
+	vector<int>& subFrameIDs = frames.find(frameID)->second.subFrameIDs;
+	TileDir dir = frames.find(frameID)->second.dir;
+	for(int fID : subFrameIDs)
+	{
+		Frame f = frames.find(fID)->second;
+		if(!f.isClient)
+		{
+			untile(fID);
+			continue;
+		}
+		Client c = clients.find(f.cID)->second;
+		XUnmapWindow(dpy, c.w);
 	}
 }
 
@@ -288,17 +321,20 @@ int main(int argc, char** argv)
 	sH = DisplayHeight(dpy, screenNum);
 
 	XSetErrorHandler(OnXError);
-	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask);
+	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask);
 
 	for(int i = 0; i < sizeof(keyBinds)/sizeof(keyBinds[0]); i++)
 	{
 		XGrabKey(dpy, XKeysymToKeycode(dpy, keyBinds[i].keysym), keyBinds[i].modifiers, root, false, GrabModeAsync, GrabModeAsync);
 	}
 
-	vector<int> v;
-	Frame rootFrame = {0, noID, false, noID, horizontal, v};
-	currFrameID++;
-	frames.insert(pair<int, Frame>(0, rootFrame));
+	for(int i = 1; i < numWS + 1; i++)
+	{
+		vector<int> v;
+		Frame rootFrame = {i, noID, false, noID, horizontal, v, true};
+		frames.insert(pair<int, Frame>(i, rootFrame));
+		currFrameID++;
+	}
 
 	for(int i = 0; i < sizeof(startup)/sizeof(startup[0]); i++)
 	{

@@ -11,14 +11,12 @@ std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/v
 int gaps = 10;
 int outerGaps = 30;
 
-int numWS = 5;
-
 //Keys
 //The types and perhaps functions likely to be moved to seperate header file later
 typedef union
 {
-	const char** str;
 	const int num;
+	const char** str;
 } KeyArg;
 
 struct Key
@@ -39,23 +37,23 @@ void changeWS(const KeyArg arg);
 const char* alacritty[] = {"alacritty", NULL};
 const char* rofi[] = {"rofi", "-i", "-show" "drun", NULL};
 
-#define WSKEY(K, X) \
+#define WSKEY(K, X)								\
 	{K, mod, changeWS, {.num = X - 1}},
 
 unsigned int mod = Mod1Mask;
 
 static struct Key keyBinds[] = {
 	//Key			//Modifiers		//Func			//Args
-	{XK_e, 			mod,			exit,			{NULL}},
+	{XK_E, 			mod,			exit,			{NULL}},
 	{XK_Return,		mod, 			spawn,			{.str = alacritty}},
-	{XK_d,			mod,	 		spawn,			{.str = rofi}},
-	{XK_t,			mod,			toggle,			{NULL}},
-	{XK_q,			mod,			kill,			{NULL}},
-	{XK_1,			mod,			changeWS,		{.num = 1}},
-	{XK_2,			mod,			changeWS,		{.num = 2}},
-	{XK_3,			mod,			changeWS,		{.num = 3}},
-	{XK_4,			mod,			changeWS,		{.num = 4}},
-	{XK_5,			mod,			changeWS,		{.num = 5}},
+	{XK_D,			mod,	 		spawn,			{.str = rofi}},
+	{XK_T,			mod,			toggle,			{NULL}},
+	{XK_Q,			mod,			kill,			{NULL}},
+	{XK_1,			mod,			changeWS,		{NULL},
+	{XK_2,			mod,			changeWS,		{NULL}},
+	{XK_3,			mod,			changeWS,		{.num = 2}},
+	{XK_4,			mod,			changeWS,		{.num = 3}},
+	{XK_5,			mod,			changeWS,		{.num = 4}},
 	//WSKEY(XK_1, 1)
 	//WSKEY(XK_2, 2)
 	//WSKEY(XK_3, 3)
