@@ -4,7 +4,7 @@
 * [WIP]
 
 * Disclaimer: This is still very much before even beta or even a working state (it barely functions)
-It currently barely works (only reason this is public is because others may want to see for reference.
+It currently barely works (only reason this is public is because others may want to see for reference)
 I wouldn't suggest using this at all and it may undergo heavy changes as the code currently isn't very clean or good.
 
 * For people that have brain damage (anyone who wants to use it *while it is unfinished*)
@@ -14,6 +14,8 @@ Add a bash command to the ~startup~ string in config.h and it will execute on st
 *** General
 You can change either the inner gaps (padding around each window - so double it for space between windows), or the outer gaps (padding around the display - add to inner gaps to get space between window and screen edges).
 They can be changed with the integers ~gaps~ and ~outerGaps~ in the config.h file.
+
+You can change the number of workspaces by editing ~numWS~ in the config.h file. You can think of workspaces as virtual desktops.
 *** Keybinds
 Current keybinds: 
 - mod1 + enter	: alacritty
@@ -21,6 +23,7 @@ Current keybinds:
 - mod1 + t		: change next tile direction
 - mod1 + e		: exit
 - mod1 + q		: quit focused window
+- mod1 + (num)	: switch to workspace (num) - currently only for 1-5 but you can add more
 (mod1 is alt)
 Add new keybinds reffering to the pre existing ones - more docs coming later
 

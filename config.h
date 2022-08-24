@@ -37,7 +37,7 @@ void kill(const KeyArg arg);
 void changeWS(const KeyArg arg);
 
 const char* alacritty[] = {"alacritty", NULL};
-const char* rofi[] = {"rofi", "-i", "-show" "drun", NULL};
+const char* rofi[] = {"rofi", "-i", "-show", "drun", NULL};
 
 #define WSKEY(K, X) \
 	{K, mod, changeWS, {.num = X - 1}},
