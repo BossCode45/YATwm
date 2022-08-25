@@ -24,6 +24,7 @@ Current keybinds:
 - mod1 + e		: exit
 - mod1 + q		: quit focused window
 - mod1 + (num)	: switch to workspace (num) - currently only for 1-5 but you can add more
+- mod1 + shift + (num)	: move window to workspace (num) - currently only for 1-5 but you can add more
 (mod1 is alt)
 Add new keybinds reffering to the pre existing ones - more docs coming later
 
