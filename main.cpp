@@ -104,6 +104,30 @@ void changeWS(const KeyArg arg)
 	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 }
+void wToWS(const KeyArg arg)
+{
+	Window focusedWindow;
+	int revertToReturn;
+	XGetInputFocus(dpy, &focusedWindow, &revertToReturn);
+	if(focusedWindow == root)
+		return;
+
+	int fID = frameIDS.find(focusedWindow)->second;
+	vector<int>& pSF = frames.find(frames.find(fID)->second.pID)->second.subFrameIDs;
+	for(int i = 0; i < pSF.size(); i++)
+	{
+		if(pSF[i] == fID)
+		{
+			pSF.erase(pSF.begin() + i);
+			break;
+		}
+	}
+	frames.find(fID)->second.pID = arg.num;
+	frames.find(arg.num)->second.subFrameIDs.push_back(fID);
+	XUnmapWindow(dpy, focusedWindow);
+	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+}
 
 void keyPress(XKeyEvent e)
 {
@@ -236,6 +260,7 @@ void destroyNotify(XDestroyWindowEvent e)
 			break;
 		}
 	}
+	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
 }
 
