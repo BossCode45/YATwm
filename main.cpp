@@ -119,6 +119,25 @@ void wToWS(const KeyArg arg)
 		if(pSF[i] == fID)
 		{
 			pSF.erase(pSF.begin() + i);
+			int pID = frames.find(fID)->second.pID;
+			if(pSF.size() < 2 && !frames.find(pID)->second.isRoot)
+			{
+				//Erase parent frame
+				int lastChildID = frames.find(frames.find(pID)->second.subFrameIDs[0])->second.ID;
+				int parentParentID = frames.find(pID)->second.pID;
+				vector<int>& parentParentSubFrameIDs = frames.find(parentParentID)->second.subFrameIDs;
+				for(int j = 0; j < parentParentSubFrameIDs.size(); j++)
+				{
+					if(parentParentSubFrameIDs[j] == pID)
+					{
+						parentParentSubFrameIDs[j] = lastChildID;
+						frames.find(lastChildID)->second.pID = parentParentID;
+						frames.erase(pID);
+						break;
+					}
+				}
+			}
+
 			break;
 		}
 	}
