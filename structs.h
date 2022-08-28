@@ -2,7 +2,7 @@
 
 #include <vector>
 
-int noID = -1;
+#define noID -1
 
 struct Client
 {

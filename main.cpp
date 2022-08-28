@@ -147,6 +147,131 @@ void wToWS(const KeyArg arg)
 	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 }
+int FFCF(int sID)
+{
+	if(frames.find(sID)->second.isClient)
+		return sID;
+	return FFCF(frames.find(sID)->second.subFrameIDs[0]);
+}
+int dirFind(int fID, MoveDir dir)
+{
+	vector<int>& pSF = frames.find(frames.find(fID)->second.pID)->second.subFrameIDs;
+	TileDir pDir = frames.find(frames.find(fID)->second.pID)->second.dir;
+
+	int i = 0;
+	for(int f : pSF)
+	{
+		if(f == fID)
+		{
+			break;
+		}
+		i++;
+	}
+
+	if(pDir == vertical)
+	{
+		switch(dir)
+		{
+			case Up: i--; break;
+			case Down: i++; break;
+			case Left: return (frames.find(fID)->second.pID > numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case Right: return (frames.find(fID)->second.pID > numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+		}
+	}
+	else if(pDir == horizontal)
+	{
+		switch(dir)
+		{
+			case Left: i--; break;
+			case Right: i++; break;
+			case Up: return (frames.find(fID)->second.pID > numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case Down: return (frames.find(fID)->second.pID > numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+		}
+	}
+	if(i < 0)
+		i = pSF.size() - 1;
+	if(i == pSF.size())
+		i = 0;
+
+	return pSF[i];
+}
+void focChange(const KeyArg arg)
+{
+	Window focusedWindow;
+	int revertToReturn;
+	XGetInputFocus(dpy, &focusedWindow, &revertToReturn);
+	if(focusedWindow == root)
+		return;
+
+	int fID = frameIDS.find(focusedWindow)->second;
+	int nID = dirFind(fID, arg.dir);
+	int fNID = FFCF(nID);
+	Window w = clients.find(frames.find(fNID)->second.cID)->second.w;
+	XSetInputFocus(dpy, w, RevertToPointerRoot, CurrentTime);
+}
+void wMove(const KeyArg arg)
+{
+	Window focusedWindow;
+	int revertToReturn;
+	XGetInputFocus(dpy, &focusedWindow, &revertToReturn);
+	if(focusedWindow == root)
+		return;
+
+	int fID = frameIDS.find(focusedWindow)->second;
+	int nID = dirFind(fID, arg.dir);
+	int fNID = FFCF(nID);
+	int pID = frames.find(fNID)->second.pID;
+	int oPID = frames.find(fID)->second.pID;
+
+	vector<int>& pSF = frames.find(pID)->second.subFrameIDs;
+	vector<int>& oPSF = frames.find(oPID)->second.subFrameIDs;
+
+	for(int i = 0; i < frames.find(oPID)->second.subFrameIDs.size(); i++)
+	{
+		if(oPSF[i] != fID)
+			continue;
+
+		if(pID!=oPID)
+		{
+			oPSF.erase(oPSF.begin() + i);
+
+			frames.find(fID)->second.pID = pID;
+			pSF.push_back(fID);
+			cout << "Moving to: " << pID << "\n";
+		}
+		else
+		{
+			if(frames.find(pID)->second.dir == vertical)
+			{
+				if(arg.dir == Left || arg.dir == Right)
+					return;
+			}
+			else
+			{
+				if(arg.dir == Up || arg.dir == Down)
+					return;
+			}
+					
+			int offset;
+			if(arg.dir == Up || arg.dir == Left)
+				offset = -1;
+			else
+				offset = 1;
+
+			int swapPos = i + offset;
+			
+			if(swapPos == pSF.size())
+				swapPos = 0;
+			else if(swapPos == -1)
+				swapPos = pSF.size() - 1;
+
+			std::swap(pSF[i], pSF[swapPos]);
+		}
+		tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+		XSetInputFocus(dpy, focusedWindow, RevertToPointerRoot, CurrentTime);
+		return;
+	}
+}
 
 void keyPress(XKeyEvent e)
 {
@@ -201,7 +326,7 @@ void mapRequest(XMapRequestEvent e)
 	frameIDS.insert(pair<Window, int>(e.window, f.ID));
 
 	//Check how to add
-	if(nextDir == frames.find(pID)->second.dir)
+	if(nextDir == frames.find(pID)->second.dir || frameIDS.count(focusedWindow)==0)
 	{
 		//Add to focused parent
 		frames.find(pID)->second.subFrameIDs.push_back(f.ID);
@@ -389,6 +514,7 @@ int main(int argc, char** argv)
 		}
 	}
 
+	XSetInputFocus(dpy, root, RevertToNone, CurrentTime);
 	cout << "Begin mainloop\n";
 
 	while(keepGoing)

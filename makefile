@@ -1,6 +1,6 @@
 .PHONY: clean
 CXX := g++
-CXXFLAGS := -g `pkg-config --cflags x11`
+CXXFLAGS := -g `pkg-config --cflags x11` 
 LINKFLAGS := `pkg-config --libs x11`
 OBJS_DIR := .
 OUT_DIR := .
