@@ -118,6 +118,7 @@ void wToWS(const KeyArg arg)
 	{
 		if(pSF[i] == fID)
 		{
+			//Frame disolve
 			pSF.erase(pSF.begin() + i);
 			int pID = frames.find(fID)->second.pID;
 			if(pSF.size() < 2 && !frames.find(pID)->second.isRoot)
@@ -233,7 +234,25 @@ void wMove(const KeyArg arg)
 
 		if(pID!=oPID)
 		{
+			//Frame dissolve
 			oPSF.erase(oPSF.begin() + i);
+			if(oPSF.size() < 2 && !frames.find(oPID)->second.isRoot)
+			{
+				//Erase parent frame
+				int lastChildID = frames.find(frames.find(oPID)->second.subFrameIDs[0])->second.ID;
+				int parentParentID = frames.find(oPID)->second.pID;
+				vector<int>& parentParentSubFrameIDs = frames.find(parentParentID)->second.subFrameIDs;
+				for(int j = 0; j < parentParentSubFrameIDs.size(); j++)
+				{
+					if(parentParentSubFrameIDs[j] == oPID)
+					{
+						parentParentSubFrameIDs[j] = lastChildID;
+						frames.find(lastChildID)->second.pID = parentParentID;
+						frames.erase(oPID);
+						break;
+					}
+				}
+			}
 
 			frames.find(fID)->second.pID = pID;
 			pSF.push_back(fID);
