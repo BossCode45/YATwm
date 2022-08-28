@@ -1,6 +1,8 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 
+#include <X11/Xutil.h>
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -22,6 +24,7 @@ using std::vector;
 Display* dpy;
 Window root;
 int sW, sH;
+int bH;
 TileDir nextDir = horizontal;
 
 bool keepGoing = true;
@@ -101,7 +104,7 @@ void changeWS(const KeyArg arg)
 		return;
 
 	untile(prevWS);
-	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 }
 void wToWS(const KeyArg arg)
@@ -145,7 +148,7 @@ void wToWS(const KeyArg arg)
 	frames.find(fID)->second.pID = arg.num;
 	frames.find(arg.num)->second.subFrameIDs.push_back(fID);
 	XUnmapWindow(dpy, focusedWindow);
-	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 }
 int FFCF(int sID)
@@ -286,7 +289,7 @@ void wMove(const KeyArg arg)
 
 			std::swap(pSF[i], pSF[swapPos]);
 		}
-		tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+		tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 		XSetInputFocus(dpy, focusedWindow, RevertToPointerRoot, CurrentTime);
 		return;
 	}
@@ -321,6 +324,26 @@ void configureRequest(XConfigureRequestEvent e)
 void mapRequest(XMapRequestEvent e)
 {
 	XMapWindow(dpy, e.window);
+
+	Atom prop_type = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", True);
+	Atom type;
+	int format;
+	unsigned long length;
+	unsigned long after;
+	unsigned char* data;
+	int status = XGetWindowProperty(dpy, e.window, prop_type,
+							0L, 1L, False,
+							AnyPropertyType, &type, &format,
+							&length, &after, &data);
+	if (status == Success && type != None && ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", true))
+	{
+		XWindowAttributes attr;
+		XGetWindowAttributes(dpy, e.window, &attr);
+		bH = attr.height;
+		return;
+	}
+
+
 	Window focusedWindow;
 	int revertToReturn;
 	XGetInputFocus(dpy, &focusedWindow, &revertToReturn);
@@ -383,7 +406,7 @@ void mapRequest(XMapRequestEvent e)
 	//Add to frames map
 	frames.insert(pair<int, Frame>(f.ID, f));
 
-	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 }
 
 void destroyNotify(XDestroyWindowEvent e)
@@ -424,7 +447,7 @@ void destroyNotify(XDestroyWindowEvent e)
 		}
 	}
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
-	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2);
+	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 }
 
 static int OnXError(Display* display, XErrorEvent* e)
