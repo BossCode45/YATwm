@@ -14,6 +14,7 @@
 
 #include "structs.h"
 #include "util.h"
+#include "ewmh.h"
 
 #include "config.h"
 
@@ -107,6 +108,9 @@ void changeWS(const KeyArg arg)
 	untile(prevWS);
 	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+
+	//EWMH
+	setCurrentDesktop(currWS);
 }
 void wToWS(const KeyArg arg)
 {
@@ -148,6 +152,10 @@ void wToWS(const KeyArg arg)
 	}
 	frames.find(fID)->second.pID = arg.num;
 	frames.find(arg.num)->second.subFrameIDs.push_back(fID);
+
+	//EWMH
+	setWindowDesktop(focusedWindow, arg.num);
+
 	XUnmapWindow(dpy, focusedWindow);
 	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
@@ -344,7 +352,6 @@ void mapRequest(XMapRequestEvent e)
 		return;
 	}
 
-
 	Window focusedWindow;
 	int revertToReturn;
 	XGetInputFocus(dpy, &focusedWindow, &revertToReturn);
@@ -407,6 +414,9 @@ void mapRequest(XMapRequestEvent e)
 	//Add to frames map
 	frames.insert(pair<int, Frame>(f.ID, f));
 
+	setWindowDesktop(e.window, currWS);
+	updateClientList(clients);
+
 	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 }
 
@@ -449,6 +459,8 @@ void destroyNotify(XDestroyWindowEvent e)
 	}
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
+
+	updateClientList(clients);
 }
 
 static int OnXError(Display* display, XErrorEvent* e)
@@ -544,7 +556,7 @@ int main(int argc, char** argv)
 
 
 	//EWMH stuff
-	Atom supported[] = {XInternAtom(dpy, "_NET_NUMBER_OF_DESKTOPS", false), XInternAtom(dpy, "_NET_DESKTOP_NAMES", false)};
+	Atom supported[] = {XInternAtom(dpy, "_NET_NUMBER_OF_DESKTOPS", false), XInternAtom(dpy, "_NET_DESKTOP_NAMES", false), XInternAtom(dpy, "_NET_CLIENT_LIST", false)};
 	int wsNamesLen = numWS; //For  null bytes
 	for(int i = 0; i < numWS; i++)
 	{
@@ -565,9 +577,12 @@ int main(int argc, char** argv)
 	Atom netNumDesktopsAtom = XInternAtom(dpy, "_NET_NUMBER_OF_DESKTOPS", false);
 	Atom netDesktopNamesAtom = XInternAtom(dpy, "_NET_DESKTOP_NAMES", false);
 	Atom XA_UTF8STRING = XInternAtom(dpy, "UTF8_STRING", false);
-	XChangeProperty(dpy, root, netSupportedAtom, XA_ATOM, 32, PropModeReplace, (unsigned char*)supported, 2);
+	XChangeProperty(dpy, root, netSupportedAtom, XA_ATOM, 32, PropModeReplace, (unsigned char*)supported, 3);
 	XChangeProperty(dpy, root, netDesktopNamesAtom, XA_UTF8STRING, 8, PropModeReplace, (unsigned char*)&wsNames, wsNamesLen);
 	XChangeProperty(dpy, root, netNumDesktopsAtom, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&numDesktops, 1);
+
+	//EWMH
+	setCurrentDesktop(1);
 
 	/*
 	Atom type;

@@ -5,7 +5,7 @@
 #include <string>
 
 //Startup
-std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png"};//, "~/.config/polybar/launch.sh"};
+std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png", "~/.config/polybar/launch.sh"};
 
 //Main config
 int gaps = 10;

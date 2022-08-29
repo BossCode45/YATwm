@@ -18,6 +18,7 @@ $(OBJS_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 
 #Files to be compiled
 $(OBJS_DIR)/main.o: $(SOURCE_FILES) $(SOURCE_HEADERS)
+$(OBJS_DIR)/ewmh.o: $(SOURCE_DIR)/ewmh.cpp $(SOURCE_DIR)/ewmh.h
 
 clean:
 	rm $(OBJS_DIR)/*.o 
