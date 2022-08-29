@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <string>
 #include <vector>
 #include <unistd.h>
 #include <cstring>
@@ -539,6 +540,51 @@ int main(int argc, char** argv)
 		XGrabKey(dpy, XKeysymToKeycode(dpy, keyBinds[i].keysym), keyBinds[i].modifiers, root, false, GrabModeAsync, GrabModeAsync);
 	}
 
+
+
+
+	//EWMH stuff
+	Atom supported[] = {XInternAtom(dpy, "_NET_NUMBER_OF_DESKTOPS", false), XInternAtom(dpy, "_NET_DESKTOP_NAMES", false)};
+	int wsNamesLen = numWS; //For  null bytes
+	for(int i = 0; i < numWS; i++)
+	{
+		wsNamesLen += workspaceNames[i].length();
+	}
+	char wsNames[wsNamesLen];
+	int pos = 0;
+	for(int i = 0; i < numWS; i++)
+	{
+		for(char toAdd : workspaceNames[i])
+		{
+			wsNames[pos++] = toAdd;		
+		}
+		wsNames[pos++] = '\0';
+	}
+	unsigned long numDesktops = 5;
+	Atom netSupportedAtom = XInternAtom(dpy, "_NET_SUPPORTED", false);
+	Atom netNumDesktopsAtom = XInternAtom(dpy, "_NET_NUMBER_OF_DESKTOPS", false);
+	Atom netDesktopNamesAtom = XInternAtom(dpy, "_NET_DESKTOP_NAMES", false);
+	Atom XA_UTF8STRING = XInternAtom(dpy, "UTF8_STRING", false);
+	XChangeProperty(dpy, root, netSupportedAtom, XA_ATOM, 32, PropModeReplace, (unsigned char*)supported, 2);
+	XChangeProperty(dpy, root, netDesktopNamesAtom, XA_UTF8STRING, 8, PropModeReplace, (unsigned char*)&wsNames, wsNamesLen);
+	XChangeProperty(dpy, root, netNumDesktopsAtom, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&numDesktops, 1);
+
+	/*
+	Atom type;
+	int format;
+	unsigned long length;
+	unsigned long after;
+	unsigned char* data;
+	int status = XGetWindowProperty(dpy, root, netDesktopNamesAtom, 0, 50L, false, AnyPropertyType, &type, &format, &length, &after, &data);
+	if (status == Success && type != None)
+	{
+		cout << data << "\n";
+	}
+	XFree(data);
+	*/
+
+
+
 	for(int i = 1; i < numWS + 1; i++)
 	{
 		vector<int> v;
@@ -556,7 +602,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	XSetInputFocus(dpy, root, RevertToNone, CurrentTime);
+		XSetInputFocus(dpy, root, RevertToNone, CurrentTime);
 	cout << "Begin mainloop\n";
 
 	while(keepGoing)

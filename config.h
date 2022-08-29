@@ -5,13 +5,15 @@
 #include <string>
 
 //Startup
-std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png", "~/.config/polybar/launch.sh"};
+std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png"};//, "~/.config/polybar/launch.sh"};
 
 //Main config
 int gaps = 10;
 int outerGaps = 30;
 
+//WS config
 int numWS = 5;
+std::string workspaceNames[] = {"1: d", "2: s", "3: g", "4: c", "5: r"};
 
 //Keys
 //The types and perhaps functions likely to be moved to seperate header file later
