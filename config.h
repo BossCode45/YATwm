@@ -59,7 +59,7 @@ const char* qutebrowser[] = {"qutebrowser", NULL};
 const char* i3lock[] = {"i3lock", "-eti", "/usr/share/backgrounds/lockscreen.png", NULL};
 const char* suspend[] = {"systemctl", "suspend", NULL};
 
-#define MOD Mod1Mask
+#define MOD Mod4Mask
 #define SHIFT ShiftMask
 
 #define WSKEY(K, X) \

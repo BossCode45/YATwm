@@ -16,6 +16,15 @@ $(EXEC): $(OBJS)
 $(OBJS_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+i: $(EXEC)
+	sudo mv $(EXEC) /usr/bin
+	sudo cp yat.desktop /usr/share/xsessions
+install: i
+r:
+	sudo rm /usr/bin/$(EXEC)
+	sudo rm /usr/share/xsessions/yat.desktop
+remove: r
+
 #Files to be compiled
 $(OBJS_DIR)/main.o: $(SOURCE_FILES) $(SOURCE_HEADERS)
 $(OBJS_DIR)/ewmh.o: $(SOURCE_DIR)/ewmh.cpp $(SOURCE_DIR)/ewmh.h

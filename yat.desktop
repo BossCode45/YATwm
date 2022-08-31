@@ -1,0 +1,7 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=YATwm
+Comment=Yet Another Tiling WM
+Exec=/usr/bin/YATwm
+Icon=YATwm
+Type=XSession
