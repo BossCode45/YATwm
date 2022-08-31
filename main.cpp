@@ -3,6 +3,7 @@
 #include <X11/Xatom.h>
 
 #include <X11/Xutil.h>
+#include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -11,6 +12,7 @@
 #include <unistd.h>
 #include <cstring>
 #include <algorithm>
+#include <fcntl.h>
 
 #include "structs.h"
 #include "util.h"
@@ -37,12 +39,15 @@ map<int, Frame> frames;
 int currFrameID = 1;
 map<Window, int> frameIDS;
 
+Window bar;
+
 int currWS = 1;
 
 void keyPress(XKeyEvent e);
 void configureRequest(XConfigureRequestEvent e);
 void mapRequest(XMapRequestEvent e);
 void destroyNotify(XDestroyWindowEvent e);
+void clientMessage(XClientMessageEvent e);
 
 static int OnXError(Display* display, XErrorEvent* e);
 
@@ -58,6 +63,9 @@ void spawn(const KeyArg arg)
 {
 	if(fork() == 0)
 	{
+		int null = open("/dev/null", O_WRONLY);
+		dup2(null, 1);
+		dup2(null, 2);
 		execvp((char*)arg.str[0], (char**)arg.str);
 		exit(0);
 	}
@@ -121,6 +129,9 @@ void wToWS(const KeyArg arg)
 		return;
 
 	int fID = frameIDS.find(focusedWindow)->second;
+	//TODO: make floating windows move WS
+	if(clients.find(frames.find(fID)->second.cID)->second.floating)
+		return;
 	vector<int>& pSF = frames.find(frames.find(fID)->second.pID)->second.subFrameIDs;
 	for(int i = 0; i < pSF.size(); i++)
 	{
@@ -231,6 +242,8 @@ void wMove(const KeyArg arg)
 		return;
 
 	int fID = frameIDS.find(focusedWindow)->second;
+	if(clients.find(frames.find(fID)->second.cID)->second.floating)
+		return;
 	int nID = dirFind(fID, arg.dir);
 	int fNID = FFCF(nID);
 	int pID = frames.find(fNID)->second.pID;
@@ -302,6 +315,7 @@ void wMove(const KeyArg arg)
 		XSetInputFocus(dpy, focusedWindow, RevertToPointerRoot, CurrentTime);
 		return;
 	}
+	XSetInputFocus(dpy, focusedWindow, RevertToPointerRoot, CurrentTime);
 }
 
 void keyPress(XKeyEvent e)
@@ -334,23 +348,21 @@ void mapRequest(XMapRequestEvent e)
 {
 	XMapWindow(dpy, e.window);
 
-	Atom prop_type = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", True);
-	Atom type;
-	int format;
-	unsigned long length;
-	unsigned long after;
 	unsigned char* data;
-	int status = XGetWindowProperty(dpy, e.window, prop_type,
-							0L, 1L, False,
-							AnyPropertyType, &type, &format,
-							&length, &after, &data);
-	if (status == Success && type != None && ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", true))
+	Atom type;
+	int status = getProp(e.window, "_NET_WM_WINDOW_TYPE", &type, &data);
+	if (status == Success && ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", false))
 	{
 		XWindowAttributes attr;
 		XGetWindowAttributes(dpy, e.window, &attr);
 		bH = attr.height;
+		bar = e.window;
+		XFree(data);
 		return;
 	}
+	XFree(data);
+
+	
 
 	Window focusedWindow;
 	int revertToReturn;
@@ -359,7 +371,7 @@ void mapRequest(XMapRequestEvent e)
 	XSelectInput(dpy, e.window, EnterWindowMask);
 	
 	//Make client
-	Client c = {currClientID, e.window};
+	Client c = {currClientID, e.window, false};
 	currClientID++;
 
 	//Add to clients map
@@ -368,12 +380,27 @@ void mapRequest(XMapRequestEvent e)
 	//Make frame
 	int pID = (frameIDS.count(focusedWindow)>0)? frames.find(frameIDS.find(focusedWindow)->second)->second.pID : currWS;
 	vector<int> v;
-	Frame f = {currFrameID, pID, true, c.ID, noDir, v, false};
+	vector<int> floating;
+	Frame f = {currFrameID, pID, true, c.ID, noDir, v, false, floating};
 	currFrameID++;
 
 
 	//Add ID to frameIDS map
 	frameIDS.insert(pair<Window, int>(e.window, f.ID));
+
+	status = getProp(e.window, "_NET_WM_STATE", &type, &data);
+	if(status == Success && type!=None && (((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_MODAL", false) || ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_ABOVE", false)))
+	{
+		clients.find(c.ID)->second.floating = true;
+		frames.find(pID)->second.floatingFrameIDs.push_back(f.ID);
+		frames.insert(pair<int, Frame>(f.ID, f));
+		setWindowDesktop(e.window, currWS);
+		updateClientList(clients);
+		XFree(data);
+		tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
+		return;
+	}
+	XFree(data);
 
 	//Check how to add
 	if(nextDir == frames.find(pID)->second.dir || frameIDS.count(focusedWindow)==0)
@@ -398,7 +425,7 @@ void mapRequest(XMapRequestEvent e)
 		vector<int> v;
 		v.push_back(frames.find(frameIDS.find(focusedWindow)->second)->second.ID);
 		v.push_back(f.ID);
-		Frame pF = {currFrameID, pID, false, noID, nextDir, v, false};
+		Frame pF = {currFrameID, pID, false, noID, nextDir, v, false, floating};
 
 		//Update the IDS
 		f.pID = currFrameID;
@@ -428,6 +455,10 @@ void destroyNotify(XDestroyWindowEvent e)
 	int fID = frameIDS.find(e.window)->second;
 	int pID = frames.find(fID)->second.pID;
 	vector<int>& pS = frames.find(pID)->second.subFrameIDs;
+	if(clients.find(frames.find(fID)->second.cID)->second.floating)
+	{
+		pS = frames.find(pID)->second.floatingFrameIDs;
+	}
 	for(int i = 0; i < pS.size(); i++)
 	{
 		if(frames.find(pS[i])->second.ID == fID)
@@ -462,6 +493,27 @@ void destroyNotify(XDestroyWindowEvent e)
 
 	updateClientList(clients);
 }
+void clientMessage(XClientMessageEvent e)
+{
+	//cout << "Client message: " << XGetAtomName(dpy, e.message_type) << "\n";
+	if(e.message_type == XInternAtom(dpy, "_NET_CURRENT_DESKTOP", false))
+	{
+		int nextWS = (long)e.data.l[0] + 1;
+		int prevWS = currWS;
+		currWS = nextWS;
+
+		if(prevWS == currWS)
+			return;
+
+		untile(prevWS);
+		tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
+		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+
+		//EWMH
+		setCurrentDesktop(currWS);
+
+	}
+}
 
 static int OnXError(Display* display, XErrorEvent* e)
 {
@@ -474,14 +526,14 @@ static int OnXError(Display* display, XErrorEvent* e)
 
 void tile(int frameID, int x, int y, int w, int h)
 {
-	if(frameID == 0)
+	for(int fID : frames.find(frameID)->second.floatingFrameIDs)
 	{
-		//printf("\nTILING ROOT:\n");
+		Window w = clients.find(frames.find(fID)->second.cID)->second.w;
+		XMapWindow(dpy, w);
 	}
-	//printf("Tiling frame - ID: %i\n\tx: %i, y: %i, w: %i, h: %i\n", frameID, x, y, w, h);
+	TileDir dir = frames.find(frameID)->second.dir;
 	int i = 0;
 	vector<int>& subFrameIDs = frames.find(frameID)->second.subFrameIDs;
-	TileDir dir = frames.find(frameID)->second.dir;
 	for(int fID : subFrameIDs)
 	{
 		Frame f = frames.find(fID)->second;
@@ -505,21 +557,21 @@ void tile(int frameID, int x, int y, int w, int h)
 		wW -= gaps * 2;
 		wH -= gaps * 2;
 		Client c = clients.find(f.cID)->second;
-		//printf("Arranging client with frame ID %i, client ID %i:\n\tx: %i, y: %i, w: %i, h: %i\n", fID, c.ID, wX, wY, wW, wH);
 		XMapWindow(dpy, c.w);
 		XMoveWindow(dpy, c.w,
 					wX, wY);
 		XResizeWindow(dpy, c.w,
 					wW, wH);
 	}
-	if(frameID == 0)
-	{
-		//printf("DONE TILING ROOT\n\n");
-	}
 }
 
 void untile(int frameID)
 {
+	for(int fID : frames.find(frameID)->second.floatingFrameIDs)
+	{
+		Window w = clients.find(frames.find(fID)->second.cID)->second.w;
+		XUnmapWindow(dpy, w);
+	}
 	vector<int>& subFrameIDs = frames.find(frameID)->second.subFrameIDs;
 	TileDir dir = frames.find(frameID)->second.dir;
 	for(int fID : subFrameIDs)
@@ -552,53 +604,9 @@ int main(int argc, char** argv)
 		XGrabKey(dpy, XKeysymToKeycode(dpy, keyBinds[i].keysym), keyBinds[i].modifiers, root, false, GrabModeAsync, GrabModeAsync);
 	}
 
-
-
-
-	//EWMH stuff
-	Atom supported[] = {XInternAtom(dpy, "_NET_NUMBER_OF_DESKTOPS", false), XInternAtom(dpy, "_NET_DESKTOP_NAMES", false), XInternAtom(dpy, "_NET_CLIENT_LIST", false)};
-	int wsNamesLen = numWS; //For  null bytes
-	for(int i = 0; i < numWS; i++)
-	{
-		wsNamesLen += workspaceNames[i].length();
-	}
-	char wsNames[wsNamesLen];
-	int pos = 0;
-	for(int i = 0; i < numWS; i++)
-	{
-		for(char toAdd : workspaceNames[i])
-		{
-			wsNames[pos++] = toAdd;		
-		}
-		wsNames[pos++] = '\0';
-	}
-	unsigned long numDesktops = 5;
-	Atom netSupportedAtom = XInternAtom(dpy, "_NET_SUPPORTED", false);
-	Atom netNumDesktopsAtom = XInternAtom(dpy, "_NET_NUMBER_OF_DESKTOPS", false);
-	Atom netDesktopNamesAtom = XInternAtom(dpy, "_NET_DESKTOP_NAMES", false);
-	Atom XA_UTF8STRING = XInternAtom(dpy, "UTF8_STRING", false);
-	XChangeProperty(dpy, root, netSupportedAtom, XA_ATOM, 32, PropModeReplace, (unsigned char*)supported, 3);
-	XChangeProperty(dpy, root, netDesktopNamesAtom, XA_UTF8STRING, 8, PropModeReplace, (unsigned char*)&wsNames, wsNamesLen);
-	XChangeProperty(dpy, root, netNumDesktopsAtom, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&numDesktops, 1);
-
 	//EWMH
+	initEWMH(&dpy, &root, numWS, workspaceNames);
 	setCurrentDesktop(1);
-
-	/*
-	Atom type;
-	int format;
-	unsigned long length;
-	unsigned long after;
-	unsigned char* data;
-	int status = XGetWindowProperty(dpy, root, netDesktopNamesAtom, 0, 50L, false, AnyPropertyType, &type, &format, &length, &after, &data);
-	if (status == Success && type != None)
-	{
-		cout << data << "\n";
-	}
-	XFree(data);
-	*/
-
-
 
 	for(int i = 1; i < numWS + 1; i++)
 	{
@@ -607,12 +615,11 @@ int main(int argc, char** argv)
 		frames.insert(pair<int, Frame>(i, rootFrame));
 		currFrameID++;
 	}
-
 	for(int i = 0; i < sizeof(startup)/sizeof(startup[0]); i++)
 	{
 		if(fork() == 0)
 		{
-			system(startup[i].c_str());
+			system((startup[i] + " > /dev/null 2> /dev/null").c_str());
 			exit(0);
 		}
 	}
@@ -643,6 +650,9 @@ int main(int argc, char** argv)
 				if(e.xcrossing.window == root)
 					break;
 				XSetInputFocus(dpy, e.xcrossing.window, RevertToNone, CurrentTime);
+				break;
+			case ClientMessage:
+				clientMessage(e.xclient);
 				break;
 			default:
 				//cout << "Unhandled event, code: " << evNames[e.type] << "!\n";

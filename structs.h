@@ -10,6 +10,7 @@ struct Client
 {
 	int ID;
 	Window w;
+	bool floating;
 };
 
 enum TileDir
@@ -33,4 +34,5 @@ struct Frame
 	TileDir dir;
 	std::vector<int> subFrameIDs;
 	bool isRoot;
+	std::vector<int> floatingFrameIDs;
 };
