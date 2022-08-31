@@ -47,7 +47,7 @@ To add new keybinds create a new entry in the keybind array:
 #+end_src
 e.g.
 #+begin_src cpp
-{XK_x,			MOD|SHIFT,		spawn,			{.str = i3lock}},
+{XK_l,			MOD|SHIFT,		wMove,			{.dir = Right}},
 #+end_src
 Commands are executed going down the list and multiple commands with the same keybind and modifiers will all be executed
 
