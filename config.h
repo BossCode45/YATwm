@@ -8,8 +8,8 @@
 std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png", "~/.config/polybar/launch.sh"};
 
 //Main config
-int gaps = 10;
-int outerGaps = 30;
+int gaps = 3;
+int outerGaps = 3;
 
 //WS config
 const int numWS = 10;
@@ -59,7 +59,7 @@ const char* qutebrowser[] = {"qutebrowser", NULL};
 const char* i3lock[] = {"i3lock", "-eti", "/usr/share/backgrounds/lockscreen.png", NULL};
 const char* suspend[] = {"systemctl", "suspend", NULL};
 
-#define MOD Mod4Mask
+#define MOD Mod1Mask
 #define SHIFT ShiftMask
 
 #define WSKEY(K, X) \
