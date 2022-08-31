@@ -8,9 +8,9 @@ This only just works, multiple monitors aren't supported and floating windows ca
 * Usage instructions
 ** Installation
 *** Pre reqs
-- Xlib and g++ to build the program
-- Xephyr for the test script
-- Rofi, alacritty, picom, feh, polybar, qutebrowser and i3lock for the default config
+- ~Xlib~ and ~g++~ to build the program
+- ~Xephyr~ for the test script
+- ~rofi~, ~alacritty~, ~picom~, ~feh~, ~polybar~, ~qutebrowser~ and ~i3lock~ for the default config
 	- The current default config is currently just the configuration that I want to use (this will likely change)
 *** Installing and removing
 - ~make i~ or ~make install~ to install
@@ -26,29 +26,29 @@ They can be changed with the integers ~gaps~ and ~outerGaps~ in the config.h fil
 
 You can change the number of workspaces by editing ~numWS~ in the config.h file, and the names by editing ~workspaceNames~. You can think of workspaces as virtual desktops.
 *** Keybinds
-Current keybinds: 
-- mod + e					: exit
-- mod + enter				: alacritty
-- mod + d					: rofi
-- mod + t					: change next tile direction
-- mod + q					: quit focused window
-- mod + c					: qutebrowser
-- mod + x					: lock
-- mod + shift + x			: lock and sleep
-- mod + direction			: change focus in direction
-- mod + shift + directio	n	: move window in direction (currently not incredibly well implemented)
-- mod + (num)				: switch to workspace (num) - currently only for 1-10 but you can add more
-- mod + shift + (num)		: move window to workspace (num) - currently only for 1-10 but you can add more
+Current keybinds (these can all be edited): 
+- ~mod + e~					: exit
+- ~mod + enter~				: alacritty
+- ~mod + d~					: rofi
+- ~mod + t~					: change next tile direction
+- ~mod + q~					: quit focused window
+- ~mod + c~					: qutebrowser
+- ~mod + x~					: lock
+- ~mod + shift + x~			: lock and sleep
+- ~mod + direction~			: change focus in direction
+- ~mod + shift + direction~	: move window in direction (currently not incredibly well implemented)
+- ~mod + (num)~				: switch to workspace (num) - currently only for 1-10 but you can add more
+- ~mod + shift + (num)~		: move window to workspace (num) - currently only for 1-10 but you can add more
 (mod is super, and the direction keys are h, j, k, l - left, down, up, right respectively like vim)
 
 To add new keybinds create a new entry in the keybind array:
-#+begin_source cpp
+#+begin_src cpp
 {key,			modifiers,		command,		{commandArgs}},
-#+end_source
+#+end_src
 e.g.
-#+begin_source cpp
+#+begin_src cpp
 {XK_x,			MOD|SHIFT,		spawn,			{.str = i3lock}},
-#+end_source
+#+end_src
 Commands are executed going down the list and multiple commands with the same keybind and modifiers will all be executed
 
 * Credits
