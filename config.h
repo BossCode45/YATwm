@@ -34,8 +34,8 @@ typedef union
 
 struct Key
 {
-	KeySym keysym;
 	unsigned int modifiers;
+	KeySym keysym;
 	void (*function)(const KeyArg arg);
 	const KeyArg arg;
 };
@@ -59,35 +59,38 @@ const char* qutebrowser[] = {"qutebrowser", NULL};
 const char* i3lock[] = {"i3lock", "-eti", "/usr/share/backgrounds/lockscreen.png", NULL};
 const char* suspend[] = {"systemctl", "suspend", NULL};
 
-#define MOD Mod4Mask
+//Super key mod
+//#define MOD Mod4Mask
+//Alt key mod
+#define MOD Mod1Mask
 #define SHIFT ShiftMask
 
 #define WSKEY(K, X) \
-	{K, MOD, changeWS, {.num = X}}, \
-	{K, MOD|SHIFT, wToWS, {.num = X}}
+	{MOD, K, changeWS, {.num = X}}, \
+	{MOD|SHIFT, K, wToWS, {.num = X}}
 
 static struct Key keyBinds[] = {
-	//Key			//Modifiers		//Func			//Args
+	//Modifiers		//Key			//Func			//Args
 	//General
-	{XK_e, 			MOD,			exit,			{NULL}},
-	{XK_Return,		MOD, 			spawn,			{.str = alacritty}},
-	{XK_d,			MOD,	 		spawn,			{.str = rofi}},
-	{XK_t,			MOD,			toggle,			{NULL}},
-	{XK_q,			MOD,			kill,			{NULL}},
-	{XK_c,			MOD,			spawn,			{.str = qutebrowser}},
-	{XK_x,			MOD,			spawn,			{.str = i3lock}},
-	{XK_x,			MOD|SHIFT,		spawn,			{.str = i3lock}},
-	{XK_x,			MOD|SHIFT,		spawn,			{.str = suspend}},
+	{MOD, 			XK_e,			exit,			{NULL}},
+	{MOD,			XK_Return, 		spawn,			{.str = alacritty}},
+	{MOD,			XK_d,	 		spawn,			{.str = rofi}},
+	{MOD,			XK_t,			toggle,			{NULL}},
+	{MOD,			XK_q,			kill,			{NULL}},
+	{MOD,			XK_c,			spawn,			{.str = qutebrowser}},
+	{MOD,			XK_x,			spawn,			{.str = i3lock}},
+	{MOD|SHIFT,		XK_x,			spawn,			{.str = i3lock}},
+	{MOD|SHIFT,		XK_x,			spawn,			{.str = suspend}},
 	//Focus
-	{XK_h,			MOD,			focChange,		{.dir = Left}},
-	{XK_j,			MOD,			focChange,		{.dir = Down}},
-	{XK_k,			MOD,			focChange,		{.dir = Up}},
-	{XK_l,			MOD,			focChange,		{.dir = Right}},
+	{MOD,			XK_h,			focChange,		{.dir = Left}},
+	{MOD,			XK_j,			focChange,		{.dir = Down}},
+	{MOD,			XK_k,			focChange,		{.dir = Up}},
+	{MOD,			XK_l,			focChange,		{.dir = Right}},
 	//Window moving
-	{XK_h,			MOD|SHIFT,		wMove,			{.dir = Left}},
-	{XK_j,			MOD|SHIFT,		wMove,			{.dir = Down}},
-	{XK_k,			MOD|SHIFT,		wMove,			{.dir = Up}},
-	{XK_l,			MOD|SHIFT,		wMove,			{.dir = Right}},
+	{MOD|SHIFT,		XK_h,			wMove,			{.dir = Left}},
+	{MOD|SHIFT,		XK_j,			wMove,			{.dir = Down}},
+	{MOD|SHIFT,		XK_k,			wMove,			{.dir = Up}},
+	{MOD|SHIFT,		XK_l,			wMove,			{.dir = Right}},
 	//Workspaces
 	WSKEY(XK_1, 1),
 	WSKEY(XK_2, 2),
