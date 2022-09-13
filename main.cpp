@@ -609,7 +609,7 @@ int main(int argc, char** argv)
 	dpy = XOpenDisplay(nullptr);
 	root = Window(DefaultRootWindow(dpy));
 
-	yatlog.open("/tmp/yatlog.txt", std::ios_base::app);
+	yatlog.open(logFile, std::ios_base::app);
 
 	auto timeUnformatted = std::chrono::system_clock::now();
 	std::time_t time = std::chrono::system_clock::to_time_t(timeUnformatted);

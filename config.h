@@ -10,6 +10,7 @@ std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/v
 //Main config
 int gaps = 3;
 int outerGaps = 3;
+std::string logFile = "/tmp/yatlog";
 
 //WS config
 const int numWS = 10;
