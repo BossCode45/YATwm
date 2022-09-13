@@ -1,13 +1,17 @@
-//DEV BRANCH
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
 #include <X11/Xutil.h>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
+#include <fstream>
+#include <ios>
 #include <iostream>
 #include <map>
+#include <ostream>
 #include <string>
 #include <vector>
 #include <unistd.h>
@@ -26,6 +30,10 @@ using std::map;
 using std::pair;
 using std::vector;
 
+std::ofstream yatlog;
+
+#define log(x) yatlog << x << std::endl
+
 Display* dpy;
 Window root;
 int sW, sH;
@@ -39,6 +47,9 @@ int currClientID = 0;
 map<int, Frame> frames;
 int currFrameID = 1;
 map<Window, int> frameIDS;
+
+#define getClient(c) clients.find(c)->second
+#define getFrame(f) frames.find(f)->second
 
 Window bar;
 
@@ -282,7 +293,6 @@ void wMove(const KeyArg arg)
 
 			frames.find(fID)->second.pID = pID;
 			pSF.push_back(fID);
-			cout << "Moving to: " << pID << "\n";
 		}
 		else
 		{
@@ -325,7 +335,7 @@ void keyPress(XKeyEvent e)
 	KeySym keysym = XLookupKeysym(&e, 0);
 	for(int i = 0; i < sizeof(keyBinds)/sizeof(keyBinds[0]); i++)
 	{
-		if(keyBinds[i].keysym == keysym && keyBinds[i].modifiers == e.state)
+		if(keyBinds[i].keysym == keysym && (e.state & keyBinds[i].modifiers) == keyBinds[i].modifiers)
 		{
 			keyBinds[i].function(keyBinds[i].arg);
 		}
@@ -349,11 +359,18 @@ void mapRequest(XMapRequestEvent e)
 {
 	XMapWindow(dpy, e.window);
 
+	XTextProperty name;
+	XGetWMName(dpy, e.window, &name);
+	log("Mapping window: " << name.value);
+	log("\tWindow ID: " << e.window);
+	
+
 	unsigned char* data;
 	Atom type;
 	int status = getProp(e.window, "_NET_WM_WINDOW_TYPE", &type, &data);
 	if (status == Success && ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", false))
 	{
+		log("\tWindow was bar");
 		XWindowAttributes attr;
 		XGetWindowAttributes(dpy, e.window, &attr);
 		bH = attr.height;
@@ -392,6 +409,7 @@ void mapRequest(XMapRequestEvent e)
 	status = getProp(e.window, "_NET_WM_STATE", &type, &data);
 	if(status == Success && type!=None && (((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_MODAL", false) || ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_ABOVE", false)))
 	{
+		log("\tWindow floating");
 		clients.find(c.ID)->second.floating = true;
 		frames.find(pID)->second.floatingFrameIDs.push_back(f.ID);
 		frames.insert(pair<int, Frame>(f.ID, f));
@@ -452,7 +470,8 @@ void destroyNotify(XDestroyWindowEvent e)
 {
 	if(frameIDS.count(e.window)<1)
 		return;
-	cout << "Destroy notif\n";
+	log("Destroy notif");
+	log("\tWindow ID: " << e.window);
 	int fID = frameIDS.find(e.window)->second;
 	int pID = frames.find(fID)->second.pID;
 	vector<int>& pS = frames.find(pID)->second.subFrameIDs;
@@ -496,7 +515,7 @@ void destroyNotify(XDestroyWindowEvent e)
 }
 void clientMessage(XClientMessageEvent e)
 {
-	//cout << "Client message: " << XGetAtomName(dpy, e.message_type) << "\n";
+	log("Client message: " << XGetAtomName(dpy, e.message_type));
 	if(e.message_type == XInternAtom(dpy, "_NET_CURRENT_DESKTOP", false))
 	{
 		int nextWS = (long)e.data.l[0] + 1;
@@ -518,10 +537,7 @@ void clientMessage(XClientMessageEvent e)
 
 static int OnXError(Display* display, XErrorEvent* e)
 {
-	cout << "XError " << e->type << ":\n";
-	char buffer_return[100];
-	XGetErrorText(dpy, e->type, buffer_return, sizeof(buffer_return));
-	printf("\t%s\n", buffer_return);
+	log("XError " << e->type);
 	return 0;
 }
 
@@ -592,6 +608,12 @@ int main(int argc, char** argv)
 {
 	dpy = XOpenDisplay(nullptr);
 	root = Window(DefaultRootWindow(dpy));
+
+	yatlog.open("/tmp/yatlog.txt", std::ios_base::app);
+
+	auto timeUnformatted = std::chrono::system_clock::now();
+	std::time_t time = std::chrono::system_clock::to_time_t(timeUnformatted);
+	log("\nYAT STARTING: " << std::ctime(&time) << "--------------------------------------" );
 
 	int screenNum = DefaultScreen(dpy);
 	sW = DisplayWidth(dpy, screenNum);

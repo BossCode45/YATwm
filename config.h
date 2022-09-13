@@ -69,7 +69,7 @@ const char* suspend[] = {"systemctl", "suspend", NULL};
 	{MOD, K, changeWS, {.num = X}}, \
 	{MOD|SHIFT, K, wToWS, {.num = X}}
 
-static struct Key keyBinds[] = {
+static Key keyBinds[] = {
 	//Modifiers		//Key			//Func			//Args
 	//General
 	{MOD, 			XK_e,			exit,			{NULL}},
