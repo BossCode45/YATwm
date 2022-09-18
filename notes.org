@@ -1,0 +1,24 @@
+#+TITLE: Notes for myself to read
+
+* Multiple monitors
+** How I tell which monitor
+- First I should check the currently focsued window
+- Seccondly I should get the current mouseX and mouseY
+  - If the mouseX and mouseY match the old ones then use the focusedScreen
+  - If not then use mouseX and mouseY
+** When to update mouseX and mouseY
+Whenever I change focus or focused screen or map a new window
+** When to change focusedScreen
+It should get changed when I change workspace to one that should go on a different screen
+** How to tell which monitor to focus when changing workspace
+There should be an array with the priorities.
+
+* Fullscreen windows
+This should be another thing like floating windows except each workspace only gets one
+I should check it first when tiling and if it exists then draw it to the size of the screeen then return
+
+* General EWMH things
+I should really figure out what all the client messages mean
+
+* The eventual program to communicate with YAT
+Use a unix socket

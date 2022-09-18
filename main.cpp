@@ -3,6 +3,7 @@
 #include <X11/Xatom.h>
 
 #include <X11/Xutil.h>
+#include <X11/extensions/Xrandr.h>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -48,12 +49,23 @@ map<int, Frame> frames;
 int currFrameID = 1;
 map<Window, int> frameIDS;
 
+ScreenInfo* screens;
+int* focusedWorkspaces;
+int focusedScreen;
+int nscreens;
+int mX, mY;
+
 #define getClient(c) clients.find(c)->second
 #define getFrame(f) frames.find(f)->second
 
 Window bar;
 
 int currWS = 1;
+
+
+// Usefull functions
+int FFCF(int sID);
+void detectScreens();
 
 void keyPress(XKeyEvent e);
 void configureRequest(XConfigureRequestEvent e);
@@ -63,8 +75,38 @@ void clientMessage(XClientMessageEvent e);
 
 static int OnXError(Display* display, XErrorEvent* e);
 
+void tileRoots();
+void untileRoots();
 void tile(int frameID, int x, int y, int w, int h);
 void untile(int frameID);
+
+// Usefull functions
+int FFCF(int sID)
+{
+	if(frames.find(sID)->second.isClient)
+		return sID;
+	return FFCF(frames.find(sID)->second.subFrameIDs[0]);
+}
+void detectScreens()
+{
+	delete[] screens;
+	delete[] focusedWorkspaces;
+	log("Detecting screens: ");
+	XRRMonitorInfo* monitors = XRRGetMonitors(dpy, root, true, &nscreens);
+	log("\t"<<nscreens << " monitors");
+	screens = new ScreenInfo[nscreens];
+	focusedWorkspaces = new int[nscreens];
+	for(int i = 0; i < nscreens; i++)
+	{
+		char* name = XGetAtomName(dpy, monitors[i].name);
+		screens[i] = {name, monitors[i].x, monitors[i].y, monitors[i].width, monitors[i].height}; 
+		log("\tMonitor " << i + 1 << " - " << screens[i].name);
+		log("\t\tx: " << screens[i].x << ", y: " << screens[i].y);
+		log("\t\tw: " << screens[i].w << ", h: " << screens[i].h);
+		XFree(name);
+	}
+	XFree(monitors);
+}
 
 //Keybind commands
 void exit(const KeyArg arg)
@@ -182,12 +224,6 @@ void wToWS(const KeyArg arg)
 	XUnmapWindow(dpy, focusedWindow);
 	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
-}
-int FFCF(int sID)
-{
-	if(frames.find(sID)->second.isClient)
-		return sID;
-	return FFCF(frames.find(sID)->second.subFrameIDs[0]);
 }
 int dirFind(int fID, MoveDir dir)
 {
@@ -328,6 +364,22 @@ void wMove(const KeyArg arg)
 	}
 	XSetInputFocus(dpy, focusedWindow, RevertToPointerRoot, CurrentTime);
 }
+void bashSpawn(const KeyArg arg)
+{
+	if(fork() == 0)
+	{
+		int null = open("log.txt", O_WRONLY);
+		dup2(null, 1);
+		dup2(null, 2);
+		system(arg.str[0]);
+		exit(0);
+	}
+
+}
+void screenTest(const KeyArg arg)
+{
+	detectScreens();
+}
 
 void keyPress(XKeyEvent e)
 {
@@ -335,7 +387,7 @@ void keyPress(XKeyEvent e)
 	KeySym keysym = XLookupKeysym(&e, 0);
 	for(int i = 0; i < sizeof(keyBinds)/sizeof(keyBinds[0]); i++)
 	{
-		if(keyBinds[i].keysym == keysym && (e.state & keyBinds[i].modifiers) == keyBinds[i].modifiers)
+		if(keyBinds[i].keysym == keysym && e.state == keyBinds[i].modifiers)
 		{
 			keyBinds[i].function(keyBinds[i].arg);
 		}
@@ -361,9 +413,40 @@ void mapRequest(XMapRequestEvent e)
 
 	XTextProperty name;
 	XGetWMName(dpy, e.window, &name);
+	XWindowAttributes attr;
+	XGetWindowAttributes(dpy, e.window, &attr);
 	log("Mapping window: " << name.value);
 	log("\tWindow ID: " << e.window);
-	
+
+	Window focusedWindow;
+	int revertToReturn;
+	XGetInputFocus(dpy, &focusedWindow, &revertToReturn);
+	if(focusedWindow && focusedWindow != root)
+	{
+		//Use focused to determine monitors
+		XWindowAttributes focAttr;
+		XGetWindowAttributes(dpy, focusedWindow, &focAttr);
+		log("\tFocused is at x: " << focAttr.x << ", y: " << focAttr.y);
+	}
+	else
+	{
+		Window rootRet, childRet;
+		int rX, rY, cX, cY;
+		unsigned int maskRet;
+		XQueryPointer(dpy, root, &rootRet, &childRet, &rX, &rY, &cX, &cY, &maskRet);
+		if(mX == rX && mY == rY)
+		{
+			//Use focused screen
+			log("\tFocused screen is: " << focusedScreen);
+		}
+		else
+		{
+			//Use mouse
+			log("\tMouse is at x: " << rX << ", y: " << rY);
+			mX = rX;
+			mY = rY;
+		}
+	}
 
 	unsigned char* data;
 	Atom type;
@@ -371,8 +454,6 @@ void mapRequest(XMapRequestEvent e)
 	if (status == Success && ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", false))
 	{
 		log("\tWindow was bar");
-		XWindowAttributes attr;
-		XGetWindowAttributes(dpy, e.window, &attr);
 		bH = attr.height;
 		bar = e.window;
 		XFree(data);
@@ -382,9 +463,6 @@ void mapRequest(XMapRequestEvent e)
 
 	
 
-	Window focusedWindow;
-	int revertToReturn;
-	XGetInputFocus(dpy, &focusedWindow, &revertToReturn);
 	XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
 	XSelectInput(dpy, e.window, EnterWindowMask);
 	
@@ -515,9 +593,11 @@ void destroyNotify(XDestroyWindowEvent e)
 }
 void clientMessage(XClientMessageEvent e)
 {
-	log("Client message: " << XGetAtomName(dpy, e.message_type));
+	char* name = XGetAtomName(dpy, e.message_type);
+	log("Client message: " << name);
 	if(e.message_type == XInternAtom(dpy, "_NET_CURRENT_DESKTOP", false))
 	{
+		//Change desktop
 		int nextWS = (long)e.data.l[0] + 1;
 		int prevWS = currWS;
 		currWS = nextWS;
@@ -531,8 +611,8 @@ void clientMessage(XClientMessageEvent e)
 
 		//EWMH
 		setCurrentDesktop(currWS);
-
 	}
+	XFree(name);
 }
 
 static int OnXError(Display* display, XErrorEvent* e)
@@ -541,6 +621,20 @@ static int OnXError(Display* display, XErrorEvent* e)
 	return 0;
 }
 
+void tileRoots()
+{
+	for(int i = 0; i < nscreens; i++)
+	{
+		tile(focusedWorkspaces[i], screens[i].x + outerGaps, screens[i].y + outerGaps, screens[i].w - outerGaps*2, screens[i].h - outerGaps*2 - bH);
+	}
+}
+void untileRoots()
+{
+	for(int i = 0; i < nscreens; i++)
+	{
+		untile(focusedWorkspaces[i]);
+	}
+}
 void tile(int frameID, int x, int y, int w, int h)
 {
 	for(int fID : frames.find(frameID)->second.floatingFrameIDs)
@@ -606,6 +700,7 @@ void untile(int frameID)
 
 int main(int argc, char** argv)
 {
+	mX = mY = 0;
 	dpy = XOpenDisplay(nullptr);
 	root = Window(DefaultRootWindow(dpy));
 
@@ -613,7 +708,11 @@ int main(int argc, char** argv)
 
 	auto timeUnformatted = std::chrono::system_clock::now();
 	std::time_t time = std::chrono::system_clock::to_time_t(timeUnformatted);
-	log("\nYAT STARTING: " << std::ctime(&time) << "--------------------------------------" );
+	log("\nYAT STARTING: " << std::ctime(&time) << "--------------------------------------");
+
+	screens = new ScreenInfo[1];
+	focusedWorkspaces = new int[1];
+	detectScreens();
 
 	int screenNum = DefaultScreen(dpy);
 	sW = DisplayWidth(dpy, screenNum);
@@ -669,7 +768,7 @@ int main(int argc, char** argv)
 			case DestroyNotify:
 				destroyNotify(e.xdestroywindow);
 			case EnterNotify:
-				//cout << e.xcrossing.window << "\n";
+				log(e.xcrossing.x);
 				if(e.xcrossing.window == root)
 					break;
 				XSetInputFocus(dpy, e.xcrossing.window, RevertToNone, CurrentTime);
