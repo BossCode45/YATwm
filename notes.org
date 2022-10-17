@@ -8,6 +8,7 @@
   - If not then use mouseX and mouseY
 ** When to update mouseX and mouseY
 Whenever I change focus or focused screen or map a new window
+Or just updating every key press should work
 ** When to change focusedScreen
 It should get changed when I change workspace to one that should go on a different screen
 ** How to tell which monitor to focus when changing workspace

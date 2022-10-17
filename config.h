@@ -8,8 +8,15 @@
 const std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png", "~/.config/polybar/launch.sh", "emacs --daemon"};
 
 //Main config
+// Sensible gaps
 const int gaps = 3;
 const int outerGaps = 3;
+// Huge gaps
+/*
+const int gaps = 20;
+const int outerGaps = 30;
+*/
+
 const std::string logFile = "/tmp/yatlog.txt";
 
 //WS config
@@ -58,18 +65,22 @@ KEYCOM(wMove);
 KEYCOM(bashSpawn);
 KEYCOM(screenTest);
 
-//Super key mod
+// Super key mod
 #define MOD Mod4Mask
-//Alt key mod
+// Alt key mod
 //#define MOD Mod1Mask
 #define SHIFT ShiftMask
+
+// Programs to run for keybinds
 const char* alacritty[] = {"alacritty", NULL};
 const char* rofi[] = {"rofi", "-i", "-show", "drun", NULL};
 const char* qutebrowser[] = {"qutebrowser", NULL};
 const char* i3lock[] = {"i3lock", "-eti", "/usr/share/backgrounds/lockscreen.png", NULL};
 const char* suspend[] = {"systemctl", "suspend", NULL};
 
-const char* monConfig[] = {"~/.i3_commands/monitor-config.sh"};
+// Script to run for keybinds
+// Script I made to run an xrandr command
+const char* monConfig[] = {"~/.yat_commands/monitor-config.sh"};
 
 
 #define WSKEY(K, X) \
@@ -77,8 +88,8 @@ const char* monConfig[] = {"~/.i3_commands/monitor-config.sh"};
 	{MOD|SHIFT, K, wToWS, {.num = X}}
 
 const Key keyBinds[] = {
-	//Modifiers		//Key			//Func			//Args
-	//General
+	// Modifiers	//Key			//Func			//Args
+	// General
 	{MOD, 			XK_e,			exit,			{NULL}},
 	{MOD,			XK_Return, 		spawn,			{.str = alacritty}},
 	{MOD,			XK_d,	 		spawn,			{.str = rofi}},
@@ -90,17 +101,17 @@ const Key keyBinds[] = {
 	{MOD|SHIFT,		XK_x,			spawn,			{.str = suspend}},
 	{MOD,			XK_m,			bashSpawn,		{.str = monConfig}},
 	{MOD|SHIFT,		XK_t,			screenTest,		{NULL}},
-	//Focus
+	// Focus
 	{MOD,			XK_h,			focChange,		{.dir = Left}},
 	{MOD,			XK_j,			focChange,		{.dir = Down}},
 	{MOD,			XK_k,			focChange,		{.dir = Up}},
 	{MOD,			XK_l,			focChange,		{.dir = Right}},
-	//Window moving
+	// Window moving
 	{MOD|SHIFT,		XK_h,			wMove,			{.dir = Left}},
 	{MOD|SHIFT,		XK_j,			wMove,			{.dir = Down}},
 	{MOD|SHIFT,		XK_k,			wMove,			{.dir = Up}},
 	{MOD|SHIFT,		XK_l,			wMove,			{.dir = Right}},
-	//Workspaces
+	// Workspaces
 	WSKEY(XK_1, 1),
 	WSKEY(XK_2, 2),
 	WSKEY(XK_3, 3),

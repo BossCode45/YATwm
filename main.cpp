@@ -66,6 +66,7 @@ int currWS = 1;
 // Usefull functions
 int FFCF(int sID);
 void detectScreens();
+void updateMousePos();
 
 void keyPress(XKeyEvent e);
 void configureRequest(XConfigureRequestEvent e);
@@ -106,6 +107,15 @@ void detectScreens()
 		XFree(name);
 	}
 	XFree(monitors);
+}
+void updateMousePos()
+{
+	Window rootRet, childRet;
+	int rX, rY, cX, cY;
+	unsigned int maskRet;
+	XQueryPointer(dpy, root, &rootRet, &childRet, &rX, &rY, &cX, &cY, &maskRet);
+	mX = rX;
+	mY = rY;
 }
 
 //Keybind commands
@@ -162,13 +172,23 @@ void kill(const KeyArg arg)
 void changeWS(const KeyArg arg)
 {
 	int prevWS = currWS;
-	currWS = arg.num;
 
+	currWS = arg.num;
 	if(prevWS == currWS)
 		return;
 
+	for(int i = 0; i < maxMonitors; i++)
+	{
+		if(nscreens > screenPreferences[arg.num][i])
+		{
+			focusedWorkspaces[screenPreferences[arg.num][i]] = arg.num;
+			focusedScreen = screenPreferences[arg.num][i];
+		}
+	}
+
 	untile(prevWS);
-	tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
+	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
+	tileRoots();
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 
 	//EWMH
@@ -384,6 +404,7 @@ void screenTest(const KeyArg arg)
 void keyPress(XKeyEvent e)
 {
 	if(e.same_screen!=1) return;
+	updateMousePos();
 	KeySym keysym = XLookupKeysym(&e, 0);
 	for(int i = 0; i < sizeof(keyBinds)/sizeof(keyBinds[0]); i++)
 	{
@@ -426,6 +447,7 @@ void mapRequest(XMapRequestEvent e)
 		//Use focused to determine monitors
 		XWindowAttributes focAttr;
 		XGetWindowAttributes(dpy, focusedWindow, &focAttr);
+		//TODO: Make this find the monitor
 		log("\tFocused is at x: " << focAttr.x << ", y: " << focAttr.y);
 	}
 	else
@@ -442,6 +464,7 @@ void mapRequest(XMapRequestEvent e)
 		else
 		{
 			//Use mouse
+			//TODO: Make this find the monitor
 			log("\tMouse is at x: " << rX << ", y: " << rY);
 			mX = rX;
 			mY = rY;
@@ -746,7 +769,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-		XSetInputFocus(dpy, root, RevertToNone, CurrentTime);
+	XSetInputFocus(dpy, root, RevertToNone, CurrentTime);
 	cout << "Begin mainloop\n";
 
 	while(keepGoing)

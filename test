@@ -2,7 +2,7 @@
 
 make
 
-Xephyr -screen 1600x900+160+0 :100 &
+Xephyr -screen 1600x900+2080+90 :100 &
 
 sleep 0.1
 
