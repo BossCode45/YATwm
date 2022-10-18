@@ -51,7 +51,7 @@ map<Window, int> frameIDS;
 
 ScreenInfo* screens;
 int* focusedWorkspaces;
-int focusedScreen;
+int focusedScreen = 0;
 int nscreens;
 int mX, mY;
 
@@ -94,17 +94,25 @@ void detectScreens()
 	delete[] focusedWorkspaces;
 	log("Detecting screens: ");
 	XRRMonitorInfo* monitors = XRRGetMonitors(dpy, root, true, &nscreens);
-	log("\t"<<nscreens << " monitors");
+	log("\t" << nscreens << " monitors");
 	screens = new ScreenInfo[nscreens];
 	focusedWorkspaces = new int[nscreens];
 	for(int i = 0; i < nscreens; i++)
 	{
+		focusedWorkspaces[i] = i * 5 + 1;
 		char* name = XGetAtomName(dpy, monitors[i].name);
 		screens[i] = {name, monitors[i].x, monitors[i].y, monitors[i].width, monitors[i].height}; 
 		log("\tMonitor " << i + 1 << " - " << screens[i].name);
 		log("\t\tx: " << screens[i].x << ", y: " << screens[i].y);
 		log("\t\tw: " << screens[i].w << ", h: " << screens[i].h);
 		XFree(name);
+	}
+	for(int i = 0; i < numWS; i++)
+	{
+		if(screenPreferences[i][0] < nscreens && focusedWorkspaces[screenPreferences[i][0]] == 0)
+		{
+			//focusedWorkspaces[screenPreferences[i][0]] = i+1;
+		}
 	}
 	XFree(monitors);
 }
@@ -172,23 +180,40 @@ void kill(const KeyArg arg)
 void changeWS(const KeyArg arg)
 {
 	int prevWS = currWS;
+	untileRoots();
 
 	currWS = arg.num;
 	if(prevWS == currWS)
 		return;
 
+	//log("Changing WS with keybind");
+
 	for(int i = 0; i < maxMonitors; i++)
 	{
-		if(nscreens > screenPreferences[arg.num][i])
+		if(nscreens > screenPreferences[arg.num - 1][i])
 		{
-			focusedWorkspaces[screenPreferences[arg.num][i]] = arg.num;
-			focusedScreen = screenPreferences[arg.num][i];
+			//log("Found screen (screen " << screenPreferences[arg.num - 1][i] << ")");
+			prevWS = focusedWorkspaces[screenPreferences[arg.num - 1][i]];
+			//log("Changed prevWS");
+			focusedWorkspaces[screenPreferences[arg.num - 1][i]] = arg.num;
+			//log("Changed focusedWorkspaces");
+			focusedScreen = screenPreferences[arg.num - 1][i];
+			//log("Changed focusedScreen");
+			break;
 		}
 	}
 
-	untile(prevWS);
+	//log("Finished changes");
+
+	//log(prevWS);
+	if(prevWS < 1 || prevWS > numWS)
+	{
+		//untile(prevWS);
+	}
+	//log("Untiled");
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	tileRoots();
+	//log("Roots tiled");
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 
 	//EWMH
@@ -388,7 +413,7 @@ void bashSpawn(const KeyArg arg)
 {
 	if(fork() == 0)
 	{
-		int null = open("log.txt", O_WRONLY);
+		int null = open("/dev/null", O_WRONLY);
 		dup2(null, 1);
 		dup2(null, 2);
 		system(arg.str[0]);
@@ -396,7 +421,7 @@ void bashSpawn(const KeyArg arg)
 	}
 
 }
-void screenTest(const KeyArg arg)
+void reload(const KeyArg arg)
 {
 	detectScreens();
 }
@@ -791,7 +816,7 @@ int main(int argc, char** argv)
 			case DestroyNotify:
 				destroyNotify(e.xdestroywindow);
 			case EnterNotify:
-				log(e.xcrossing.x);
+				//log(e.xcrossing.x);
 				if(e.xcrossing.window == root)
 					break;
 				XSetInputFocus(dpy, e.xcrossing.window, RevertToNone, CurrentTime);

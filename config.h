@@ -63,7 +63,7 @@ KEYCOM(wToWS);
 KEYCOM(focChange);
 KEYCOM(wMove);
 KEYCOM(bashSpawn);
-KEYCOM(screenTest);
+KEYCOM(reload);
 
 // Super key mod
 #define MOD Mod4Mask
@@ -100,7 +100,7 @@ const Key keyBinds[] = {
 	{MOD|SHIFT,		XK_x,			spawn,			{.str = i3lock}},
 	{MOD|SHIFT,		XK_x,			spawn,			{.str = suspend}},
 	{MOD,			XK_m,			bashSpawn,		{.str = monConfig}},
-	{MOD|SHIFT,		XK_t,			screenTest,		{NULL}},
+	{MOD|SHIFT,		XK_r,			reload,			{NULL}},
 	// Focus
 	{MOD,			XK_h,			focChange,		{.dir = Left}},
 	{MOD,			XK_j,			focChange,		{.dir = Down}},
