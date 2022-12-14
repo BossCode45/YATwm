@@ -7,16 +7,31 @@
 #include <string>
 
 //Startup
-std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png", "~/.config/polybar/launch.sh", "emacs --daemon"};
+const std::string startup[] = {
+	//"picom -fD 3",
+	"feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png",
+	//"~/.config/polybar/launch.sh",
+	//"emacs --daemon"
+};
 
 //Main config
-int gaps = 3;
-int outerGaps = 3;
-std::string logFile = "/tmp/yatlog";
+// Sensible gaps
+const int gaps = 3;
+const int outerGaps = 3;
+// Huge gaps
+/*
+const int gaps = 20;
+const int outerGaps = 30;
+*/
+
+const std::string logFile = "/tmp/yatlog.txt";
 
 //WS config
 const int numWS = 10;
-std::string workspaceNames[] = {"1: ", "2: 拾", "3: ", "4: ", "5: ", "6: ", "7: 拾", "8: ", "9: ", "10: "};
+const std::string workspaceNames[] = {"1: ", "2: 拾", "3: ", "4: ", "5: ", "6: ", "7: 拾", "8: ", "9: ", "10: "};
+//If you have more then 2 monitors change the number below
+const int maxMonitors = 2;
+const int screenPreferences[][maxMonitors] = {{0}, {0}, {0}, {0}, {0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}};
 
 //Keys
 //The types and perhaps functions likely to be moved to seperate header file later
@@ -37,8 +52,8 @@ typedef union
 
 struct Key
 {
-	unsigned int modifiers;
-	KeySym keysym;
+	const unsigned int modifiers;
+	const KeySym keysym;
 	void (*function)(const KeyArg arg);
 	const KeyArg arg;
 };
@@ -54,27 +69,37 @@ KEYCOM(changeWS);
 KEYCOM(wToWS);
 KEYCOM(focChange);
 KEYCOM(wMove);
+KEYCOM(bashSpawn);
+KEYCOM(reload);
+KEYCOM(wsDump);
+KEYCOM(nextMonitor);
 
+// Super key mod
+#define MOD Mod4Mask
+#define ALT Mod1Mask
+// Alt key mod
+// #define MOD Mod1Mask
+#define SHIFT ShiftMask
+
+// Programs to run for keybinds
 const char* alacritty[] = {"alacritty", NULL};
 const char* rofi[] = {"rofi", "-i", "-show", "drun", NULL};
 const char* qutebrowser[] = {"qutebrowser", NULL};
-
 const char* i3lock[] = {"i3lock", "-eti", "/usr/share/backgrounds/lockscreen.png", NULL};
 const char* suspend[] = {"systemctl", "suspend", NULL};
 
-//Super key mod
-//#define MOD Mod4Mask
-//Alt key mod
-#define MOD Mod1Mask
-#define SHIFT ShiftMask
+// Scripts to run for keybinds
+// Script I made to run an xrandr command
+const char* monConfig[] = {"~/.yat_commands/monitor-config.sh"};
+
 
 #define WSKEY(K, X) \
 	{MOD, K, changeWS, {.num = X}}, \
 	{MOD|SHIFT, K, wToWS, {.num = X}}
 
-static Key keyBinds[] = {
-	//Modifiers		//Key			//Func			//Args
-	//General
+const Key keyBinds[] = {
+	// Modifiers	//Key			//Func			//Args
+	// General
 	{MOD, 			XK_e,			exit,			{NULL}},
 	{MOD,			XK_Return, 		spawn,			{.str = alacritty}},
 	{MOD,			XK_d,	 		spawn,			{.str = rofi}},
@@ -84,17 +109,22 @@ static Key keyBinds[] = {
 	{MOD,			XK_x,			spawn,			{.str = i3lock}},
 	{MOD|SHIFT,		XK_x,			spawn,			{.str = i3lock}},
 	{MOD|SHIFT,		XK_x,			spawn,			{.str = suspend}},
-	//Focus
+	{MOD,			XK_m,			bashSpawn,		{.str = monConfig}},
+	{MOD|SHIFT,		XK_r,			reload,			{NULL}},
+	// Testing
+	{MOD,			XK_p,			wsDump,			{NULL}},
+	// Focus
 	{MOD,			XK_h,			focChange,		{.dir = Left}},
 	{MOD,			XK_j,			focChange,		{.dir = Down}},
 	{MOD,			XK_k,			focChange,		{.dir = Up}},
 	{MOD,			XK_l,			focChange,		{.dir = Right}},
-	//Window moving
+	{ALT,			XK_Tab,			nextMonitor,	{NULL}},
+	// Window moving
 	{MOD|SHIFT,		XK_h,			wMove,			{.dir = Left}},
 	{MOD|SHIFT,		XK_j,			wMove,			{.dir = Down}},
 	{MOD|SHIFT,		XK_k,			wMove,			{.dir = Up}},
 	{MOD|SHIFT,		XK_l,			wMove,			{.dir = Right}},
-	//Workspaces
+	// Workspaces
 	WSKEY(XK_1, 1),
 	WSKEY(XK_2, 2),
 	WSKEY(XK_3, 3),

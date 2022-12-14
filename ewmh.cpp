@@ -5,7 +5,7 @@
 Display** dpy_;
 Window* root_;
 
-void initEWMH(Display** dpy, Window* root, int numWS, std::string workspaceNames[])
+void initEWMH(Display** dpy, Window* root, int numWS, const std::string workspaceNames[])
 {
 	dpy_ = dpy;
 	root_ = root;

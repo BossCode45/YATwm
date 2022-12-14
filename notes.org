@@ -1,0 +1,26 @@
+#+TITLE: Features to add
+
+* Remembering focus
+Use the variable ~whichChildFocused~ for each non client frame, this is the index of the child that is focused. To then find focused child for a root recurse through all the frames going through the focused child.
+** Where it should be updated
++ When focus is moved
++ When a client is moved (because it should retain focus)
++ When a client is deleted (if it had focus before)
+** Where it should be used
+Whenever I set focus I should use the focused client of whichever workspace is focused
+
+* Change focus and move between monitors
+Perhaps I can just add something to the ~dirFind~ function
+
+* TOML config
+put in ~/.config/YATwm/config.toml
+
+* Fullscreen windows
+This should be another thing like floating windows except each workspace only gets one
+I should check it first when tiling and if it exists then draw it to the size of the screeen then return
+
+* General EWMH things
+I should really figure out what all the client messages mean
+
+* The eventual program to communicate with YATwm
+Use a unix socket

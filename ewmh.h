@@ -8,7 +8,7 @@
 
 #include "structs.h"
 
-void initEWMH(Display** dpy, Window* root, int numWS, std::string workspaceNames[]);
+void initEWMH(Display** dpy, Window* root, int numWS, const std::string workspaceNames[]);
 
 void updateClientList(std::map<int, Client> clients);
 

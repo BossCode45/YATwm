@@ -2,6 +2,8 @@
 
 #include <X11/Xlib.h>
 
+#include <X11/extensions/Xrandr.h>
+#include <string>
 #include <vector>
 
 #define noID -1
@@ -35,4 +37,11 @@ struct Frame
 	std::vector<int> subFrameIDs;
 	bool isRoot;
 	std::vector<int> floatingFrameIDs;
+	//int whichChildFocused = 0;
+};
+
+struct ScreenInfo
+{
+	std::string name;
+	int x, y, w, h;
 };
