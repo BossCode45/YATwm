@@ -37,6 +37,7 @@ struct Frame
 	std::vector<int> subFrameIDs;
 	bool isRoot;
 	std::vector<int> floatingFrameIDs;
+	//int whichChildFocused = 0;
 };
 
 struct ScreenInfo

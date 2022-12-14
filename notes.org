@@ -1,18 +1,19 @@
-#+TITLE: Notes for myself to read
+#+TITLE: Features to add
 
-* Multiple monitors
-** How I tell which monitor
-- First I should check the currently focsued window
-- Seccondly I should get the current mouseX and mouseY
-  - If the mouseX and mouseY match the old ones then use the focusedScreen
-  - If not then use mouseX and mouseY
-** When to update mouseX and mouseY
-Whenever I change focus or focused screen or map a new window
-Or just updating every key press should work
-** When to change focusedScreen
-It should get changed when I change workspace to one that should go on a different screen
-** How to tell which monitor to focus when changing workspace
-There should be an array with the priorities.
+* Remembering focus
+Use the variable ~whichChildFocused~ for each non client frame, this is the index of the child that is focused. To then find focused child for a root recurse through all the frames going through the focused child.
+** Where it should be updated
++ When focus is moved
++ When a client is moved (because it should retain focus)
++ When a client is deleted (if it had focus before)
+** Where it should be used
+Whenever I set focus I should use the focused client of whichever workspace is focused
+
+* Change focus and move between monitors
+Perhaps I can just add something to the ~dirFind~ function
+
+* TOML config
+put in ~/.config/YATwm/config.toml
 
 * Fullscreen windows
 This should be another thing like floating windows except each workspace only gets one
@@ -21,5 +22,5 @@ I should check it first when tiling and if it exists then draw it to the size of
 * General EWMH things
 I should really figure out what all the client messages mean
 
-* The eventual program to communicate with YAT
+* The eventual program to communicate with YATwm
 Use a unix socket
