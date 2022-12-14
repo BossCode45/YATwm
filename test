@@ -2,10 +2,11 @@
 
 make
 
-Xephyr -screen 1600x900+2080+90 :100 &
+#Xephyr +extension RANDR +xinerama -screen 1600x900 -screen 1600x900 -ac :1 &
+Xephyr -screen 1600x900+2080+90 :1 &
 
 sleep 0.1
 
-DISPLAY=:100 ./YATwm
+DISPLAY=:1 ./YATwm
 
 pkill Xephyr

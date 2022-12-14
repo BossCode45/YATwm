@@ -5,7 +5,12 @@
 #include <string>
 
 //Startup
-const std::string startup[] = {"picom -fD 3", "feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png", "~/.config/polybar/launch.sh", "emacs --daemon"};
+const std::string startup[] = {
+	//"picom -fD 3",
+	"feh --bg-scale /usr/share/backgrounds/vapor_trails_blue.png",
+	//"~/.config/polybar/launch.sh",
+	//"emacs --daemon"
+};
 
 //Main config
 // Sensible gaps
@@ -64,11 +69,14 @@ KEYCOM(focChange);
 KEYCOM(wMove);
 KEYCOM(bashSpawn);
 KEYCOM(reload);
+KEYCOM(wsDump);
+KEYCOM(nextMonitor);
 
 // Super key mod
 #define MOD Mod4Mask
+#define ALT Mod1Mask
 // Alt key mod
-//#define MOD Mod1Mask
+// #define MOD Mod1Mask
 #define SHIFT ShiftMask
 
 // Programs to run for keybinds
@@ -78,7 +86,7 @@ const char* qutebrowser[] = {"qutebrowser", NULL};
 const char* i3lock[] = {"i3lock", "-eti", "/usr/share/backgrounds/lockscreen.png", NULL};
 const char* suspend[] = {"systemctl", "suspend", NULL};
 
-// Script to run for keybinds
+// Scripts to run for keybinds
 // Script I made to run an xrandr command
 const char* monConfig[] = {"~/.yat_commands/monitor-config.sh"};
 
@@ -101,11 +109,14 @@ const Key keyBinds[] = {
 	{MOD|SHIFT,		XK_x,			spawn,			{.str = suspend}},
 	{MOD,			XK_m,			bashSpawn,		{.str = monConfig}},
 	{MOD|SHIFT,		XK_r,			reload,			{NULL}},
+	// Testing
+	{MOD,			XK_p,			wsDump,			{NULL}},
 	// Focus
 	{MOD,			XK_h,			focChange,		{.dir = Left}},
 	{MOD,			XK_j,			focChange,		{.dir = Down}},
 	{MOD,			XK_k,			focChange,		{.dir = Up}},
 	{MOD,			XK_l,			focChange,		{.dir = Right}},
+	{ALT,			XK_Tab,			nextMonitor,	{NULL}},
 	// Window moving
 	{MOD|SHIFT,		XK_h,			wMove,			{.dir = Left}},
 	{MOD|SHIFT,		XK_j,			wMove,			{.dir = Down}},
