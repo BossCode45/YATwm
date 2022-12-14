@@ -569,10 +569,6 @@ void mapRequest(XMapRequestEvent e)
 		*/
 	}
 
-	Window focusedWindow;
-	int revertToReturn;
-	XGetInputFocus(dpy, &focusedWindow, &revertToReturn);
-	
 	unsigned char* data;
 	Atom type;
 	int status = getProp(e.window, "_NET_WM_WINDOW_TYPE", &type, &data);
