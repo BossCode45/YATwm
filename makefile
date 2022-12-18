@@ -1,6 +1,6 @@
 .PHONY: clean
 CXX := g++
-CXXFLAGS := #-g -fsanitize=address -fno-omit-frame-pointer
+CXXFLAGS := -std=c++17 -Iinclude #-g -fsanitize=address -fno-omit-frame-pointer
 LINKFLAGS := -lX11 -lXrandr
 OBJS_DIR := .
 OUT_DIR := .
@@ -28,6 +28,7 @@ remove: r
 #Files to be compiled
 $(OBJS_DIR)/main.o: $(SOURCE_FILES) $(SOURCE_HEADERS)
 $(OBJS_DIR)/ewmh.o: $(SOURCE_DIR)/ewmh.cpp $(SOURCE_DIR)/ewmh.h
+$(OBJS_DIR)/config.o: $(SOURCE_DIR)/config.cpp $(SOURCE_DIR)/config.h
 
 clean:
 	rm $(OBJS_DIR)/*.o 
