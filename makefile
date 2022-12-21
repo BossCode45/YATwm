@@ -28,7 +28,8 @@ remove: r
 #Files to be compiled
 $(OBJS_DIR)/main.o: $(SOURCE_FILES) $(SOURCE_HEADERS)
 $(OBJS_DIR)/ewmh.o: $(SOURCE_DIR)/ewmh.cpp $(SOURCE_DIR)/ewmh.h
-$(OBJS_DIR)/config.o: $(SOURCE_DIR)/config.cpp $(SOURCE_DIR)/config.h
+$(OBJS_DIR)/util.o: $(SOURCE_DIR)/util.cpp $(SOURCE_DIR)/util.h
+$(OBJS_DIR)/config.o: $(SOURCE_DIR)/config.cpp $(SOURCE_DIR)/config.h $(OBJS_DIR)/util.o
 
 clean:
 	rm $(OBJS_DIR)/*.o 

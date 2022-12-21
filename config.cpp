@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include "util.h"
+
 #include <X11/Xlib.h>
 
 #include <string>
@@ -15,55 +17,24 @@ using std::map, std::string;
 // For testing
 using std::cout, std::endl, std::cerr;
 
-void exit(const KeyArg arg)
-{
-	cout << "exit called" << endl;
-}
-void spawn(const KeyArg arg)
-{
-	cout << "spawn called " << arg.str << endl;
-}
-void changeWS(const KeyArg arg)
-{
-	cout << "changeWS called" << endl;
-}
-void wToWS(const KeyArg arg)
-{
-	cout << "wToWS called" << endl;
-}
-void focChange(const KeyArg arg)
-{
-	cout << "focChange called" << endl;
-}
-void reload(const KeyArg arg)
-{
-	cout << "reload called" << endl;
-}
-
 map<string, void(*) (const KeyArg arg)> funcNameMap = {
 	{"exit", exit},
 	{"spawn", spawn},
+	{"toggle", toggle},
+	{"kill", kill},
 	{"changeWS", changeWS},
 	{"wToWS", wToWS},
 	{"focChange", focChange},
-	{"reload", reload}
+	{"wMove", wMove},
+	{"bashSpawn", bashSpawn},
+	{"reload", reload},
+	{"wsDump", wsDump},
+	{"nextMonitor", nextMonitor},
 };
 
 
 Config::Config()
 {
-}
-
-std::vector<string> split (const string &s, char delim) {
-	std::vector<string> result;
-	std::stringstream ss (s);
-    string item;
-
-    while (getline (ss, item, delim)) {
-        result.push_back (item);
-    }
-
-    return result;
 }
 
 void Config::loadFromFile(string path)
@@ -144,22 +115,30 @@ void Config::loadFromFile(string path)
 	}
 
 	//Keybinds
+	bool swapSuperAlt = tbl["Keybinds"]["swapSuperAlt"].value_or<bool>(false);
 	bindsc = tbl["Keybinds"]["key"].as_array()->size();
 	binds = new KeyBind[bindsc];
 	for(int i = 0; i < bindsc; i++)
 	{
 		KeyBind bind;
+		bind.modifiers = 0;
 		const string bindString = *tbl["Keybinds"]["key"][i]["bind"].value<string>();
 		std::vector<string> keys = split(bindString, '+');
 		for(string key : keys)
 		{
 			if(key == "mod")
 			{
-				bind.modifiers |= Mod4Mask;
+				if(!swapSuperAlt)
+					bind.modifiers |= Mod4Mask;
+				else
+					bind.modifiers |= Mod1Mask;
 			}
 			else if(key == "alt")
 			{
-				bind.modifiers |= Mod1Mask;
+				if(swapSuperAlt)
+					bind.modifiers |= Mod4Mask;
+				else
+					bind.modifiers |= Mod1Mask;
 			}
 			else if(key == "shift")
 			{

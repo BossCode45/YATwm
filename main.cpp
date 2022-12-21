@@ -3,6 +3,8 @@
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
 
+#include <toml++/toml.hpp>
+
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
 #include <chrono>
@@ -22,10 +24,9 @@
 #include <fcntl.h>
 
 #include "structs.h"
+#include "config.h"
 #include "util.h"
 #include "ewmh.h"
-
-#include "config.h"
 
 using std::cout;
 using std::map;
@@ -35,6 +36,8 @@ using std::vector;
 std::ofstream yatlog;
 
 #define log(x) yatlog << x << std::endl
+
+Config cfg;
 
 Display* dpy;
 Window root;
@@ -110,9 +113,9 @@ void detectScreens()
 		log("\t\tw: " << screens[i].w << ", h: " << screens[i].h);
 		XFree(name);
 	}
-	for(int i = 0; i < numWS; i++)
+	for(int i = 0; i < cfg.numWS; i++)
 	{
-		if(screenPreferences[i][0] < nscreens && focusedWorkspaces[screenPreferences[i][0]] == 0)
+		if(cfg.screenPreferences[i][0] < nscreens && focusedWorkspaces[cfg.screenPreferences[i][0]] == 0)
 		{
 			//focusedWorkspaces[screenPreferences[i][0]] = i+1;
 		}
@@ -162,7 +165,14 @@ void spawn(const KeyArg arg)
 		int null = open("/dev/null", O_WRONLY);
 		dup2(null, 1);
 		dup2(null, 2);
-		execvp((char*)arg.str[0], (char**)arg.str);
+		const std::string argsStr = arg.str;
+		vector<std::string> args = split(argsStr, ' ');
+		char** execvpArgs = new char*[args.size()];
+		for(int i = 0; i < args.size(); i++)
+		{
+			execvpArgs[i] = strdup(args[i].c_str());
+		}
+		execvp(execvpArgs[0], execvpArgs);
 		exit(0);
 	}
 }
@@ -212,19 +222,19 @@ void changeWS(const KeyArg arg)
 
 	//log("Changing WS with keybind");
 
-	for(int i = 0; i < maxMonitors; i++)
+	for(int i = 0; i < cfg.maxMonitors; i++)
 	{
-		if(nscreens > screenPreferences[arg.num - 1][i])
+		if(nscreens > cfg.screenPreferences[arg.num - 1][i])
 		{
-			int screen = screenPreferences[arg.num - 1][i];
+			int screen = cfg.screenPreferences[arg.num - 1][i];
 			//log("Found screen (screen " << screenPreferences[arg.num - 1][i] << ")");
-			prevWS = focusedWorkspaces[screenPreferences[arg.num - 1][i]];
+			prevWS = focusedWorkspaces[cfg.screenPreferences[arg.num - 1][i]];
 			//log("Changed prevWS");
-			focusedWorkspaces[screenPreferences[arg.num - 1][i]] = arg.num;
+			focusedWorkspaces[cfg.screenPreferences[arg.num - 1][i]] = arg.num;
 			//log("Changed focusedWorkspaces");
-			if(focusedScreen != screenPreferences[arg.num - 1][i])
+			if(focusedScreen != cfg.screenPreferences[arg.num - 1][i])
 			{
-				focusedScreen = screenPreferences[arg.num - 1][i];
+				focusedScreen = cfg.screenPreferences[arg.num - 1][i];
 				XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[screen].x + screens[screen].w/2, screens[screen].y + screens[screen].h/2);
 			}
 			//log("Changed focusedScreen");
@@ -235,7 +245,7 @@ void changeWS(const KeyArg arg)
 	//log("Finished changes");
 
 	//log(prevWS);
-	if(prevWS < 1 || prevWS > numWS)
+	if(prevWS < 1 || prevWS > cfg.numWS)
 	{
 		//untile(prevWS);
 	}
@@ -322,8 +332,8 @@ int dirFind(int fID, MoveDir dir)
 		{
 			case Up: i--; break;
 			case Down: i++; break;
-			case Left: return (frames.find(fID)->second.pID > numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
-			case Right: return (frames.find(fID)->second.pID > numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case Left: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case Right: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
 		}
 	}
 	else if(pDir == horizontal)
@@ -332,8 +342,8 @@ int dirFind(int fID, MoveDir dir)
 		{
 			case Left: i--; break;
 			case Right: i++; break;
-			case Up: return (frames.find(fID)->second.pID > numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
-			case Down: return (frames.find(fID)->second.pID > numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case Up: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case Down: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
 		}
 	}
 	if(i < 0)
@@ -449,7 +459,7 @@ void bashSpawn(const KeyArg arg)
 		int null = open("/dev/null", O_WRONLY);
 		dup2(null, 1);
 		dup2(null, 2);
-		system(arg.str[0]);
+		system(arg.str);
 		exit(0);
 	}
 
@@ -488,12 +498,14 @@ void keyPress(XKeyEvent e)
 {
 	if(e.same_screen!=1) return;
 	updateMousePos();
+	cout << "Keypress recieved\n";
 	KeySym keysym = XLookupKeysym(&e, 0);
-	for(int i = 0; i < sizeof(keyBinds)/sizeof(keyBinds[0]); i++)
+	cout << "\t" << XKeysymToString(keysym) << " super: " << ((e.state & Mod4Mask) == Mod4Mask) << " alt: " << ((e.state & Mod1Mask) == Mod1Mask) << " shift: " << ((e.state & ShiftMask) == ShiftMask) << std::endl;
+	for(int i = 0; i < cfg.bindsc; i++)
 	{
-		if(keyBinds[i].keysym == keysym && e.state == keyBinds[i].modifiers)
+		if(cfg.binds[i].keysym == keysym)// && e.state == cfg.binds[i].modifiers)
 		{
-			keyBinds[i].function(keyBinds[i].arg);
+			cfg.binds[i].func(cfg.binds[i].args);
 		}
 	}
 }
@@ -775,7 +787,7 @@ void tileRoots()
 {
 	for(int i = 0; i < nscreens; i++)
 	{
-		tile(focusedWorkspaces[i], screens[i].x + outerGaps, screens[i].y + outerGaps, screens[i].w - outerGaps*2, screens[i].h - outerGaps*2 - bH);
+		tile(focusedWorkspaces[i], screens[i].x + cfg.outerGaps, screens[i].y + cfg.outerGaps, screens[i].w - cfg.outerGaps*2, screens[i].h - cfg.outerGaps*2 - bH);
 	}
 }
 void untileRoots()
@@ -813,10 +825,10 @@ void tile(int frameID, int x, int y, int w, int h)
 			tile(fID, wX, wY, wW, wH);
 			continue;
 		}
-		wX += gaps;
-		wY += gaps;
-		wW -= gaps * 2;
-		wH -= gaps * 2;
+		wX += cfg.gaps;
+		wY += cfg.gaps;
+		wW -= cfg.gaps * 2;
+		wH -= cfg.gaps * 2;
 		Client c = clients.find(f.cID)->second;
 		XMapWindow(dpy, c.w);
 		XMoveWindow(dpy, c.w,
@@ -850,11 +862,24 @@ void untile(int frameID)
 
 int main(int argc, char** argv)
 {
+	std::string home = getenv("HOME");
+	std::string pathAfterHome = "/.config/YATwm/config.toml";
+	std::string file = home + pathAfterHome;
+	try
+	{
+		cfg.loadFromFile(file);
+	}
+	catch (const toml::parse_error& err)
+	{
+		std::cerr << "Parsing failed:\n" << err << "\n";
+		return 1;
+	}
+
 	mX = mY = 0;
 	dpy = XOpenDisplay(nullptr);
 	root = Window(DefaultRootWindow(dpy));
 
-	yatlog.open(logFile, std::ios_base::app);
+	yatlog.open(cfg.logFile, std::ios_base::app);
 
 	auto timeUnformatted = std::chrono::system_clock::now();
 	std::time_t time = std::chrono::system_clock::to_time_t(timeUnformatted);
@@ -871,28 +896,28 @@ int main(int argc, char** argv)
 	XSetErrorHandler(OnXError);
 	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask);
 
-	for(int i = 0; i < sizeof(keyBinds)/sizeof(keyBinds[0]); i++)
+	for(int i = 0; i < cfg.bindsc; i++)
 	{
-		XGrabKey(dpy, XKeysymToKeycode(dpy, keyBinds[i].keysym), keyBinds[i].modifiers, root, false, GrabModeAsync, GrabModeAsync);
-		//log("Grabbing " << XKeysymToString(keyBinds[i].keysym));
+		XGrabKey(dpy, XKeysymToKeycode(dpy, cfg.binds[i].keysym), cfg.binds[i].modifiers, root, false, GrabModeAsync, GrabModeAsync);
+		//log("Grabbing " << XKeysymToString(cfg.binds[i].keysym));
 	}
 	XDefineCursor(dpy, root, XCreateFontCursor(dpy, XC_top_left_arrow));
 	//EWMH
-	initEWMH(&dpy, &root, numWS, workspaceNames);
+	initEWMH(&dpy, &root, cfg.numWS,cfg. workspaceNames);
 	setCurrentDesktop(1);
 
-	for(int i = 1; i < numWS + 1; i++)
+	for(int i = 1; i < cfg.numWS + 1; i++)
 	{
 		vector<int> v;
 		Frame rootFrame = {i, noID, false, noID, horizontal, v, true};
 		frames.insert(pair<int, Frame>(i, rootFrame));
 		currFrameID++;
 	}
-	for(int i = 0; i < sizeof(startup)/sizeof(startup[0]); i++)
+	for(int i = 0; i < cfg.startupBashc; i++)
 	{
 		if(fork() == 0)
 		{
-			system((startup[i] + " > /dev/null 2> /dev/null").c_str());
+			system((cfg.startupBash[i] + " > /dev/null 2> /dev/null").c_str());
 			exit(0);
 		}
 	}
