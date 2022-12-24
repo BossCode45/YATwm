@@ -17,37 +17,52 @@ This only just works, multiple monitors aren't supported and floating windows ca
 - ~make r~ or ~make remove~ to remove
 - ~./test~ to test
 ** Config
-The current default config is just my config.
+You can configure YATwm with the config file in ~~/.config/YATwm/config.toml~. I have provided an example config file in this directory that has all the variables set to their defaults.
+*** Problems with the config file
+The arrays (this includes the keybinds) must have values or else stuff breaks as they do not currently have defaults.
 *** Startup
-Add a bash command to the ~startup~ string array in config.h and it will execute on startup.
+Add a bash command to the ~startupBash~ string array in your config and it will execute on startup.
 *** General
 You can change either the inner gaps (padding around each window - so double it for space between windows), or the outer gaps (padding around the display - add to inner gaps to get space between window and screen edges).
-They can be changed with the integers ~gaps~ and ~outerGaps~ in the config.h file. YATwm also keeps a log file, the location of this file can be changed with the string ~logFile~.
+They can be changed with the integers ~gaps~ and ~outerGaps~ in the config file.
+YATwm also keeps a log file, the location of this file can be changed with the string ~logFile~.
 
-You can change the number of workspaces by editing ~numWS~ in the config.h file, and the names by editing ~workspaceNames~. You can think of workspaces as virtual desktops.
+*** Workspaces
+You can change the number of workspaces by editing ~numWS~ in the config file (this will likely change), and the names by editing ~workspaceNames~. You can think of workspaces as virtual desktops. You can change the preference of workspaces by editing the ~screenPreferences~ array. It orders the screens with 0 being the first monitor and they go up from there. The number coming first for each workspace will be the highest priority and other ones will be used if that monitor is not detected. All preference arrays should end in 0. You can use maxMonitors to set how many is the max amount of monitors you would have plugged in (this will likely change).
 *** Keybinds
 Current keybinds (these can all be edited): 
 - ~mod + e~					: exit
-- ~mod + enter~				: alacritty
-- ~mod + d~					: rofi
 - ~mod + t~					: change next tile direction
 - ~mod + q~					: quit focused window
-- ~mod + c~					: qutebrowser
+- ~mod + shift + r~			: reload WM (rechecks monitors)
+- ~mod + direction~			: change focus in direction
+- ~mod + shift + direction~	: move window in direction
+- ~mod + enter~				: alacritty
+- ~mod + d~					: rofi
+- ~mod + c~					: firefox
 - ~mod + x~					: lock
 - ~mod + shift + x~			: lock and sleep
-- ~mod + direction~			: change focus in direction
-- ~mod + shift + direction~	: move window in direction (currently not incredibly well implemented)
+- ~mod + p~					: log testing stuff
 - ~mod + (num)~				: switch to workspace (num) - currently only for 1-10 but you can add more
 - ~mod + shift + (num)~		: move window to workspace (num) - currently only for 1-10 but you can add more
 (mod is super, and the direction keys are h, j, k, l - left, down, up, right respectively like vim)
 
-To add new keybinds create a new entry in the keybind array:
-#+begin_src cpp
-{modifiers,		key,			command,		{commandArgs}},
+You can use the variable ~swapSuperAlt~ to make ~mod~ act as ~alt~ and ~alt~ act as ~mod~.
+
+To add new keybinds create a new entry in the Keybinds.key array:
+#+begin_src
+[[Keybinds.key]]
+bind = "bind"
+func = "func"
+args = args
 #+end_src
+Args can be either a string or a number, directions are strings.
 e.g.
-#+begin_src cpp
-{MOD|SHIFT,		XK_l,			wMove,			{.dir = Right}},
+#+begin_src
+[[Keybinds.key]]
+bind = "mod+shift+j"
+func = "wMove"
+args = "Down"
 #+end_src
 Commands are executed going down the list and multiple commands with the same keybind and modifiers will all be executed
 
