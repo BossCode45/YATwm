@@ -16,8 +16,8 @@ This only just works, multiple monitors aren't supported and floating windows ca
 - ~make i~ or ~make install~ to install
 - ~make r~ or ~make remove~ to remove
 - ~./test~ to test
-** Config
-You can configure YATwm with the config file in ~~/.config/YATwm/config.toml~. I have provided an example config file in this directory that has all the variables set to their defaults.
+** Config (YOU MUST MAKE A WORKING CONFIG FILE OR ELSE YATwm WILL NOT RUN)
+You can configure YATwm with the config file in ~$HOME/.config/YATwm/config.toml~. I have provided an example config file in this directory that has all the variables set to their defaults.
 *** Problems with the config file
 The arrays (this includes the keybinds) must have values or else stuff breaks as they do not currently have defaults.
 *** Startup
