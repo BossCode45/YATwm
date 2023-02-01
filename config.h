@@ -1,5 +1,9 @@
 #pragma once
 
+#include "error.h"
+
+#include <toml++/toml.hpp>
+
 #include <X11/X.h>
 #include <X11/keysym.h>
 
@@ -51,7 +55,9 @@ class Config
 		~Config();
 		void free();
 	
-		void loadFromFile(std::string path);
+		Err loadFromFile(std::string path);
+		Err reload();
+
 		// Startup
 		std::string* startupBash;
 		int startupBashc;
@@ -72,4 +78,16 @@ class Config
 		// Keybinds
 		KeyBind* binds;
 		int bindsc;
+	private:
+		template <typename T>
+		T getValue(std::string path, Err* err);
+
+		void loadWorkspaceArrays(toml::table tbl, toml::table defaults, Err* err);
+		void loadStartupBash(toml::table tbl, toml::table defaults, Err* err);
+
+		toml::table tbl;
+		toml::table defaults;
+
+		bool loaded = false;
+		std::string path;
 };

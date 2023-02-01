@@ -1,6 +1,6 @@
 .PHONY: clean
 CXX := g++
-CXXFLAGS := -std=c++17 -Iinclude #-g -fsanitize=address -fno-omit-frame-pointer
+CXXFLAGS := -std=c++17 -Iinclude `pkg-config --cflags --libs libnotify`# -g -fsanitize=address -fno-omit-frame-pointer
 LINKFLAGS := -lX11 -lXrandr
 OBJS_DIR := .
 OUT_DIR := .
@@ -19,10 +19,13 @@ $(OBJS_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 i: $(EXEC)
 	sudo mv $(EXEC) /usr/bin
 	sudo cp yat.desktop /usr/share/xsessions
+	sudo mkdir /etc/YATwm
+	sudo cp config.toml /etc/YATwm
 install: i
 r:
 	sudo rm /usr/bin/$(EXEC)
 	sudo rm /usr/share/xsessions/yat.desktop
+	sudo rm -rf /etc/YATwm
 remove: r
 
 #Files to be compiled

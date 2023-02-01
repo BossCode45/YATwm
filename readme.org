@@ -8,7 +8,7 @@ This only just works, multiple monitors aren't supported and floating windows ca
 * Usage instructions
 ** Installation
 *** Pre reqs
-- ~Xlib~ and ~g++~ to build the program
+- ~Xlib~ and ~g++~ and ~libnotify~ to build the program
 - ~Xephyr~ for the test script
 - ~rofi~, ~alacritty~, ~picom~, ~feh~, ~polybar~, ~qutebrowser~ and ~i3lock~ for the default config
 	- The current default config is currently just the configuration that I want to use (this will likely change)
@@ -16,10 +16,9 @@ This only just works, multiple monitors aren't supported and floating windows ca
 - ~make i~ or ~make install~ to install
 - ~make r~ or ~make remove~ to remove
 - ~./test~ to test
-** Config (YOU MUST MAKE A WORKING CONFIG FILE OR ELSE YATwm WILL NOT RUN)
+** Config
 You can configure YATwm with the config file in ~$HOME/.config/YATwm/config.toml~. I have provided an example config file in this directory that has all the variables set to their defaults.
-*** Problems with the config file
-The arrays (this includes the keybinds) must have values or else stuff breaks as they do not currently have defaults.
+It should alert you with a notification if you have an error, and put the error your log file. It will just use default values if you didn't provide them or provided invalid values (apart from keybinds and startupBash entries, which will just be skipped if invalid (but defaults will be used if the whole array is missing).
 *** Startup
 Add a bash command to the ~startupBash~ string array in your config and it will execute on startup.
 *** General

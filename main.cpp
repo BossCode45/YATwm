@@ -3,7 +3,10 @@
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
 
+#include <libnotify/notification.h>
 #include <toml++/toml.hpp>
+
+#include <libnotify/notify.h>
 
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
@@ -72,6 +75,7 @@ int FFCF(int sID);
 void detectScreens();
 void updateMousePos();
 void focusRoot(int root);
+void handleConfigErrs(Err cfgErr);
 
 void keyPress(XKeyEvent e);
 void configureRequest(XConfigureRequestEvent e);
@@ -151,6 +155,40 @@ void focusRoot(int root)
 	Window w = getClient(client).w;
 	//log("\tFocusing window: " << w);
 	XSetInputFocus(dpy, w, RevertToPointerRoot, CurrentTime);
+}
+void handleConfigErrs(Err cfgErr)
+{
+	if(cfgErr.code!=NOERR)
+	{
+		if(cfgErr.code == ERR_CFG_FATAL)
+		{
+			log("YATwm fatal error (Code " << cfgErr.code << ")\n" << cfgErr.errorMessage);
+			std::string title = "YATwm fatal config error (Code " + std::to_string(cfgErr.code) + ")";
+			std::string body = cfgErr.errorMessage;
+			NotifyNotification* n = notify_notification_new(title.c_str(),
+															body.c_str(),
+															0);
+			notify_notification_set_timeout(n, 10000);
+			if(!notify_notification_show(n, 0))
+			{
+				log("notification failed");
+			}
+		}
+		else
+		{
+			log("YATwm non fatal error (Code " << cfgErr.code << ")\n" << cfgErr.errorMessage);
+			std::string title = "YATwm non fatal config error (Code " + std::to_string(cfgErr.code) + ")";
+			std::string body = "Check logs for more information";
+			NotifyNotification* n = notify_notification_new(title.c_str(),
+															body.c_str(),
+															0);
+			notify_notification_set_timeout(n, 10000);
+			if(!notify_notification_show(n, 0))
+			{
+				log("notification failed");
+			}
+		}
+	}
 }
 
 //Keybind commands
@@ -467,6 +505,14 @@ void bashSpawn(const KeyArg arg)
 void reload(const KeyArg arg)
 {
 	detectScreens();
+
+	//Load config again
+	Err cfgErr = cfg.reload();
+	//Error check
+	handleConfigErrs(cfgErr);
+
+	//Re tile
+	tileRoots();
 }
 void wsDump(const KeyArg arg)
 {
@@ -498,12 +544,12 @@ void keyPress(XKeyEvent e)
 {
 	if(e.same_screen!=1) return;
 	updateMousePos();
-	cout << "Keypress recieved\n";
+	//cout << "Keypress recieved\n";
 	KeySym keysym = XLookupKeysym(&e, 0);
-	cout << "\t" << XKeysymToString(keysym) << " super: " << ((e.state & Mod4Mask) == Mod4Mask) << " alt: " << ((e.state & Mod1Mask) == Mod1Mask) << " shift: " << ((e.state & ShiftMask) == ShiftMask) << std::endl;
+	//cout << "\t" << XKeysymToString(keysym) << " super: " << ((e.state & Mod4Mask) == Mod4Mask) << " alt: " << ((e.state & Mod1Mask) == Mod1Mask) << " shift: " << ((e.state & ShiftMask) == ShiftMask) << std::endl;
 	for(int i = 0; i < cfg.bindsc; i++)
 	{
-		if(cfg.binds[i].keysym == keysym)// && e.state == cfg.binds[i].modifiers)
+		if(cfg.binds[i].keysym == keysym && (e.state & cfg.binds[i].modifiers) == cfg.binds[i].modifiers)
 		{
 			cfg.binds[i].func(cfg.binds[i].args);
 		}
@@ -862,28 +908,32 @@ void untile(int frameID)
 
 int main(int argc, char** argv)
 {
-	std::string home = getenv("HOME");
-	std::string pathAfterHome = "/.config/YATwm/config.toml";
-	std::string file = home + pathAfterHome;
-	try
-	{
-		cfg.loadFromFile(file);
-	}
-	catch (const toml::parse_error& err)
-	{
-		std::cerr << "Parsing failed:\n" << err << "\n";
-		return 1;
-	}
-
+	//Important init stuff
 	mX = mY = 0;
 	dpy = XOpenDisplay(nullptr);
 	root = Window(DefaultRootWindow(dpy));
 
+
+	//Config
+	std::string home = getenv("HOME");
+	std::string pathAfterHome = "/.config/YATwm/config.toml";
+	std::string file = home + pathAfterHome;
+	Err cfgErr = cfg.loadFromFile(file);
+
+	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
 
+	//Print starting message
 	auto timeUnformatted = std::chrono::system_clock::now();
 	std::time_t time = std::chrono::system_clock::to_time_t(timeUnformatted);
 	log("\nYAT STARTING: " << std::ctime(&time) << "--------------------------------------");
+
+	//Notifications
+	notify_init("YATwm");
+
+	//Error check config
+	handleConfigErrs(cfgErr);
+	
 
 	screens = new ScreenInfo[1];
 	focusedWorkspaces = new int[1];
@@ -924,8 +974,8 @@ int main(int argc, char** argv)
 
 	XSetInputFocus(dpy, root, RevertToNone, CurrentTime);
 	XWarpPointer(dpy, root, root, 0, 0, 0, 0, 960, 540);
-	cout << "Begin mainloop\n";
 
+	log("Begin mainloop");
 	while(keepGoing)
 	{
 		XEvent e;
