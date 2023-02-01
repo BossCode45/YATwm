@@ -223,46 +223,9 @@ Err Config::loadFromFile(string path)
 
 	//Workspaces
 	numWS = getValue<int>("Workspaces.numWS", &err);
-	workspaceNamesc = tbl["Workspaces"]["workspaceNames"].as_array()->size();
-	workspaceNames = new string[workspaceNamesc];
-	for(int i = 0; i < workspaceNamesc; i++)
-	{
-		auto element = tbl["Workspaces"]["workspaceNames"][i].value<string>();
-		if(element)
-		{
-			workspaceNames[i] = *element;
-		}
-		else
-		{
-			cerr << "Element " << i << " in `workspaceNames` is not a string" << endl;
-			workspaceNames[i] = "";
-		}
-	}
 	maxMonitors = getValue<int>("Workspaces.maxMonitors", &err);
-	screenPreferencesc = tbl["Workspaces"]["screenPreferences"].as_array()->size();
-	screenPreferences = new int*[screenPreferencesc];
-	for(int i = 0; i < screenPreferencesc; i++)
-	{
-		int* wsScreens = new int[maxMonitors];
-		for(int j = 0; j < maxMonitors; j++)
-		{
-			if(tbl["Workspaces"]["screenPreferences"][i].as_array()->size() <= j)
-			{
-				wsScreens[j] = 0;
-				continue;
-			}
-			auto element = tbl["Workspaces"]["screenPreferences"][i][j].value<int>();
-			if(element)
-				wsScreens[j] = *element;
-			else
-			{
-				cerr << "Element " << i << " " << j << " int `screenPreferences` is not an int" << endl;
-				wsScreens[j] = 0;
-			}
-		}
-		screenPreferences[i] = wsScreens;
-	}
-
+	loadWorkspaceArrays(tbl, defaults, &err);
+	
 	//Keybinds
 	bool swapSuperAlt = getValue<bool>("Keybinds.swapSuperAlt", &err);
 
