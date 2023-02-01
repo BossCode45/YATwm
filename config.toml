@@ -1,0 +1,187 @@
+[Startup]
+startupBash = [
+#	"emacs --daemon"
+]
+
+[Main]
+gaps = 3
+outerGaps = 3
+logFile = "/tmp/yatlog.txt"
+
+[Workspaces]
+numWS = 10
+workspaceNames = ["1: ", "2: 拾", "3: ", "4: ", "5: ", "6: ", "7: 拾", "8: ", "9: ", "10: "]
+maxMonitors = 2
+screenPreferences = [[0], [0], [0], [0], [0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0]]
+
+[Keybinds]
+swapSuperAlt = false
+
+# All the keybinds
+
+#General
+[[Keybinds.key]]
+bind = "mod+e"
+func = "exit"
+[[Keybinds.key]]
+bind = "mod+t"
+func = "toggle"
+[[Keybinds.key]]
+bind = "mod+q"
+func = "kill"
+[[Keybinds.key]]
+bind = "mod+shift+r"
+func = "reload"
+
+#Focus
+[[Keybinds.key]]
+bind = "mod+h"
+func = "focChange"
+args = "Left"
+[[Keybinds.key]]
+bind = "mod+j"
+func = "focChange"
+args = "Down"
+[[Keybinds.key]]
+bind = "mod+k"
+func = "focChange"
+args = "Up"
+[[Keybinds.key]]
+bind = "mod+l"
+func = "focChange"
+args = "Right"
+[[Keybinds.key]]
+bind = "alt+Tab"
+func = "nextMonitor"
+
+#Window moving
+[[Keybinds.key]]
+bind = "mod+shift+h"
+func = "wMove"
+args = "Left"
+[[Keybinds.key]]
+bind = "mod+shift+j"
+func = "wMove"
+args = "Down"
+[[Keybinds.key]]
+bind = "mod+shift+k"
+func = "wMove"
+args = "Up"
+[[Keybinds.key]]
+bind = "mod+shift+l"
+func = "wMove"
+args = "Right"
+
+
+#Spawning
+[[Keybinds.key]]
+bind = "mod+Return"
+func = "spawn"
+args = "alacritty"
+[[Keybinds.key]]
+bind = "mod+d"
+func = "spawn"
+args = "rofi -i -show drun"
+[[Keybinds.key]]
+bind = "mod+c"
+func = "spawn"
+args = "firefox"
+[[Keybinds.key]]
+bind = "mod+x"
+func = "spawn"
+args = "i3lock"
+[[Keybinds.key]]
+bind = "mod+shift+x"
+func = "spawn"
+args = "i3lock"
+[[Keybinds.key]]
+bind = "mod+shift+x"
+func = "spawn"
+args = "systemctl suspend"
+
+#Testing
+[[Keybinds.key]]
+bind = "mod+p"
+func = "wsDump"
+
+# Workspace changing
+[[Keybinds.key]]
+bind = "mod+1"
+func = "changeWS"
+args = 1
+[[Keybinds.key]]
+bind = "mod+1"
+func = "wToWS"
+args = 1
+[[Keybinds.key]]
+bind = "mod+2"
+func = "changeWS"
+args = 2
+[[Keybinds.key]]
+bind = "mod+2"
+func = "wToWS"
+args = 2
+[[Keybinds.key]]
+bind = "mod+3"
+func = "changeWS"
+args = 3
+[[Keybinds.key]]
+bind = "mod+3"
+func = "wToWS"
+args = 3
+[[Keybinds.key]]
+bind = "mod+4"
+func = "changeWS"
+args = 4
+[[Keybinds.key]]
+bind = "mod+4"
+func = "wToWS"
+args = 4
+[[Keybinds.key]]
+bind = "mod+5"
+func = "changeWS"
+args = 5
+[[Keybinds.key]]
+bind = "mod+5"
+func = "wToWS"
+args = 5
+[[Keybinds.key]]
+bind = "mod+6"
+func = "changeWS"
+args = 6
+[[Keybinds.key]]
+bind = "mod+6"
+func = "wToWS"
+args = 6
+[[Keybinds.key]]
+bind = "mod+7"
+func = "changeWS"
+args = 7
+[[Keybinds.key]]
+bind = "mod+7"
+func = "wToWS"
+args = 7
+[[Keybinds.key]]
+bind = "mod+8"
+func = "changeWS"
+args = 8
+[[Keybinds.key]]
+bind = "mod+8"
+func = "wToWS"
+args = 8
+[[Keybinds.key]]
+bind = "mod+9"
+func = "changeWS"
+args = 9
+[[Keybinds.key]]
+bind = "mod+9"
+func = "wToWS"
+args = 9
+[[Keybinds.key]]
+bind = "mod+0"
+func = "changeWS"
+args = 10
+[[Keybinds.key]]
+bind = "mod+0"
+func = "wToWS"
+args = 10
