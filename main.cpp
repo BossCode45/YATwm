@@ -75,6 +75,7 @@ int mX, mY;
 
 #define getClient(c) clients.find(c)->second
 #define getFrame(f) frames.find(f)->second
+#define getFrameID(w) frameIDS.find(w)->second
 
 Window bar;
 
@@ -95,9 +96,14 @@ void clientMessage(XClientMessageEvent e);
 
 static int OnXError(Display* display, XErrorEvent* e);
 
+// Tiling
+// Call this one to tile everything (it does all the fancy stuff trust me just call this one)
 void tileRoots();
+// Call this one to until everything (it handles multiple monitors)
 void untileRoots();
-void tile(int frameID, int x, int y, int w, int h);
+// This is to be called by tileRoots, it takes in the x, y, w, and h of where it's allowed to tile windows to, and returns the ID of a fullscreen client if one is found, or noID (-1) if none are found
+int tile(int frameID, int x, int y, int w, int h);
+// This is to be called by tileRoots, it takes in a frameID and recursively unmaps all its children
 void untile(int frameID);
 
 // Usefull functions
@@ -573,6 +579,17 @@ const void nextMonitor(const CommandArg* argv)
 	XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[focusedScreen].x + screens[focusedScreen].w/2, screens[focusedScreen].y + screens[focusedScreen].h/2);
 	focusRoot(focusedWorkspaces[focusedScreen]);
 }
+void fullscreen(const KeyArg arg)
+{
+	Window focusedWindow;
+	int focusedRevert;
+	XGetInputFocus(dpy, &focusedWindow, &focusedRevert);
+
+	int fID = getFrameID(focusedWindow);
+	int cID = getFrame(fID).cID;
+	getClient(cID).fullscreen ^= true;
+	tileRoots();
+}
 
 void configureRequest(XConfigureRequestEvent e)
 {
@@ -670,7 +687,7 @@ void mapRequest(XMapRequestEvent e)
 	XSelectInput(dpy, e.window, EnterWindowMask);
 	
 	//Make client
-	Client c = {currClientID, e.window, false};
+	Client c = {currClientID, e.window, false, false};
 	currClientID++;
 
 	//Add to clients map
@@ -861,7 +878,17 @@ void tileRoots()
 {
 	for(int i = 0; i < nscreens; i++)
 	{
-		tile(focusedWorkspaces[i], screens[i].x + cfg.outerGaps, screens[i].y + cfg.outerGaps, screens[i].w - cfg.outerGaps*2, screens[i].h - cfg.outerGaps*2 - bH);
+		int fullscreenClientID = tile(focusedWorkspaces[i], screens[i].x + cfg.outerGaps, screens[i].y + cfg.outerGaps, screens[i].w - cfg.outerGaps*2, screens[i].h - cfg.outerGaps*2 - bH);
+		if(fullscreenClientID!=noID)
+		{
+			untile(focusedWorkspaces[i]);
+			Client c = getClient(fullscreenClientID);
+			XMapWindow(dpy, c.w);
+			XMoveWindow(dpy, c.w,
+						screens[i].x, screens[i].y);
+			XResizeWindow(dpy, c.w,
+						screens[i].w, screens[i].h);
+		}
 	}
 }
 void untileRoots()
@@ -871,7 +898,7 @@ void untileRoots()
 		untile(focusedWorkspaces[i]);
 	}
 }
-void tile(int frameID, int x, int y, int w, int h)
+int tile(int frameID, int x, int y, int w, int h)
 {
 	for(int fID : frames.find(frameID)->second.floatingFrameIDs)
 	{
@@ -896,20 +923,25 @@ void tile(int frameID, int x, int y, int w, int h)
 		}
 		if(!f.isClient)
 		{
-			tile(fID, wX, wY, wW, wH);
+			int fullscreenClientID = tile(fID, wX, wY, wW, wH);
+			if(fullscreenClientID == noID)
+				return fullscreenClientID;
 			continue;
 		}
+		Client c = clients.find(f.cID)->second;
+		if(c.fullscreen)
+			return c.ID;
 		wX += cfg.gaps;
 		wY += cfg.gaps;
 		wW -= cfg.gaps * 2;
 		wH -= cfg.gaps * 2;
-		Client c = clients.find(f.cID)->second;
 		XMapWindow(dpy, c.w);
 		XMoveWindow(dpy, c.w,
 					wX, wY);
 		XResizeWindow(dpy, c.w,
 					wW, wH);
 	}
+	return noID;
 }
 
 void untile(int frameID)

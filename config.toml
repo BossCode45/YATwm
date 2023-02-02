@@ -32,6 +32,9 @@ func = "kill"
 [[Keybinds.key]]
 bind = "mod+shift+r"
 func = "reload"
+[[Keybinds.key]]
+bind = "mod+f"
+func = "fullscreen"
 
 #Focus
 [[Keybinds.key]]
