@@ -589,6 +589,7 @@ void fullscreen(const KeyArg arg)
 	int cID = getFrame(fID).cID;
 	getClient(cID).fullscreen ^= true;
 	tileRoots();
+	setFullscreen(focusedWindow, getClient(cID).fullscreen); 
 }
 
 void configureRequest(XConfigureRequestEvent e)
@@ -861,6 +862,26 @@ void clientMessage(XClientMessageEvent e)
 		//EWMH
 		setCurrentDesktop(currWS);
 		*/
+	}
+	else if(e.message_type == XInternAtom(dpy, "_NET_WM_STATE", false))
+	{
+		if((Atom)e.data.l[0] == 0)
+			log("\tremove");
+		if((Atom)e.data.l[0] == 1)
+			log("\ttoggle");
+		if((Atom)e.data.l[0] == 2)
+			log("\tadd");
+		char* prop1 = XGetAtomName(dpy, (Atom)e.data.l[1]);
+		log("\tprop1");
+		if((Atom)e.data.l[1] == XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", false))
+		{
+			int fID = getFrameID(e.window);
+			int cID = getFrame(fID).cID;
+			getClient(cID).fullscreen = (Atom) e.data.l[0] == 1;
+			setFullscreen(e.window, (Atom) e.data.l[0] == 1); 
+			tileRoots();
+		}
+		XFree(prop1);
 	}
 	XFree(name);
 }
