@@ -32,6 +32,8 @@
 #include "ewmh.h"
 
 using std::cout;
+using std::string;
+using std::endl;
 using std::map;
 using std::pair;
 using std::vector;
@@ -908,6 +910,17 @@ void untile(int frameID)
 
 int main(int argc, char** argv)
 {
+	if(argc > 1)
+	{
+		if(strcmp(argv[1], "--version") == 0)
+		{
+			const char* version =
+				"YATwm for X\n"
+				"version 0.0.0";
+			cout << version << endl;
+			return 0;
+		}
+	}
 	//Important init stuff
 	mX = mY = 0;
 	dpy = XOpenDisplay(nullptr);
