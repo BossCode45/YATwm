@@ -9,6 +9,7 @@ EXEC := YATwm
 SOURCE_FILES := $(wildcard $(SOURCE_DIR)/*.cpp)
 SOURCE_HEADERS := $(wildcard $(SOURCE_DIR)/*.h)
 OBJS := $(subst $(SOURCE_DIR),$(OBJS_DIR), $(patsubst %.cpp,%.o,$(SOURCE_FILES)))
+INSTALL_DIR = /
 
 $(EXEC): $(OBJS)
 	$(CXX) $(OBJS) $(CXXFLAGS) $(LINKFLAGS) -o $(OUT_DIR)/$(EXEC)
@@ -17,15 +18,14 @@ $(OBJS_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 i: $(EXEC)
-	sudo mv $(EXEC) /usr/bin
-	sudo cp yat.desktop /usr/share/xsessions
-	sudo mkdir /etc/YATwm
-	sudo cp config.toml /etc/YATwm
+	sudo install $(EXEC) $(INSTALL_DIR)usr/bin
+	sudo install yat.desktop $(INSTALL_DIR)usr/share/xsessions
+	sudo install config.toml $(INSTALL_DIR)etc/YATwm
 install: i
 r:
-	sudo rm /usr/bin/$(EXEC)
-	sudo rm /usr/share/xsessions/yat.desktop
-	sudo rm -rf /etc/YATwm
+	sudo rm $(INSTALL_DIR)usr/bin/$(EXEC)
+	sudo rm $(INSTALL_DIR)usr/share/xsessions/yat.desktop
+	sudo rm -rf $(INSTALL_DIR)etc/YATwm
 remove: r
 
 #Files to be compiled
