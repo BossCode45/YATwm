@@ -576,10 +576,13 @@ void mapRequest(XMapRequestEvent e)
 	XMapWindow(dpy, e.window);
 
 	XTextProperty name;
-	XGetWMName(dpy, e.window, &name);
+	bool gotName = XGetWMName(dpy, e.window, &name);
 	XWindowAttributes attr;
 	XGetWindowAttributes(dpy, e.window, &attr);
-	log("Mapping window: " << name.value);
+	if(gotName)
+		log("Mapping window: " << name.value);
+	else
+		log("Mapping window with unknown name (its probably mpv, mpv is annoying)");
 	log("\tWindow ID: " << e.window);
 
 	Window focusedWindow;
@@ -632,7 +635,7 @@ void mapRequest(XMapRequestEvent e)
 	unsigned char* data;
 	Atom type;
 	int status = getProp(e.window, "_NET_WM_WINDOW_TYPE", &type, &data);
-	if (status == Success && ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", false))
+	if (status == Success && type != None && ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", false))
 	{
 		log("\tWindow was bar");
 		bH = attr.height;
