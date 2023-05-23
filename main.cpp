@@ -203,6 +203,7 @@ void spawn(const KeyArg arg)
 	if(fork() == 0)
 	{
 		int null = open("/dev/null", O_WRONLY);
+		dup2(null, 0);
 		dup2(null, 1);
 		dup2(null, 2);
 		const std::string argsStr = arg.str;
@@ -497,6 +498,7 @@ void bashSpawn(const KeyArg arg)
 	if(fork() == 0)
 	{
 		int null = open("/dev/null", O_WRONLY);
+		dup2(null, 0);
 		dup2(null, 1);
 		dup2(null, 2);
 		system(arg.str);
@@ -1022,6 +1024,8 @@ int main(int argc, char** argv)
 				break;
 		}
 	}
+
+	//Kill children
 
 	XCloseDisplay(dpy);
 }
