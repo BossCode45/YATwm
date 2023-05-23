@@ -31,5 +31,9 @@
 *.out
 *.app
 
+# The cache stuff
+.cache
+.cache/*
+
 # The executable on linux
 YATwm
