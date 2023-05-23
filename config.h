@@ -1,63 +1,30 @@
 #pragma once
 
-#include "error.h"
-
-#include <toml++/toml.hpp>
-
+#include "commands.h"
 #include <X11/X.h>
 #include <X11/keysym.h>
 
 #include <string>
 
-enum MoveDir
+struct Workspace
 {
-	Up,
-	Right,
-	Down,
-	Left
+	std::string name;
+	int* screenPreferences;
+	int screenPreferencesc;
 };
 
-typedef union
-{
-	char* str;
-	int num;
-	MoveDir dir;
-} KeyArg;
-
-struct KeyBind
-{
-	unsigned int modifiers;
-	KeySym keysym;
-	void(* func) (const KeyArg arg);
-	KeyArg args;
-};
-
-//Keybind commands
-#define KEYCOM(X) \
-	void X (const KeyArg arg)
-KEYCOM(exit);
-KEYCOM(spawn);
-KEYCOM(toggle);
-KEYCOM(kill);
-KEYCOM(changeWS);
-KEYCOM(wToWS);
-KEYCOM(focChange);
-KEYCOM(wMove);
-KEYCOM(bashSpawn);
-KEYCOM(reload);
-KEYCOM(wsDump);
-KEYCOM(nextMonitor);
+#define COMMAND(X) \
+	const void X (const CommandArg* argv)
 
 class Config
-{   
+{  
 	public:
-		Config();
+		Config(CommandsModule& commandsModule);
 		~Config();
 		void free();
 	
-		Err loadFromFile(std::string path);
-		Err reload();
-
+		void loadFromFile(std::string path);
+		void reloadFile();
 		// Startup
 		std::string* startupBash;
 		int startupBashc;
@@ -68,6 +35,7 @@ class Config
 		std::string logFile;
 
 		// Workspaces
+		std::vector<Workspace> workspaces;
 		int numWS;
 		std::string* workspaceNames;
 		int workspaceNamesc;
@@ -75,19 +43,22 @@ class Config
 		int** screenPreferences;
 		int screenPreferencesc;
 
-		// Keybinds
-		KeyBind* binds;
-		int bindsc;
+		// Config Commands
+		COMMAND(gapsCmd);
+		COMMAND(outerGapsCmd);
+		COMMAND(logFileCmd);
+		COMMAND(addWorkspaceCmd);
+
+		// Keybind Commands
+		COMMAND(exit);
+		COMMAND(spawn);
+		COMMAND(spawn_once);
+		COMMAND(changeWS);
+		COMMAND(wToWS);
+		COMMAND(focChange);
+		COMMAND(reload);
 	private:
-		template <typename T>
-		T getValue(std::string path, Err* err);
-
-		void loadWorkspaceArrays(toml::table tbl, toml::table defaults, Err* err);
-		void loadStartupBash(toml::table tbl, toml::table defaults, Err* err);
-
-		toml::table tbl;
-		toml::table defaults;
-
+		CommandsModule& commandsModule;
 		bool loaded = false;
-		std::string path;
+		std::string file;
 };

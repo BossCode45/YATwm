@@ -1,0 +1,15 @@
+# This is a comment
+bind e exit
+bind q exit
+bind o echo test
+bind x spawn notify-send stuff
+bind a spawn xterm
+bind r reload
+spawn "notify-send test"
+spawn_once "notify-send once"
+gaps 10
+outergaps 10
+addworkspace "1: A" 1
+addworkspace "2: B" 1
+addworkspace "5: A" 2 1
+addworkspace "6: B" 2 1
