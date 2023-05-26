@@ -1,5 +1,6 @@
 #include "config.h"
 #include "commands.h"
+#include "error.h"
 
 #include <X11/Xlib.h>
 
@@ -66,6 +67,7 @@ const void Config::focChange(const CommandArg* argv)
 }
 const void Config::reload(const CommandArg* argv)
 {
+	// Note: this is kinda broken cos it doesn't ungrab keys, i'll do that later.
 	cout << "Reloading config" << endl;
 	reloadFile();
 }
@@ -116,14 +118,14 @@ Config::Config(CommandsModule& commandsModule)
 	commandsModule.addCommand("addworkspace", &Config::addWorkspaceCmd, 2, addWorkspaceArgs, this);
 }
 
-void Config::reloadFile()
+Err Config::reloadFile()
 {
 	if(!loaded)
-		return;
-	loadFromFile(file);
+		return {CFG_ERR_NON_FATAL, "Not loaded config yet"};
+	return loadFromFile(file);
 }
 
-void Config::loadFromFile(string path)
+Err Config::loadFromFile(string path)
 {
 	file = path;
 	//Set defaults
@@ -152,6 +154,7 @@ void Config::loadFromFile(string path)
 		line++;
 	}
 	loaded = true;
+	return {NOERR, ""};
 }
 
 Config::~Config()

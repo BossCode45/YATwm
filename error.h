@@ -17,5 +17,10 @@ typedef unsigned int ErrCode;
 struct Err
 {
 	ErrCode code;
-	std::string errorMessage;
+	std::string message;
+	Err(ErrCode code, std::string message)
+	{
+		this->code = code;
+		this->message = message;
+	}
 };

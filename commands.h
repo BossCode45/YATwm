@@ -18,7 +18,7 @@ enum CommandArgType
 {
 	STR,
 	NUM,
-	DIR,
+	MOVDIR,
 	STR_REST,
 	NUM_ARR_REST
 };

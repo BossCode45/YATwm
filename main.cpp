@@ -26,6 +26,7 @@
 #include <fcntl.h>
 
 #include "commands.h"
+#include "keybinds.h"
 #include "structs.h"
 #include "config.h"
 #include "util.h"
@@ -43,11 +44,13 @@ std::ofstream yatlog;
 
 #define log(x) yatlog << x << std::endl
 
-CommandsModule commandsModule;
-Config cfg(commandsModule);
-
 Display* dpy;
 Window root;
+
+CommandsModule commandsModule;
+Config cfg(commandsModule);
+KeybindsModule keybindsModule(commandsModule, dpy, root);
+
 int sW, sH;
 int bH;
 TileDir nextDir = horizontal;
@@ -81,7 +84,6 @@ void updateMousePos();
 void focusRoot(int root);
 void handleConfigErrs(Err cfgErr);
 
-void keyPress(XKeyEvent e);
 void configureRequest(XConfigureRequestEvent e);
 void mapRequest(XMapRequestEvent e);
 void destroyNotify(XDestroyWindowEvent e);
@@ -164,11 +166,11 @@ void handleConfigErrs(Err cfgErr)
 {
 	if(cfgErr.code!=NOERR)
 	{
-		if(cfgErr.code == ERR_CFG_FATAL)
+		if(cfgErr.code == CFG_ERR_FATAL)
 		{
-			log("YATwm fatal error (Code " << cfgErr.code << ")\n" << cfgErr.errorMessage);
+			log("YATwm fatal error (Code " << cfgErr.code << ")\n" << cfgErr.message);
 			std::string title = "YATwm fatal config error (Code " + std::to_string(cfgErr.code) + ")";
-			std::string body = cfgErr.errorMessage;
+			std::string body = cfgErr.message;
 			NotifyNotification* n = notify_notification_new(title.c_str(),
 															body.c_str(),
 															0);
@@ -180,7 +182,7 @@ void handleConfigErrs(Err cfgErr)
 		}
 		else
 		{
-			log("YATwm non fatal error (Code " << cfgErr.code << ")\n" << cfgErr.errorMessage);
+			log("YATwm non fatal error (Code " << cfgErr.code << ")\n" << cfgErr.message);
 			std::string title = "YATwm non fatal config error (Code " + std::to_string(cfgErr.code) + ")";
 			std::string body = "Check logs for more information";
 			NotifyNotification* n = notify_notification_new(title.c_str(),
@@ -254,11 +256,12 @@ const void kill(const CommandArg* argv)
       XKillClient(dpy, w);
     }
 }
-const void changeWS(const CommandArg* argv)
+// Took this out as it is used commonly
+void cWS(int newWS)
 {
 	int prevWS = currWS;
 
-	currWS = argv[0].num;
+	currWS = newWS;
 	if(prevWS == currWS)
 		return;
 	untileRoots();
@@ -267,17 +270,17 @@ const void changeWS(const CommandArg* argv)
 
 	for(int i = 0; i < cfg.maxMonitors; i++)
 	{
-		if(nscreens > cfg.screenPreferences[argv[0].num - 1][i])
+		if(nscreens > cfg.screenPreferences[newWS - 1][i])
 		{
-			int screen = cfg.screenPreferences[argv[0].num - 1][i];
+			int screen = cfg.screenPreferences[newWS - 1][i];
 			//log("Found screen (screen " << screenPreferences[arg.num - 1][i] << ")");
-			prevWS = focusedWorkspaces[cfg.screenPreferences[argv[0].num - 1][i]];
+			prevWS = focusedWorkspaces[cfg.screenPreferences[newWS - 1][i]];
 			//log("Changed prevWS");
-			focusedWorkspaces[cfg.screenPreferences[argv[0].num - 1][i]] = argv[0].num;
+			focusedWorkspaces[cfg.screenPreferences[newWS - 1][i]] = newWS;
 			//log("Changed focusedWorkspaces");
-			if(focusedScreen != cfg.screenPreferences[argv[0].num - 1][i])
+			if(focusedScreen != cfg.screenPreferences[newWS - 1][i])
 			{
-				focusedScreen = cfg.screenPreferences[argv[0].num - 1][i];
+				focusedScreen = cfg.screenPreferences[newWS - 1][i];
 				XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[screen].x + screens[screen].w/2, screens[screen].y + screens[screen].h/2);
 			}
 			//log("Changed focusedScreen");
@@ -300,6 +303,10 @@ const void changeWS(const CommandArg* argv)
 
 	//EWMH
 	setCurrentDesktop(currWS);
+}
+const void changeWS(const CommandArg* argv)
+{
+	cWS(argv[0].num);
 }
 const void wToWS(const CommandArg* argv)
 {
@@ -513,7 +520,7 @@ const void reload(const CommandArg* argv)
 	detectScreens();
 
 	//Load config again
-	Err cfgErr = cfg.reload();
+	Err cfgErr = cfg.reloadFile();
 	//Error check
 	handleConfigErrs(cfgErr);
 
@@ -544,22 +551,6 @@ const void nextMonitor(const CommandArg* argv)
 
 	XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[focusedScreen].x + screens[focusedScreen].w/2, screens[focusedScreen].y + screens[focusedScreen].h/2);
 	focusRoot(focusedWorkspaces[focusedScreen]);
-}
-
-void keyPress(XKeyEvent e)
-{
-	if(e.same_screen!=1) return;
-	updateMousePos();
-	//cout << "Keypress recieved\n";
-	KeySym keysym = XLookupKeysym(&e, 0);
-	//cout << "\t" << XKeysymToString(keysym) << " super: " << ((e.state & Mod4Mask) == Mod4Mask) << " alt: " << ((e.state & Mod1Mask) == Mod1Mask) << " shift: " << ((e.state & ShiftMask) == ShiftMask) << std::endl;
-	for(int i = 0; i < cfg.bindsc; i++)
-	{
-		if(cfg.binds[i].keysym == keysym && (e.state & cfg.binds[i].modifiers) == cfg.binds[i].modifiers)
-		{
-			cfg.binds[i].func(cfg.binds[i].args);
-		}
-	}
 }
 
 void configureRequest(XConfigureRequestEvent e)
@@ -811,7 +802,7 @@ void clientMessage(XClientMessageEvent e)
 	log("Client message: " << name);
 	if(e.message_type == XInternAtom(dpy, "_NET_CURRENT_DESKTOP", false))
 	{
-		changeWS({.num = (int)((long)e.data.l[0] + 1)});
+		cWS(e.data.l[0] + 1);
 		/*
 		//Change desktop
 		int nextWS = (long)e.data.l[0] + 1;
@@ -966,11 +957,6 @@ int main(int argc, char** argv)
 	XSetErrorHandler(OnXError);
 	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask);
 
-	for(int i = 0; i < cfg.bindsc; i++)
-	{
-		XGrabKey(dpy, XKeysymToKeycode(dpy, cfg.binds[i].keysym), cfg.binds[i].modifiers, root, false, GrabModeAsync, GrabModeAsync);
-		//log("Grabbing " << XKeysymToString(cfg.binds[i].keysym));
-	}
 	XDefineCursor(dpy, root, XCreateFontCursor(dpy, XC_top_left_arrow));
 	//EWMH
 	initEWMH(&dpy, &root, cfg.numWS,cfg. workspaceNames);
@@ -1004,7 +990,7 @@ int main(int argc, char** argv)
 		switch(e.type)
 		{
 			case KeyPress:
-				keyPress(e.xkey);
+				keybindsModule.keyPress(e.xkey);
 				break;
 			case ConfigureRequest:
 				configureRequest(e.xconfigurerequest);

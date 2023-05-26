@@ -104,7 +104,7 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 		{
 			case STR: args[i-1].str = (char*)split[i].c_str(); break;
 			case NUM: args[i-1].num = std::stoi(split[i]); break;
-			case DIR: args[i-1].dir = LEFT; break;
+			case MOVDIR: args[i-1].dir = LEFT; break;
 			case STR_REST:
 			{
 				string rest = "";

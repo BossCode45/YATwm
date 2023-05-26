@@ -23,8 +23,8 @@ class Config
 		~Config();
 		void free();
 	
-		void loadFromFile(std::string path);
-		void reloadFile();
+		Err loadFromFile(std::string path);
+		Err reloadFile();
 		// Startup
 		std::string* startupBash;
 		int startupBashc;
