@@ -5,6 +5,7 @@
 #include <X11/keysym.h>
 
 #include <string>
+#include <vector>
 
 struct Workspace
 {
@@ -13,52 +14,47 @@ struct Workspace
 	int screenPreferencesc;
 };
 
-#define COMMAND(X) \
+#define COMMAND(X)								\
 	const void X (const CommandArg* argv)
 
 class Config
 {  
-	public:
-		Config(CommandsModule& commandsModule);
-		~Config();
-		void free();
+public:
+	Config(CommandsModule& commandsModule);
+	~Config();
+	void free();
 	
-		Err loadFromFile(std::string path);
-		Err reloadFile();
-		// Startup
-		std::string* startupBash;
-		int startupBashc;
+	std::vector<Err> loadFromFile(std::string path);
+	std::vector<Err> reloadFile();
+	// Startup
+	std::string* startupBash;
+	int startupBashc;
 
-		// Main
-		int gaps;
-		int outerGaps;
-		std::string logFile;
+	// Main
+	int gaps;
+	int outerGaps;
+	std::string logFile;
 
-		// Workspaces
-		std::vector<Workspace> workspaces;
-		int numWS;
-		std::string* workspaceNames;
-		int workspaceNamesc;
-		int maxMonitors;
-		int** screenPreferences;
-		int screenPreferencesc;
+	// Workspaces
+	std::vector<Workspace> workspaces;
+	int numWS;
 
-		// Config Commands
-		COMMAND(gapsCmd);
-		COMMAND(outerGapsCmd);
-		COMMAND(logFileCmd);
-		COMMAND(addWorkspaceCmd);
+	// Config Commands
+	COMMAND(gapsCmd);
+	COMMAND(outerGapsCmd);
+	COMMAND(logFileCmd);
+	COMMAND(addWorkspaceCmd);
 
-		// Keybind Commands
-		COMMAND(exit);
-		COMMAND(spawn);
-		COMMAND(spawn_once);
-		COMMAND(changeWS);
-		COMMAND(wToWS);
-		COMMAND(focChange);
-		COMMAND(reload);
-	private:
-		CommandsModule& commandsModule;
-		bool loaded = false;
-		std::string file;
+	// Keybind Commands
+	COMMAND(exit);
+	COMMAND(spawn);
+	COMMAND(spawn_once);
+	COMMAND(changeWS);
+	COMMAND(wToWS);
+	COMMAND(focChange);
+	COMMAND(reload);
+private:
+	CommandsModule& commandsModule;
+	bool loaded = false;
+	std::string file;
 };

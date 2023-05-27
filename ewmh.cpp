@@ -5,7 +5,7 @@
 Display** dpy_;
 Window* root_;
 
-void initEWMH(Display** dpy, Window* root, int numWS, const std::string workspaceNames[])
+void initEWMH(Display** dpy, Window* root, int numWS, std::vector<Workspace> workspaces)
 {
 	dpy_ = dpy;
 	root_ = root;
@@ -14,13 +14,13 @@ void initEWMH(Display** dpy, Window* root, int numWS, const std::string workspac
 	int wsNamesLen = numWS; //For  null bytes
 	for(int i = 0; i < numWS; i++)
 	{
-		wsNamesLen += workspaceNames[i].length();
+		wsNamesLen += workspaces[i].name.length();
 	}
 	char wsNames[wsNamesLen];
 	int pos = 0;
 	for(int i = 0; i < numWS; i++)
 	{
-		for(char toAdd : workspaceNames[i])
+		for(char toAdd : workspaces[i].name)
 		{
 			wsNames[pos++] = toAdd;		
 		}

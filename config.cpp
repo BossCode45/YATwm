@@ -92,6 +92,7 @@ const void Config::addWorkspaceCmd(const CommandArg* argv)
 	int* prefs = new int[argv[1].numArr.size];
 	memcpy(prefs, argv[1].numArr.arr, argv[1].numArr.size * sizeof(int));
 	workspaces.push_back({argv[0].str, prefs, argv[1].numArr.size});
+	numWS++;
 }
 
 Config::Config(CommandsModule& commandsModule)
@@ -118,20 +119,23 @@ Config::Config(CommandsModule& commandsModule)
 	commandsModule.addCommand("addworkspace", &Config::addWorkspaceCmd, 2, addWorkspaceArgs, this);
 }
 
-Err Config::reloadFile()
+std::vector<Err> Config::reloadFile()
 {
 	if(!loaded)
-		return {CFG_ERR_NON_FATAL, "Not loaded config yet"};
+		return {{CFG_ERR_NON_FATAL, "Not loaded config yet"}};
 	return loadFromFile(file);
 }
 
-Err Config::loadFromFile(string path)
+std::vector<Err> Config::loadFromFile(std::string path)
 {
+	std::vector<Err> ers;
+	
 	file = path;
 	//Set defaults
 	gaps = 3;
 	outerGaps = 3;
 	logFile = "/tmp/yatlog.txt";
+	numWS = 0;
 
 	//Probably need something for workspaces and binds too...
 
@@ -148,13 +152,12 @@ Err Config::loadFromFile(string path)
 		}
 		catch (Err e)
 		{
-			cout << "Error in config (line " << line <<  "): " << e.code << endl;
-			cout << "\tMessage: " << e.message << endl;
+			ers.push_back({e.code, "Error in config (line " + std::to_string(line) + "): " + std::to_string(e.code) + "\n\tMessage: " + e.message});
+		
 		}
 		line++;
 	}
 	loaded = true;
-	return {NOERR, ""};
 }
 
 Config::~Config()

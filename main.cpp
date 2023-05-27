@@ -82,7 +82,7 @@ int FFCF(int sID);
 void detectScreens();
 void updateMousePos();
 void focusRoot(int root);
-void handleConfigErrs(Err cfgErr);
+void handleConfigErrs(vector<Err> cfgErrs);
 
 void configureRequest(XConfigureRequestEvent e);
 void mapRequest(XMapRequestEvent e);
@@ -123,9 +123,9 @@ void detectScreens()
 		log("\t\tw: " << screens[i].w << ", h: " << screens[i].h);
 		XFree(name);
 	}
-	for(int i = 0; i < cfg.numWS; i++)
+	for(int i = 0; i < cfg.workspaces.size(); i++)
 	{
-		if(cfg.screenPreferences[i][0] < nscreens && focusedWorkspaces[cfg.screenPreferences[i][0]] == 0)
+		if(cfg.workspaces[i].screenPreferences[0] < nscreens && focusedWorkspaces[cfg.workspaces[i].screenPreferences[0]] == 0)
 		{
 			//focusedWorkspaces[screenPreferences[i][0]] = i+1;
 		}
@@ -162,9 +162,9 @@ void focusRoot(int root)
 	//log("\tFocusing window: " << w);
 	XSetInputFocus(dpy, w, RevertToPointerRoot, CurrentTime);
 }
-void handleConfigErrs(Err cfgErr)
+void handleConfigErrs(vector<Err> cfgErrs)
 {
-	if(cfgErr.code!=NOERR)
+	for(Err cfgErr : cfgErrs)
 	{
 		if(cfgErr.code == CFG_ERR_FATAL)
 		{
@@ -268,19 +268,19 @@ void cWS(int newWS)
 
 	//log("Changing WS with keybind");
 
-	for(int i = 0; i < cfg.maxMonitors; i++)
+	for(int i = 0; i < nscreens; i++)
 	{
-		if(nscreens > cfg.screenPreferences[newWS - 1][i])
+		if(nscreens > cfg.workspaces[newWS - 1].screenPreferences[i])
 		{
-			int screen = cfg.screenPreferences[newWS - 1][i];
+			int screen = cfg.workspaces[newWS - 1].screenPreferences[i];
 			//log("Found screen (screen " << screenPreferences[arg.num - 1][i] << ")");
-			prevWS = focusedWorkspaces[cfg.screenPreferences[newWS - 1][i]];
+			prevWS = focusedWorkspaces[screen];
 			//log("Changed prevWS");
-			focusedWorkspaces[cfg.screenPreferences[newWS - 1][i]] = newWS;
+			focusedWorkspaces[screen] = newWS;
 			//log("Changed focusedWorkspaces");
-			if(focusedScreen != cfg.screenPreferences[newWS - 1][i])
+			if(focusedScreen != screen)
 			{
-				focusedScreen = cfg.screenPreferences[newWS - 1][i];
+				focusedScreen = screen;
 				XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[screen].x + screens[screen].w/2, screens[screen].y + screens[screen].h/2);
 			}
 			//log("Changed focusedScreen");
@@ -291,7 +291,8 @@ void cWS(int newWS)
 	//log("Finished changes");
 
 	//log(prevWS);
-	if(prevWS < 1 || prevWS > cfg.numWS)
+	// LOOK: what is this for?????
+	if(prevWS < 1 || prevWS > cfg.workspaces.size())
 	{
 		//untile(prevWS);
 	}
@@ -520,7 +521,7 @@ const void reload(const CommandArg* argv)
 	detectScreens();
 
 	//Load config again
-	Err cfgErr = cfg.reloadFile();
+	vector<Err> cfgErr = cfg.reloadFile();
 	//Error check
 	handleConfigErrs(cfgErr);
 
@@ -929,8 +930,9 @@ int main(int argc, char** argv)
 	std::string home = getenv("HOME");
 	std::string pathAfterHome = "/.config/YATwm/config.toml";
 	std::string file = home + pathAfterHome;
-	Err cfgErr = cfg.loadFromFile(file);
-
+	// Err cfgErr = cfg.loadFromFile(file);
+	std::vector<Err> cfgErr = cfg.loadFromFile("config");
+	
 	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
 
@@ -959,7 +961,7 @@ int main(int argc, char** argv)
 
 	XDefineCursor(dpy, root, XCreateFontCursor(dpy, XC_top_left_arrow));
 	//EWMH
-	initEWMH(&dpy, &root, cfg.numWS,cfg. workspaceNames);
+	initEWMH(&dpy, &root, cfg.workspaces.size(), cfg.workspaces);
 	setCurrentDesktop(1);
 
 	for(int i = 1; i < cfg.numWS + 1; i++)
@@ -990,7 +992,7 @@ int main(int argc, char** argv)
 		switch(e.type)
 		{
 			case KeyPress:
-				keybindsModule.keyPress(e.xkey);
+				keybindsModule.handleKeypress(e.xkey);
 				break;
 			case ConfigureRequest:
 				configureRequest(e.xconfigurerequest);
