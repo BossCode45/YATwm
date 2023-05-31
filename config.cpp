@@ -41,18 +41,6 @@ const void Config::spawn_once(const CommandArg* argv)
 	}
 }
 
-const void Config::spawn(const CommandArg* argv)
-{
-	if(fork() == 0)
-	{
-		int null = open("/dev/null", O_WRONLY);
-		dup2(null, 0);
-		dup2(null, 1);
-		dup2(null, 2);
-		system(argv[0].str);
-		exit(0);
-	}
-}
 const void Config::changeWS(const CommandArg* argv)
 {
 	cout << "changeWS called" << endl;
@@ -99,24 +87,14 @@ Config::Config(CommandsModule& commandsModule)
 	: commandsModule(commandsModule)
 {
 	//Register commands for keybinds
-	CommandArgType* spawnArgs = new CommandArgType[1];
-	spawnArgs[0] = STR_REST;
-	commandsModule.addCommand("spawn", &Config::spawn, 1, spawnArgs, this);
-	commandsModule.addCommand("spawn_once", &Config::spawn_once, 1, spawnArgs, this);
+	commandsModule.addCommand("spawn_once", &Config::spawn_once, 1, {STR_REST}, this);
 	commandsModule.addCommand("reload", &Config::reload, 0, {}, this);
 
 	//Register commands for config
-	CommandArgType* gapsArgs = new CommandArgType[1];
-	gapsArgs[0] = NUM;
-	commandsModule.addCommand("gaps", &Config::gapsCmd, 1, gapsArgs, this);
-	commandsModule.addCommand("outergaps", &Config::outerGapsCmd, 1, gapsArgs, this);
-	CommandArgType* logFileArgs = new CommandArgType[1];
-	logFileArgs[0] = STR_REST;
-	commandsModule.addCommand("logfile", &Config::logFileCmd, 1, logFileArgs, this);
-	CommandArgType* addWorkspaceArgs = new CommandArgType[2];
-	addWorkspaceArgs[0] = STR;
-	addWorkspaceArgs[1] = NUM_ARR_REST;
-	commandsModule.addCommand("addworkspace", &Config::addWorkspaceCmd, 2, addWorkspaceArgs, this);
+	commandsModule.addCommand("gaps", &Config::gapsCmd, 1, {NUM}, this);
+	commandsModule.addCommand("outergaps", &Config::outerGapsCmd, 1, {NUM}, this);
+	commandsModule.addCommand("logfile", &Config::logFileCmd, 1, {STR_REST}, this);
+	commandsModule.addCommand("addworkspace", &Config::addWorkspaceCmd, 2, {STR, NUM_ARR_REST}, this);
 }
 
 std::vector<Err> Config::reloadFile()
@@ -128,7 +106,7 @@ std::vector<Err> Config::reloadFile()
 
 std::vector<Err> Config::loadFromFile(std::string path)
 {
-	std::vector<Err> ers;
+	std::vector<Err> errs;
 	
 	file = path;
 	//Set defaults
@@ -152,12 +130,13 @@ std::vector<Err> Config::loadFromFile(std::string path)
 		}
 		catch (Err e)
 		{
-			ers.push_back({e.code, "Error in config (line " + std::to_string(line) + "): " + std::to_string(e.code) + "\n\tMessage: " + e.message});
+			errs.push_back({e.code, "Error in config (line " + std::to_string(line) + "): " + std::to_string(e.code) + "\n\tMessage: " + e.message});
 		
 		}
 		line++;
 	}
 	loaded = true;
+	return errs;
 }
 
 Config::~Config()

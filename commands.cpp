@@ -47,6 +47,20 @@ void CommandsModule::addCommand(Command c)
 	}
 	commandList.push_back(c);
 }
+void CommandsModule::addCommand(std::string name, const void (*func)(const CommandArg *), const int argc, CommandArgType *argTypes)
+{
+	Command c = {name, nullptr, func, argc, argTypes, nullptr};
+	addCommand(c);
+}
+void CommandsModule::addCommand(std::string name, const void(*func)(const CommandArg*), const int argc, std::vector<CommandArgType> argTypes)
+{
+	CommandArgType* argTypesArr = new CommandArgType[argc];
+	for(int i = 0; i < argc; i++)
+	{
+		argTypesArr[i] = argTypes[i];
+	}
+	addCommand(name, func, argc, argTypesArr);
+}
 
 struct NameMatches
 {
@@ -145,7 +159,10 @@ void CommandsModule::runCommand(string command)
 	CommandArg* args = getCommandArgs(split, cmd->argTypes, cmd->argc);
 	try
 	{
-		cmd->func(*cmd->module, args);
+		if(cmd->module == nullptr)
+			cmd->staticFunc(args);
+		else
+			cmd->func(*cmd->module, args);
 	}
 	catch (Err e)
 	{

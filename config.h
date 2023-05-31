@@ -47,7 +47,6 @@ public:
 
 	// Keybind Commands
 	COMMAND(exit);
-	COMMAND(spawn);
 	COMMAND(spawn_once);
 	COMMAND(changeWS);
 	COMMAND(wToWS);

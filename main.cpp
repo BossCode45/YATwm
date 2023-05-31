@@ -925,6 +925,8 @@ int main(int argc, char** argv)
 	dpy = XOpenDisplay(nullptr);
 	root = Window(DefaultRootWindow(dpy));
 
+	// Adding commands
+	commandsModule.addCommand("spawn", spawn, 1, {STR_REST});
 
 	//Config
 	std::string home = getenv("HOME");
