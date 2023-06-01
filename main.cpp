@@ -44,12 +44,14 @@ std::ofstream yatlog;
 
 #define log(x) yatlog << x << std::endl
 
-Display* dpy;
-Window root;
+Globals globals;
+
+Display*& dpy = globals.dpy;
+Window& root = globals.root;
 
 CommandsModule commandsModule;
 Config cfg(commandsModule);
-KeybindsModule keybindsModule(commandsModule, dpy, root);
+KeybindsModule keybindsModule(commandsModule, globals);
 
 int sW, sH;
 int bH;
@@ -514,7 +516,12 @@ const void bashSpawn(const CommandArg* argv)
 		system(argv[0].str);
 		exit(0);
 	}
-
+}
+const void bashSpawnOnce(const CommandArg* argv)
+{
+	if(cfg.loaded)
+		return;
+	else bashSpawn(argv);
 }
 const void reload(const CommandArg* argv)
 {
@@ -915,18 +922,29 @@ int main(int argc, char** argv)
 		{
 			const char* version =
 				"YATwm for X\n"
-				"version 0.0.0";
+				"version 0.1.0";
 			cout << version << endl;
 			return 0;
 		}
 	}
 	//Important init stuff
 	mX = mY = 0;
-	dpy = XOpenDisplay(nullptr);
-	root = Window(DefaultRootWindow(dpy));
+	globals.dpy = XOpenDisplay(nullptr);
+	globals.root = Window(DefaultRootWindow(dpy));
 
 	// Adding commands
+	commandsModule.addCommand("exit", exit, 0, {});
 	commandsModule.addCommand("spawn", spawn, 1, {STR_REST});
+	commandsModule.addCommand("toggle", toggle, 0, {});
+	commandsModule.addCommand("kill", kill, 0, {});
+	commandsModule.addCommand("changeWS", changeWS, 1, {NUM});
+	commandsModule.addCommand("wToWS", wToWS, 1, {NUM});
+	commandsModule.addCommand("focChange", focChange, 1, {MOVDIR});
+	commandsModule.addCommand("bashSpawn", bashSpawn, 1, {STR_REST});
+	commandsModule.addCommand("bashSpawnOnce", bashSpawnOnce, 1, {STR_REST});
+	commandsModule.addCommand("reload", reload, 0, {});
+	commandsModule.addCommand("wsDump", wsDump, 0, {});
+	commandsModule.addCommand("nextMonitor", nextMonitor, 0, {});
 
 	//Config
 	std::string home = getenv("HOME");
@@ -934,7 +952,7 @@ int main(int argc, char** argv)
 	std::string file = home + pathAfterHome;
 	// Err cfgErr = cfg.loadFromFile(file);
 	std::vector<Err> cfgErr = cfg.loadFromFile("config");
-	
+
 	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
 
@@ -946,40 +964,37 @@ int main(int argc, char** argv)
 	//Notifications
 	notify_init("YATwm");
 
+	cout << 0 << endl;
 	//Error check config
 	handleConfigErrs(cfgErr);
-	
+	cout << 1 << endl;
 
 	screens = new ScreenInfo[1];
 	focusedWorkspaces = new int[1];
 	detectScreens();
+	cout << 2 << endl;
 
 	int screenNum = DefaultScreen(dpy);
 	sW = DisplayWidth(dpy, screenNum);
 	sH = DisplayHeight(dpy, screenNum);
 
+	cout << 3 << endl;
 	XSetErrorHandler(OnXError);
 	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask);
 
+	cout << 4 << endl;
 	XDefineCursor(dpy, root, XCreateFontCursor(dpy, XC_top_left_arrow));
 	//EWMH
 	initEWMH(&dpy, &root, cfg.workspaces.size(), cfg.workspaces);
 	setCurrentDesktop(1);
 
+	cout << 5 << endl;
 	for(int i = 1; i < cfg.numWS + 1; i++)
 	{
 		vector<int> v;
 		Frame rootFrame = {i, noID, false, noID, horizontal, v, true};
 		frames.insert(pair<int, Frame>(i, rootFrame));
 		currFrameID++;
-	}
-	for(int i = 0; i < cfg.startupBashc; i++)
-	{
-		if(fork() == 0)
-		{
-			system((cfg.startupBash[i] + " > /dev/null 2> /dev/null").c_str());
-			exit(0);
-		}
 	}
 
 	XSetInputFocus(dpy, root, RevertToNone, CurrentTime);

@@ -26,9 +26,6 @@ public:
 	
 	std::vector<Err> loadFromFile(std::string path);
 	std::vector<Err> reloadFile();
-	// Startup
-	std::string* startupBash;
-	int startupBashc;
 
 	// Main
 	int gaps;
@@ -38,6 +35,8 @@ public:
 	// Workspaces
 	std::vector<Workspace> workspaces;
 	int numWS;
+	bool loaded = false;
+
 
 	// Config Commands
 	COMMAND(gapsCmd);
@@ -45,15 +44,7 @@ public:
 	COMMAND(logFileCmd);
 	COMMAND(addWorkspaceCmd);
 
-	// Keybind Commands
-	COMMAND(exit);
-	COMMAND(spawn_once);
-	COMMAND(changeWS);
-	COMMAND(wToWS);
-	COMMAND(focChange);
-	COMMAND(reload);
 private:
 	CommandsModule& commandsModule;
-	bool loaded = false;
 	std::string file;
 };

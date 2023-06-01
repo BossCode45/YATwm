@@ -22,44 +22,6 @@ using std::string;
 // For testing
 using std::cout, std::endl;
 
-const void Config::exit(const CommandArg* argv)
-{
-	cout << "exit called" << endl;
-}
-const void Config::spawn_once(const CommandArg* argv)
-{
-	if(loaded)
-		return;
-	if(fork() == 0)
-	{
-		int null = open("/dev/null", O_WRONLY);
-		dup2(null, 0);
-		dup2(null, 1);
-		dup2(null, 2);
-		system(argv[0].str);
-		exit(0);
-	}
-}
-
-const void Config::changeWS(const CommandArg* argv)
-{
-	cout << "changeWS called" << endl;
-}
-const void Config::wToWS(const CommandArg* argv)
-{
-	cout << "wToWS called" << endl;
-}
-const void Config::focChange(const CommandArg* argv)
-{
-	cout << "focChange called" << endl;
-}
-const void Config::reload(const CommandArg* argv)
-{
-	// Note: this is kinda broken cos it doesn't ungrab keys, i'll do that later.
-	cout << "Reloading config" << endl;
-	reloadFile();
-}
-
 const void Config::gapsCmd(const CommandArg* argv)
 {
 	gaps = argv[0].num;
@@ -86,10 +48,6 @@ const void Config::addWorkspaceCmd(const CommandArg* argv)
 Config::Config(CommandsModule& commandsModule)
 	: commandsModule(commandsModule)
 {
-	//Register commands for keybinds
-	commandsModule.addCommand("spawn_once", &Config::spawn_once, 1, {STR_REST}, this);
-	commandsModule.addCommand("reload", &Config::reload, 0, {}, this);
-
 	//Register commands for config
 	commandsModule.addCommand("gaps", &Config::gapsCmd, 1, {NUM}, this);
 	commandsModule.addCommand("outergaps", &Config::outerGapsCmd, 1, {NUM}, this);

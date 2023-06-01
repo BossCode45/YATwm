@@ -150,6 +150,7 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 
 void CommandsModule::runCommand(string command)
 {
+	cout << command << endl;
 	vector<string> split = splitCommand(command);
 	Command* cmd = lookupCommand(split[0]);
 	if(cmd == nullptr)

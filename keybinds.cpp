@@ -10,17 +10,14 @@
 
 using std::string, std::cout, std::endl;
 
-KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Display* dpy, Window root)
-	:commandsModule(commandsModule)
+KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Globals& globals)
+	:commandsModule(commandsModule),
+	globals(globals)
 {
-	this->dpy = dpy;
-	this->root = root;
 	CommandArgType* bindArgs = new CommandArgType[2];
 	bindArgs[0] = STR;
 	bindArgs[1] = STR_REST;
 	commandsModule.addCommand("bind", &KeybindsModule::bind, 2, bindArgs, this);
-	commandsModule.addCommand("exit", &KeybindsModule::exit, 0, {}, this);
-	exitNow = false;
 }
 
 const void KeybindsModule::handleKeypress(XKeyEvent e)
@@ -29,7 +26,7 @@ const void KeybindsModule::handleKeypress(XKeyEvent e)
 	//updateMousePos();
 	for(Keybind bind : binds)
 	{
-		if(bind.modifiers == e.state && bind.key == e.keycode)
+		if(bind.modifiers == e.state && bind.key == XKeycodeToKeysym(globals.dpy, e.keycode, 0))
 		{
 			commandsModule.runCommand(bind.command);
 		}
@@ -46,6 +43,7 @@ const void KeybindsModule::bind(const CommandArg* argv)
 	}
 	std::vector<string> keys = split(argv[0].str, '+');
 	Keybind bind;
+	bind.modifiers = 0;
 	for(string key : keys)
 	{
 		if(key == "mod")
@@ -54,7 +52,7 @@ const void KeybindsModule::bind(const CommandArg* argv)
 		}
 		else if(key == "alt")
 		{
-			bind.modifiers |= Mod1Mask;
+			bind.modifiers |= Mod4Mask;
 		}
 		else if(key == "shift")
 		{
@@ -66,7 +64,8 @@ const void KeybindsModule::bind(const CommandArg* argv)
 		}
 		else
 		{
-			bind.key = XKeysymToKeycode(dpy, XStringToKeysym(key.c_str()));
+			KeySym s = XStringToKeysym(key.c_str());
+			bind.key = s;
 			if(bind.key == NoSymbol)
 			{
 				throw Err(CFG_ERR_KEYBIND, "Keybind '" + string(argv[0].str) + "' is invalid!");
@@ -74,12 +73,8 @@ const void KeybindsModule::bind(const CommandArg* argv)
 			}
 		}
 	}
-	XGrabKey(dpy, bind.key, bind.modifiers, root, false, GrabModeAsync, GrabModeAsync);
+	bind.command = argv[1].str;
+	KeyCode c = XKeysymToKeycode(globals.dpy, bind.key);
+	XGrabKey(globals.dpy, c, bind.modifiers, globals.root, False, GrabModeAsync, GrabModeAsync);
 	binds.push_back(bind);
-}
-
-const void KeybindsModule::exit(const CommandArg* argv)
-{
-	exitNow = true;
-	cout << "Exiting..." << endl;
 }
