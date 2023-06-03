@@ -10,9 +10,10 @@
 
 using std::string, std::cout, std::endl;
 
-KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Globals& globals)
+KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Config& cfg, Globals& globals)
 	:commandsModule(commandsModule),
-	globals(globals)
+	 globals(globals),
+	 cfg(cfg)
 {
 	CommandArgType* bindArgs = new CommandArgType[2];
 	bindArgs[0] = STR;
@@ -23,10 +24,15 @@ KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Globals& globals)
 const void KeybindsModule::handleKeypress(XKeyEvent e)
 {
 	if(e.same_screen!=1) return;
+	//cout << "Key Pressed" << endl;
+	//cout << "\tState: " << e.state << endl;
+	//cout << "\tCode: " <<  XKeysymToString(XKeycodeToKeysym(globals.dpy, e.keycode, 0)) << endl;
 	//updateMousePos();
+
+	const unsigned int masks = ShiftMask | ControlMask | Mod1Mask | Mod4Mask;
 	for(Keybind bind : binds)
 	{
-		if(bind.modifiers == e.state && bind.key == XKeycodeToKeysym(globals.dpy, e.keycode, 0))
+		if(bind.modifiers == (e.state & masks) && bind.key == XKeycodeToKeysym(globals.dpy, e.keycode, 0))
 		{
 			commandsModule.runCommand(bind.command);
 		}
@@ -48,11 +54,11 @@ const void KeybindsModule::bind(const CommandArg* argv)
 	{
 		if(key == "mod")
 		{
-			bind.modifiers |= Mod1Mask;
+			bind.modifiers |= Mod4Mask >> 3 * cfg.swapSuperAlt;
 		}
 		else if(key == "alt")
 		{
-			bind.modifiers |= Mod4Mask;
+			bind.modifiers |= Mod1Mask << 3 * cfg.swapSuperAlt;
 		}
 		else if(key == "shift")
 		{
@@ -74,7 +80,13 @@ const void KeybindsModule::bind(const CommandArg* argv)
 		}
 	}
 	bind.command = argv[1].str;
+	cout << bind.modifiers << endl;
 	KeyCode c = XKeysymToKeycode(globals.dpy, bind.key);
 	XGrabKey(globals.dpy, c, bind.modifiers, globals.root, False, GrabModeAsync, GrabModeAsync);
 	binds.push_back(bind);
+}
+
+const void KeybindsModule::clearKeybinds()
+{
+	XUngrabButton(globals.dpy, AnyKey, AnyModifier, globals.root);
 }

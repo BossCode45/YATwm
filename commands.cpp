@@ -12,30 +12,15 @@
 
 using std::cout, std::endl, std::string, std::vector, std::tolower;
 
-const void CommandsModule::printHello(const CommandArg* argv)
-{
-	cout << "Hello" << endl;
-}
-
-const void CommandsModule::echo(const CommandArg* argv)
-{
-	cout << "Echo: '" << argv[0].str << '\'' << endl;
-}
-
 CommandsModule::CommandsModule()
 {
-	addCommand("printHello", &CommandsModule::printHello, 0, {}, this);
-	CommandArgType* args0 = new CommandArgType[1];
-	args0[0] = STR_REST;
-	addCommand("echo", &CommandsModule::echo, 1, args0, this);
 }
 CommandsModule::~CommandsModule()
 {
 	for(Command c : commandList)
 	{
-		// This is probably needed but its not working
-		//if(c.argc > 0)
-			//delete[] c.argTypes;
+		if(c.argc > 0)
+			delete[] c.argTypes;
 	}
 }
 
@@ -150,7 +135,6 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 
 void CommandsModule::runCommand(string command)
 {
-	cout << command << endl;
 	vector<string> split = splitCommand(command);
 	Command* cmd = lookupCommand(split[0]);
 	if(cmd == nullptr)

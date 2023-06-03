@@ -37,12 +37,15 @@ public:
 	int numWS;
 	bool loaded = false;
 
+	// Binds
+	bool swapSuperAlt;
 
 	// Config Commands
 	COMMAND(gapsCmd);
 	COMMAND(outerGapsCmd);
 	COMMAND(logFileCmd);
 	COMMAND(addWorkspaceCmd);
+	COMMAND(swapSuperAltCmd);
 
 private:
 	CommandsModule& commandsModule;

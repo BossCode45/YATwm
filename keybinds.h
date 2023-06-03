@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "commands.h"
+#include "config.h"
 #include "util.h"
 
 struct Keybind {
@@ -18,12 +19,14 @@ struct Keybind {
 
 class KeybindsModule {
 public:
-	KeybindsModule(CommandsModule& commandsModule, Globals& globals);
+	KeybindsModule(CommandsModule& commandsModule, Config& cfg, Globals& globals);
 	~KeybindsModule() = default;
 	const void bind(const CommandArg* argv);
 	const void handleKeypress(XKeyEvent e);
+	const void clearKeybinds();
 private:
 	std::vector<Keybind> binds;
 	CommandsModule& commandsModule;
+	Config& cfg;
 	Globals& globals;
 };

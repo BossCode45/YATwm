@@ -51,7 +51,7 @@ Window& root = globals.root;
 
 CommandsModule commandsModule;
 Config cfg(commandsModule);
-KeybindsModule keybindsModule(commandsModule, globals);
+KeybindsModule keybindsModule(commandsModule, cfg, globals);
 
 int sW, sH;
 int bH;
@@ -527,6 +527,9 @@ const void reload(const CommandArg* argv)
 {
 	detectScreens();
 
+	//Clear keybinds
+	keybindsModule.clearKeybinds();
+	
 	//Load config again
 	vector<Err> cfgErr = cfg.reloadFile();
 	//Error check
@@ -964,31 +967,25 @@ int main(int argc, char** argv)
 	//Notifications
 	notify_init("YATwm");
 
-	cout << 0 << endl;
 	//Error check config
 	handleConfigErrs(cfgErr);
-	cout << 1 << endl;
 
 	screens = new ScreenInfo[1];
 	focusedWorkspaces = new int[1];
 	detectScreens();
-	cout << 2 << endl;
 
 	int screenNum = DefaultScreen(dpy);
 	sW = DisplayWidth(dpy, screenNum);
 	sH = DisplayHeight(dpy, screenNum);
 
-	cout << 3 << endl;
 	XSetErrorHandler(OnXError);
 	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask);
 
-	cout << 4 << endl;
 	XDefineCursor(dpy, root, XCreateFontCursor(dpy, XC_top_left_arrow));
 	//EWMH
 	initEWMH(&dpy, &root, cfg.workspaces.size(), cfg.workspaces);
 	setCurrentDesktop(1);
 
-	cout << 5 << endl;
 	for(int i = 1; i < cfg.numWS + 1; i++)
 	{
 		vector<int> v;

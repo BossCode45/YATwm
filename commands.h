@@ -51,8 +51,6 @@ private:
 	std::vector<Command> commandList;
 	std::vector<std::string> splitCommand(std::string command);
 	CommandArg* getCommandArgs(std::vector<std::string>& args, const CommandArgType* argTypes, const int argc);
-	const void printHello(const CommandArg* argv);
-	const void echo(const CommandArg* argv);
 public:   
 	CommandsModule();
 	~CommandsModule();

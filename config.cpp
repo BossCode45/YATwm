@@ -45,6 +45,11 @@ const void Config::addWorkspaceCmd(const CommandArg* argv)
 	numWS++;
 }
 
+const void Config::swapSuperAltCmd(const CommandArg* argv)
+{
+	swapSuperAlt ^= true;
+}
+
 Config::Config(CommandsModule& commandsModule)
 	: commandsModule(commandsModule)
 {
@@ -53,6 +58,7 @@ Config::Config(CommandsModule& commandsModule)
 	commandsModule.addCommand("outergaps", &Config::outerGapsCmd, 1, {NUM}, this);
 	commandsModule.addCommand("logfile", &Config::logFileCmd, 1, {STR_REST}, this);
 	commandsModule.addCommand("addworkspace", &Config::addWorkspaceCmd, 2, {STR, NUM_ARR_REST}, this);
+	commandsModule.addCommand("swapmods", &Config::swapSuperAltCmd, 0, {}, this);
 }
 
 std::vector<Err> Config::reloadFile()
@@ -72,6 +78,7 @@ std::vector<Err> Config::loadFromFile(std::string path)
 	outerGaps = 3;
 	logFile = "/tmp/yatlog.txt";
 	numWS = 0;
+	swapSuperAlt = false;
 
 	//Probably need something for workspaces and binds too...
 
