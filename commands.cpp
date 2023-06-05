@@ -86,10 +86,9 @@ vector<string> CommandsModule::splitCommand(string command)
 	return v;
 }
 
-template <typename T>
-std::basic_string<T> lowercase(const std::basic_string<T>& s)
+string lowercase(string s)
 {
-    std::basic_string<T> s2 = s;
+    string s2 = s;
     std::transform(s2.begin(), s2.end(), s2.begin(), [](unsigned char c){ return std::tolower(c); });
     return s2;
 }
@@ -103,30 +102,41 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 		{
 			case STR: args[i-1].str = (char*)split[i].c_str(); break;
 			case NUM: args[i-1].num = std::stoi(split[i]); break;
-			case MOVDIR: args[i-1].dir = LEFT; break;
+			case MOVDIR:
+				{
+					if(lowercase(split[i]) == "up")
+						args[i-1].dir = UP;
+					else if(lowercase(split[i]) == "down")
+						args[i-1].dir = DOWN;
+					else if(lowercase(split[i]) == "left")
+						args[i-1].dir = LEFT;
+					else if(lowercase(split[i]) == "right")
+						args[i-1].dir = RIGHT;
+					break;
+				}
 			case STR_REST:
-			{
-				string rest = "";
-				for(int j = i; j < split.size(); j++)
 				{
-					rest += split[j];
-					if(j != split.size() - 1)
-						rest += " ";
+					string rest = "";
+					for(int j = i; j < split.size(); j++)
+					{
+						rest += split[j];
+						if(j != split.size() - 1)
+							rest += " ";
+					}
+					args[i-1].str = new char[rest.size()];
+					strcpy(args[i-1].str, rest.c_str());
+					return args;
 				}
-				args[i-1].str = new char[rest.size()];
-				strcpy(args[i-1].str, rest.c_str());
-				return args;
-			}
 			case NUM_ARR_REST:
-			{
-				int* rest = new int[split.size() - i];
-				for(int j = 0; j < split.size() - i; j++)
 				{
-					rest[j] = std::stoi(split[j + i]);
+					int* rest = new int[split.size() - i];
+					for(int j = 0; j < split.size() - i; j++)
+					{
+						rest[j] = std::stoi(split[j + i]);
+					}
+					args[i-1].numArr = {rest, (int) split.size() - i};
+					return args;
 				}
-				args[i-1].numArr = {rest, (int) split.size() - i};
-				return args;
-			}
 			default: cout << "UH OH SOMETHING IS VERY WRONG" << endl;
 		}
 	}

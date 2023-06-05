@@ -19,7 +19,7 @@ struct Keybind {
 
 class KeybindsModule {
 public:
-	KeybindsModule(CommandsModule& commandsModule, Config& cfg, Globals& globals);
+	KeybindsModule(CommandsModule& commandsModule, Config& cfg, Globals& globals, void (*updateMousePos)());
 	~KeybindsModule() = default;
 	const void bind(const CommandArg* argv);
 	const void handleKeypress(XKeyEvent e);
@@ -29,4 +29,5 @@ private:
 	CommandsModule& commandsModule;
 	Config& cfg;
 	Globals& globals;
+	void (*updateMousePos)();
 };

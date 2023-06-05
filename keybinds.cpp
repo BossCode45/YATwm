@@ -10,7 +10,7 @@
 
 using std::string, std::cout, std::endl;
 
-KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Config& cfg, Globals& globals)
+KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Config& cfg, Globals& globals, void (*updateMousePos)())
 	:commandsModule(commandsModule),
 	 globals(globals),
 	 cfg(cfg)
@@ -19,6 +19,7 @@ KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Config& cfg, Glob
 	bindArgs[0] = STR;
 	bindArgs[1] = STR_REST;
 	commandsModule.addCommand("bind", &KeybindsModule::bind, 2, bindArgs, this);
+	this->updateMousePos = updateMousePos;
 }
 
 const void KeybindsModule::handleKeypress(XKeyEvent e)
@@ -27,7 +28,7 @@ const void KeybindsModule::handleKeypress(XKeyEvent e)
 	//cout << "Key Pressed" << endl;
 	//cout << "\tState: " << e.state << endl;
 	//cout << "\tCode: " <<  XKeysymToString(XKeycodeToKeysym(globals.dpy, e.keycode, 0)) << endl;
-	//updateMousePos();
+	updateMousePos();
 
 	const unsigned int masks = ShiftMask | ControlMask | Mod1Mask | Mod4Mask;
 	for(Keybind bind : binds)
@@ -80,7 +81,6 @@ const void KeybindsModule::bind(const CommandArg* argv)
 		}
 	}
 	bind.command = argv[1].str;
-	cout << bind.modifiers << endl;
 	KeyCode c = XKeysymToKeycode(globals.dpy, bind.key);
 	XGrabKey(globals.dpy, c, bind.modifiers, globals.root, False, GrabModeAsync, GrabModeAsync);
 	binds.push_back(bind);

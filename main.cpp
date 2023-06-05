@@ -47,11 +47,13 @@ std::ofstream yatlog;
 Globals globals;
 
 Display*& dpy = globals.dpy;
-Window& root = globals.root;
+Window &root = globals.root;
+
+void updateMousePos();
 
 CommandsModule commandsModule;
 Config cfg(commandsModule);
-KeybindsModule keybindsModule(commandsModule, cfg, globals);
+KeybindsModule keybindsModule(commandsModule, cfg, globals, &updateMousePos);
 
 int sW, sH;
 int bH;
@@ -82,7 +84,6 @@ int currWS = 1;
 // Usefull functions
 int FFCF(int sID);
 void detectScreens();
-void updateMousePos();
 void focusRoot(int root);
 void handleConfigErrs(vector<Err> cfgErrs);
 
@@ -270,7 +271,7 @@ void cWS(int newWS)
 
 	//log("Changing WS with keybind");
 
-	for(int i = 0; i < nscreens; i++)
+	for(int i = 0; i < cfg.workspaces[newWS - 1].screenPreferencesc; i++)
 	{
 		if(nscreens > cfg.workspaces[newWS - 1].screenPreferences[i])
 		{
@@ -303,6 +304,8 @@ void cWS(int newWS)
 	tileRoots();
 	//log("Roots tiled");
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+
+	cout << focusedWorkspaces[0] << endl;
 
 	//EWMH
 	setCurrentDesktop(currWS);

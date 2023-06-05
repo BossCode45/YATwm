@@ -40,7 +40,10 @@ const void Config::logFileCmd(const CommandArg* argv)
 const void Config::addWorkspaceCmd(const CommandArg* argv)
 {
 	int* prefs = new int[argv[1].numArr.size];
-	memcpy(prefs, argv[1].numArr.arr, argv[1].numArr.size * sizeof(int));
+	for(int i = 0; i < argv[1].numArr.size; i++)
+	{
+		prefs[i] = argv[1].numArr.arr[i] - 1;
+	}
 	workspaces.push_back({argv[0].str, prefs, argv[1].numArr.size});
 	numWS++;
 }
@@ -87,6 +90,8 @@ std::vector<Err> Config::loadFromFile(std::string path)
 	std::ifstream config(path);
 	while(getline(config, cmd))
 	{
+		if(cmd.size() == 0)
+			continue;
 		if(cmd.at(0) == '#')
 			continue;
 		try
