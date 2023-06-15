@@ -18,9 +18,9 @@ $(OBJS_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 i: $(EXEC)
-	sudo install -D $(EXEC) $(INSTALL_DIR)usr/bin/$(EXEC)
+	sudo install -D -m 755 $(EXEC) $(INSTALL_DIR)usr/bin/$(EXEC)
 	sudo install -D -m 644 yat.desktop $(INSTALL_DIR)usr/share/xsessions/yat.desktop
-	sudo install -D -m 644 config.toml $(INSTALL_DIR)etc/YATwm/config.toml
+	sudo install -D -m 644 config $(INSTALL_DIR)etc/YATwm/config
 install: i
 r:
 	sudo rm $(INSTALL_DIR)usr/bin/$(EXEC)

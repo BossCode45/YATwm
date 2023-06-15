@@ -44,10 +44,10 @@ std::ofstream yatlog;
 
 #define log(x) yatlog << x << std::endl
 
-Globals globals;
+Display* dpy;
+Window root;
 
-Display*& dpy = globals.dpy;
-Window &root = globals.root;
+Globals globals = {dpy, root};
 
 void updateMousePos();
 
@@ -532,13 +532,14 @@ const void reload(const CommandArg* argv)
 
 	//Clear keybinds
 	keybindsModule.clearKeybinds();
-	
+
 	//Load config again
 	vector<Err> cfgErr = cfg.reloadFile();
 	//Error check
 	handleConfigErrs(cfgErr);
 
 	//Re tile
+	untileRoots();
 	tileRoots();
 }
 const void wsDump(const CommandArg* argv)
@@ -577,7 +578,10 @@ void configureRequest(XConfigureRequestEvent e)
 	changes.border_width = e.border_width;
 	changes.sibling = e.above;
 	changes.stack_mode = e.detail;
-	XConfigureWindow(dpy, e.window, e.value_mask, &changes);
+	XConfigureWindow(dpy, e.window, (unsigned int) e.value_mask, &changes);
+	log("Configure request: " << e.window);
+	//XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
+	//tileRoots();
 }
 
 void mapRequest(XMapRequestEvent e)
@@ -656,7 +660,7 @@ void mapRequest(XMapRequestEvent e)
 
 	
 
-	XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
+
 	XSelectInput(dpy, e.window, EnterWindowMask);
 	
 	//Make client
@@ -680,7 +684,7 @@ void mapRequest(XMapRequestEvent e)
 	status = getProp(e.window, "_NET_WM_STATE", &type, &data);
 	if(status == Success && type!=None && (((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_MODAL", false) || ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_ABOVE", false)))
 	{
-		log("\tWindow floating");
+		cout << "Floating" << endl;
 		clients.find(c.ID)->second.floating = true;
 		frames.find(pID)->second.floatingFrameIDs.push_back(f.ID);
 		frames.insert(pair<int, Frame>(f.ID, f));
@@ -736,6 +740,7 @@ void mapRequest(XMapRequestEvent e)
 	updateClientList(clients);
 
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
+	XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
 	tileRoots();
 }
 
@@ -790,10 +795,10 @@ void destroyNotify(XDestroyWindowEvent e)
 void enterNotify(XEnterWindowEvent e)
 {
 	//log(e.xcrossing.x);
-	/* Cancel if crossing into root
-	if(e.xcrossing.window == root)
-		break;
-	*/
+	//Cancel if crossing into root
+	if(e.window == root)
+		return;
+	
 	XWindowAttributes attr;
 	XGetWindowAttributes(dpy, e.window, &attr);
 	int monitor = 0;
@@ -839,7 +844,10 @@ void clientMessage(XClientMessageEvent e)
 
 static int OnXError(Display* display, XErrorEvent* e)
 {
-	log("XError " << e->type);
+	char* error = new char[50];
+	XGetErrorText(dpy, e->type, error, 50);
+	log("XError " << error);
+	delete[] error;
 	return 0;
 }
 
@@ -935,8 +943,8 @@ int main(int argc, char** argv)
 	}
 	//Important init stuff
 	mX = mY = 0;
-	globals.dpy = XOpenDisplay(nullptr);
-	globals.root = Window(DefaultRootWindow(dpy));
+    dpy = XOpenDisplay(nullptr);
+    root = Window(DefaultRootWindow(dpy));
 
 	// Adding commands
 	commandsModule.addCommand("exit", exit, 0, {});
@@ -953,11 +961,18 @@ int main(int argc, char** argv)
 	commandsModule.addCommand("nextMonitor", nextMonitor, 0, {});
 
 	//Config
-	std::string home = getenv("HOME");
-	std::string pathAfterHome = "/.config/YATwm/config.toml";
-	std::string file = home + pathAfterHome;
-	// Err cfgErr = cfg.loadFromFile(file);
-	std::vector<Err> cfgErr = cfg.loadFromFile("config");
+	std::vector<Err> cfgErr;
+	
+	char* confDir = getenv("XDG_CONFIG_HOME");
+	if(confDir != NULL)
+	{
+		cfgErr = cfg.loadFromFile(string(confDir) + "/YATwm/config");
+	}
+	else
+	{
+		string home = getenv("HOME");
+		cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
+	}
 
 	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
@@ -981,7 +996,7 @@ int main(int argc, char** argv)
 	sW = DisplayWidth(dpy, screenNum);
 	sH = DisplayHeight(dpy, screenNum);
 
-	XSetErrorHandler(OnXError);
+	//XSetErrorHandler(OnXError);
 	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask);
 
 	XDefineCursor(dpy, root, XCreateFontCursor(dpy, XC_top_left_arrow));

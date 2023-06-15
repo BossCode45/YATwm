@@ -4,9 +4,12 @@
 swapmods
 
 bind mod+e exit
-bind mod+Return spawn kitty
+bind mod+Return spawn alacritty
+bind mod+k spawn kitty
 gaps 10
 outergaps 10
+
+bind mod+r reload
 
 # Tiling
 bind mod+t toggle

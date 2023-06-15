@@ -74,20 +74,28 @@ std::vector<Err> Config::reloadFile()
 std::vector<Err> Config::loadFromFile(std::string path)
 {
 	std::vector<Err> errs;
-	
+
 	file = path;
+	
+	std::ifstream config(path);
+	if(!config.good())
+	{
+		config = std::ifstream("/etc/YATwm/config");
+		errs.push_back({CFG_ERR_FATAL, "Using default config: /etc/YATwm/config"});
+	}
+	
 	//Set defaults
 	gaps = 3;
 	outerGaps = 3;
 	logFile = "/tmp/yatlog.txt";
 	numWS = 0;
 	swapSuperAlt = false;
+	workspaces = std::vector<Workspace>();
 
 	//Probably need something for workspaces and binds too...
 
 	string cmd;
 	int line = 0;
-	std::ifstream config(path);
 	while(getline(config, cmd))
 	{
 		if(cmd.size() == 0)
