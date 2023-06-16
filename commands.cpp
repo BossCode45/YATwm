@@ -4,6 +4,7 @@
 #include <cctype>
 #include <iostream>
 #include <algorithm>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -101,7 +102,19 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 		switch(argTypes[i-1])
 		{
 			case STR: args[i-1].str = (char*)split[i].c_str(); break;
-			case NUM: args[i-1].num = std::stoi(split[i]); break;
+			case NUM:
+				{
+					try
+					{
+						args[i-1].num = std::stoi(split[i]);
+						break;
+					}
+					catch(std::invalid_argument e)
+					{
+						delete[] args;
+						throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a number!");
+					}
+				}
 			case MOVDIR:
 				{
 					if(lowercase(split[i]) == "up")
@@ -112,6 +125,11 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 						args[i-1].dir = LEFT;
 					else if(lowercase(split[i]) == "right")
 						args[i-1].dir = RIGHT;
+					else
+					{
+						delete[] args;
+						throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a direction!");
+					}
 					break;
 				}
 			case STR_REST:
@@ -132,7 +150,16 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 					int* rest = new int[split.size() - i];
 					for(int j = 0; j < split.size() - i; j++)
 					{
-						rest[j] = std::stoi(split[j + i]);
+						try
+						{
+							rest[j] = std::stoi(split[j + i]);
+						}
+						catch(std::invalid_argument e)
+						{
+							delete[] rest;
+							delete[] args;
+							throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a number!");
+						}
 					}
 					args[i-1].numArr = {rest, (int) split.size() - i};
 					return args;
@@ -151,7 +178,15 @@ void CommandsModule::runCommand(string command)
 		throw Err(CMD_ERR_NOT_FOUND, split[0] + " is not a valid command name");
 	if(cmd->argc > split.size() - 1)
 		throw Err(CMD_ERR_WRONG_ARGS, command + " is the wrong args");
-	CommandArg* args = getCommandArgs(split, cmd->argTypes, cmd->argc);
+	CommandArg* args;
+	try
+	{
+		args = getCommandArgs(split, cmd->argTypes, cmd->argc);
+	}
+	catch(Err e)
+	{
+		throw e;
+	}
 	try
 	{
 		if(cmd->module == nullptr)
@@ -185,7 +220,15 @@ Err CommandsModule::checkCommand(string command)
 		return Err(CMD_ERR_NOT_FOUND, split[0] + " is not a valid command name");
 	if(cmd->argc > split.size())
 		return Err(CMD_ERR_WRONG_ARGS, command + " is the wrong args");
-	CommandArg* args = getCommandArgs(split, cmd->argTypes, cmd->argc);
+	CommandArg* args;
+	try
+	{
+		args = getCommandArgs(split, cmd->argTypes, cmd->argc);
+	}
+	catch(Err e)
+	{
+		return e;
+	}
 	for(int i = 0; i < cmd->argc; i++)
 	{
 		if(cmd->argTypes[i] == STR_REST || cmd->argTypes[i] == NUM_ARR_REST)
