@@ -15,10 +15,7 @@ KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Config& cfg, Glob
 	 globals(globals),
 	 cfg(cfg)
 {
-	CommandArgType* bindArgs = new CommandArgType[2];
-	bindArgs[0] = STR;
-	bindArgs[1] = STR_REST;
-	commandsModule.addCommand("bind", &KeybindsModule::bind, 2, bindArgs, this);
+	commandsModule.addCommand("bind", &KeybindsModule::bind, 2, {STR, STR_REST}, this);
 	this->updateMousePos = updateMousePos;
 }
 

@@ -224,6 +224,12 @@ const void spawn(const CommandArg* argv)
 		exit(0);
 	}
 }
+const void spawnOnce(const CommandArg* argv)
+{
+	if(cfg.loaded)
+		return;
+	else spawn(argv);
+}
 const void toggle(const CommandArg* argv)
 {
 	nextDir = nextDir = (nextDir==horizontal)? vertical : horizontal;
@@ -949,6 +955,7 @@ int main(int argc, char** argv)
 	// Adding commands
 	commandsModule.addCommand("exit", exit, 0, {});
 	commandsModule.addCommand("spawn", spawn, 1, {STR_REST});
+	commandsModule.addCommand("spawnOnce", spawnOnce, 1, {STR_REST});
 	commandsModule.addCommand("toggle", toggle, 0, {});
 	commandsModule.addCommand("kill", kill, 0, {});
 	commandsModule.addCommand("changeWS", changeWS, 1, {NUM});

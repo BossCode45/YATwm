@@ -1,6 +1,6 @@
 #+TITLE: YATwm
 #+OPTIONS: \n:t
-* This config is best read in emacs!
+* This config is best read in Emacs!
 
 * Disclaimer: This is still very much in beta
 This only just works, multiple monitors aren't supported and floating windows cannot move and there is no resizing. Many features are just hacked together and are likely to break. However, it is just about usable so if you really want to try then go for it! (feel free to make an issue if you have any questions).
@@ -10,58 +10,106 @@ This only just works, multiple monitors aren't supported and floating windows ca
 *** Pre reqs
 - ~Xlib~ and ~g++~ and ~libnotify~ to build the program
 - ~Xephyr~ for the test script
-- ~rofi~, ~alacritty~, ~picom~, ~feh~, ~polybar~, ~qutebrowser~ and ~i3lock~ for the default config
+- ~rofi~, ~alacritty~, and ~i3lock~ for the default config
 	- The current default config is currently just the configuration that I want to use (this will likely change)
 *** Installing and removing
 - ~make i~ or ~make install~ to install
 - ~make r~ or ~make remove~ to remove
 - ~./test~ to test
 ** Config
-You can configure YATwm with the config file in ~$HOME/.config/YATwm/config.toml~. I have provided an example config file in this directory that has all the variables set to their defaults.
-It should alert you with a notification if you have an error, and put the error your log file. It will just use default values if you didn't provide them or provided invalid values (apart from keybinds and startupBash entries, which will just be skipped if invalid (but defaults will be used if the whole array is missing).
-*** Startup
-Add a bash command to the ~startupBash~ string array in your config and it will execute on startup.
+You can configure YATwm with the config file in ~$HOME/.config/YATwm/config~ or ~$XDG_CONFIG_HOME/YATwm/config~ if you have that set. I have provided an example config file in the project dir that has all the variables set to their defaults (this will also be installed to ~/etc/YATwm/config~.
+It should alert you with a notification if you have an error, and put the error your log file. If the whole file is missing then it will use the default in ~/etc/YATwm/config~.
+*** Syntax
+The config file is a list of commands. Each command should be on a new line. For example, to set the gaps you would use the ~gaps~ command like this ~gaps 10~ (make sure this is all there is on that line). This says to call the command ~gaps~ with the arguments of ~10~. Commands can have multiple arguments and these should be separated with a space, if you want a space in one of the arguments then wrap the arg in quotes, e.g. ~addWorkspace "1: A" 1~, here the arguments are ~1: A~ and ~1~.
+**** Command arg types
+- String: this is just some text, this can be wrapped in quotes if you want a space in it.
+- String rest: This will only ever be the final argument. This just takes the rest of the line as a string, so you can use spaces without needing quotes.
+- Number: This is a number, with the digits 0-9.
+- Number array rest: This will only ever be the final argument. This takes the rest of the line as a list of number, separated with spaces, e.g. ~2 1 3~.
+- Direction: This is one of the cardinal directions listed below.
+  - left
+  - right
+  - up
+  - down
+**** List of commands
+- exit: shuts down YATwm
+- spawn: Spawns an application using ~execvp~
+  - String rest: what to spawn, first word is the command, and following words are arguments (note: due to limitations with the command system you cannot use quotes)
+- spawnOnce: Same as spawn but only runs on the first load of the config file
+  - String rest: what to spawn, first word is the command, and following words are arguments (note: due to limitations with the command system you cannot use quotes)
+- toggle: Changes the tiling direction for the next window
+- kill: Kills the focused window
+- changeWS: changes to a different workspace
+  - Number: Which workspace to change to, starts at 1 for first workspace.
+- wToWS: moves a window to a workspace
+  - Number: Which workspace to move the window to, starts at 1 for first workspace.
+- focChange: Changes the focus in a direction
+  - Direction: Which direction to focus in
+- bashSpawn: Spawns something uses ~system~ (your shell)
+  - String rest: A string which gets sent to bash (note: due to limitations with the command system you cannot use quotes)
+- bashSpawnOnce: Same as bashSpawn but only runs on the first load of the config file
+  - String rest: A string which gets sent to bash (note: due to limitations with the command system you cannot use quotes)
+- reload: Reloads YATwm, this reloads the config file and re runs the monitor detection, and will unmap and remap all windows to refresh them.
+- nextMonitor: Focuses the next monitor, wraps around.
+- gaps: Sets the size of the inner gaps, margins around each window (this ends up looking doubled as each window has it)
+  - Number: The size in pixels
+- outergaps: Sets the size of the outer gaps, distance for windows and the edge of the output (add this to the inner gaps to get distance between window and edge of output)
+  - Number: The size in pixels
+- logfile: The file to write the log to
+  - String: The name of the file
+- swapmods: Swaps super and alt for keybinds
+- addworkspace: Adds a workspace (note: This doesn't work very well with refreshes, I'd suggest not messing with it, but you can probably change the names of workspace without anything breaking)
+  - String: The name of the workspace
+  - Number array rest: The monitor preferences. This is which monitor it should appear on, first (primary) monitor is one. E.g. ~2 1~ to appear on the second monitor first, but if that isn't plugged in then use the first.
+- bind: Binds a key to a command
+  - String: The key bind, modifiers and keys are separated with +, e.g. ~mod+x~
+  - String rest: The command to run
+- wsDump: This is a command for testing, you probably don't want to use it
 *** General
 You can change either the inner gaps (padding around each window - so double it for space between windows), or the outer gaps (padding around the display - add to inner gaps to get space between window and screen edges).
-They can be changed with the integers ~gaps~ and ~outerGaps~ in the config file.
-YATwm also keeps a log file, the location of this file can be changed with the string ~logFile~.
+They can be changed with the commands ~gaps~ and ~outerGaps~ in the config file (default ~10~ for both).
+YATwm also keeps a log file, the location of this file can be changed with the command ~logFile~ (default ~/tmp/yatlog.txt~).
 
 *** Workspaces
-You can change the number of workspaces by editing ~numWS~ in the config file (this will likely change), and the names by editing ~workspaceNames~. You can think of workspaces as virtual desktops. You can change the preference of workspaces by editing the ~screenPreferences~ array. It orders the screens with 0 being the first monitor and they go up from there. The number coming first for each workspace will be the highest priority and other ones will be used if that monitor is not detected. All preference arrays should end in 0. You can use maxMonitors to set how many is the max amount of monitors you would have plugged in (this will likely change).
+You can add workspace with the command ~addworkspace~ in the config file.
+#+begin_src
+addworkspace "1: A" 1
+addworkspace "2: B" 1
+#+end_src
+Defaults workspace are listed below (these are the args for the addworkspace command):
+1. "1: A" 1
+2. "2: B" 1
+3. "3: C" 1
+4. "4: D" 1
+5. "5: E" 1
+6. "6: F" 2 1
+7. "7: G" 2 1
+8. "8: H" 2 1
+9. "9: I" 2 1
+10. "10: J" 2 1
 *** Keybinds
 Current keybinds (these can all be edited): 
 - ~mod + e~					: exit
 - ~mod + t~					: change next tile direction
 - ~mod + q~					: quit focused window
 - ~mod + shift + r~			: reload WM (rechecks monitors)
-- ~mod + direction~			: change focus in direction
-- ~mod + shift + direction~	: move window in direction
+- ~mod + direction~			: change focus in direction (vim keybinds)
+- ~mod + shift + direction~	: move window in direction (vim keybinds)
 - ~mod + enter~				: alacritty
 - ~mod + d~					: rofi
 - ~mod + c~					: firefox
 - ~mod + x~					: lock
 - ~mod + shift + x~			: lock and sleep
-- ~mod + p~					: log testing stuff
 - ~mod + (num)~				: switch to workspace (num) - currently only for 1-10 but you can add more
 - ~mod + shift + (num)~		: move window to workspace (num) - currently only for 1-10 but you can add more
 (mod is super, and the direction keys are h, j, k, l - left, down, up, right respectively like vim)
 
-You can use the variable ~swapSuperAlt~ to make ~mod~ act as ~alt~ and ~alt~ act as ~mod~.
+You can use the command ~swapmods~ to make ~mod~ act as ~alt~ and ~alt~ act as ~mod~.
 
-To add new keybinds create a new entry in the Keybinds.key array:
+To add new keybinds use the bind command:
 #+begin_src
-[[Keybinds.key]]
-bind = "bind"
-func = "func"
-args = args
-#+end_src
-Args can be either a string or a number, directions are strings.
-e.g.
-#+begin_src
-[[Keybinds.key]]
-bind = "mod+shift+j"
-func = "wMove"
-args = "Down"
+bind mod+q kill
+bind mod+shift+x bashSpawn loginctl lock-session && systemctl suspend
 #+end_src
 Commands are executed going down the list and multiple commands with the same keybind and modifiers will all be executed
 

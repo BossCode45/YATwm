@@ -85,8 +85,8 @@ std::vector<Err> Config::loadFromFile(std::string path)
 	}
 	
 	//Set defaults
-	gaps = 3;
-	outerGaps = 3;
+	gaps = 10;
+	outerGaps = 10;
 	logFile = "/tmp/yatlog.txt";
 	numWS = 0;
 	swapSuperAlt = false;

@@ -1,15 +1,18 @@
 # This is a comment
 
 # Mainly used for testing
-swapmods
+# swapmods
 
-bind mod+e exit
+bind mod+shift+e exit
 bind mod+Return spawn alacritty
-bind mod+k spawn kitty
+bind mod+c spawn firefox
+bind mod+x spawn loginctl lock-session
+bind mod+shift+x bashSpawn loginctl lock-session && systemctl suspend
 gaps 10
 outergaps 10
 
-bind mod+r reload
+bind mod+shift+r reload
+bind mod+q kill
 
 # Tiling
 bind mod+t toggle
@@ -42,3 +45,5 @@ bind mod+7 changeWS 7
 bind mod+8 changeWS 8
 bind mod+9 changeWS 9
 bind mod+0 changeWS 10
+
+spawnOnce xss-lock --transfer-sleep-lock -- i3lock -et --nofork
