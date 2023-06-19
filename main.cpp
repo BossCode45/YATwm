@@ -4,7 +4,6 @@
 #include <X11/cursorfont.h>
 
 #include <libnotify/notification.h>
-#include <toml++/toml.hpp>
 
 #include <libnotify/notify.h>
 
@@ -26,10 +25,13 @@
 #include <algorithm>
 #include <fcntl.h>
 
+#include "commands.h"
+#include "keybinds.h"
 #include "structs.h"
 #include "config.h"
 #include "util.h"
 #include "ewmh.h"
+#include "error.h"
 
 using std::cout;
 using std::string;
@@ -42,10 +44,17 @@ std::ofstream yatlog;
 
 #define log(x) yatlog << x << std::endl
 
-Config cfg;
-
 Display* dpy;
 Window root;
+
+Globals globals = {dpy, root};
+
+void updateMousePos();
+
+CommandsModule commandsModule;
+Config cfg(commandsModule);
+KeybindsModule keybindsModule(commandsModule, cfg, globals, &updateMousePos);
+
 int sW, sH;
 int bH;
 TileDir nextDir = horizontal;
@@ -75,11 +84,9 @@ int currWS = 1;
 // Usefull functions
 int FFCF(int sID);
 void detectScreens();
-void updateMousePos();
 void focusRoot(int root);
-void handleConfigErrs(Err cfgErr);
+void handleConfigErrs(vector<Err> cfgErrs);
 
-void keyPress(XKeyEvent e);
 void configureRequest(XConfigureRequestEvent e);
 void mapRequest(XMapRequestEvent e);
 void destroyNotify(XDestroyWindowEvent e);
@@ -119,9 +126,9 @@ void detectScreens()
 		log("\t\tw: " << screens[i].w << ", h: " << screens[i].h);
 		XFree(name);
 	}
-	for(int i = 0; i < cfg.numWS; i++)
+	for(int i = 0; i < cfg.workspaces.size(); i++)
 	{
-		if(cfg.screenPreferences[i][0] < nscreens && focusedWorkspaces[cfg.screenPreferences[i][0]] == 0)
+		if(cfg.workspaces[i].screenPreferences[0] < nscreens && focusedWorkspaces[cfg.workspaces[i].screenPreferences[0]] == 0)
 		{
 			//focusedWorkspaces[screenPreferences[i][0]] = i+1;
 		}
@@ -158,15 +165,15 @@ void focusRoot(int root)
 	//log("\tFocusing window: " << w);
 	XSetInputFocus(dpy, w, RevertToPointerRoot, CurrentTime);
 }
-void handleConfigErrs(Err cfgErr)
+void handleConfigErrs(vector<Err> cfgErrs)
 {
-	if(cfgErr.code!=NOERR)
+	for(Err cfgErr : cfgErrs)
 	{
-		if(cfgErr.code == ERR_CFG_FATAL)
+		if(cfgErr.code == CFG_ERR_FATAL)
 		{
-			log("YATwm fatal error (Code " << cfgErr.code << ")\n" << cfgErr.errorMessage);
+			log("YATwm fatal error (Code " << cfgErr.code << ")\n" << cfgErr.message);
 			std::string title = "YATwm fatal config error (Code " + std::to_string(cfgErr.code) + ")";
-			std::string body = cfgErr.errorMessage;
+			std::string body = cfgErr.message;
 			NotifyNotification* n = notify_notification_new(title.c_str(),
 															body.c_str(),
 															0);
@@ -178,7 +185,7 @@ void handleConfigErrs(Err cfgErr)
 		}
 		else
 		{
-			log("YATwm non fatal error (Code " << cfgErr.code << ")\n" << cfgErr.errorMessage);
+			log("YATwm non fatal error (Code " << cfgErr.code << ")\n" << cfgErr.message);
 			std::string title = "YATwm non fatal config error (Code " + std::to_string(cfgErr.code) + ")";
 			std::string body = "Check logs for more information";
 			NotifyNotification* n = notify_notification_new(title.c_str(),
@@ -194,11 +201,11 @@ void handleConfigErrs(Err cfgErr)
 }
 
 //Keybind commands
-void exit(const KeyArg arg)
+const void exit(const CommandArg* argv)
 {
 	keepGoing = false;
 }
-void spawn(const KeyArg arg)
+const void spawn(const CommandArg* argv)
 {
 	if(fork() == 0)
 	{
@@ -206,7 +213,7 @@ void spawn(const KeyArg arg)
 		dup2(null, 0);
 		dup2(null, 1);
 		dup2(null, 2);
-		const std::string argsStr = arg.str;
+		const std::string argsStr = argv[0].str;
 		vector<std::string> args = split(argsStr, ' ');
 		char** execvpArgs = new char*[args.size()];
 		for(int i = 0; i < args.size(); i++)
@@ -217,11 +224,17 @@ void spawn(const KeyArg arg)
 		exit(0);
 	}
 }
-void toggle(const KeyArg arg)
+const void spawnOnce(const CommandArg* argv)
+{
+	if(cfg.loaded)
+		return;
+	else spawn(argv);
+}
+const void toggle(const CommandArg* argv)
 {
 	nextDir = nextDir = (nextDir==horizontal)? vertical : horizontal;
 }
-void kill(const KeyArg arg)
+const void kill(const CommandArg* argv)
 {
 	Window w;
 	int revertToReturn;
@@ -252,30 +265,31 @@ void kill(const KeyArg arg)
       XKillClient(dpy, w);
     }
 }
-void changeWS(const KeyArg arg)
+// Took this out as it is used commonly
+void cWS(int newWS)
 {
 	int prevWS = currWS;
 
-	currWS = arg.num;
+	currWS = newWS;
 	if(prevWS == currWS)
 		return;
 	untileRoots();
 
 	//log("Changing WS with keybind");
 
-	for(int i = 0; i < cfg.maxMonitors; i++)
+	for(int i = 0; i < cfg.workspaces[newWS - 1].screenPreferencesc; i++)
 	{
-		if(nscreens > cfg.screenPreferences[arg.num - 1][i])
+		if(nscreens > cfg.workspaces[newWS - 1].screenPreferences[i])
 		{
-			int screen = cfg.screenPreferences[arg.num - 1][i];
+			int screen = cfg.workspaces[newWS - 1].screenPreferences[i];
 			//log("Found screen (screen " << screenPreferences[arg.num - 1][i] << ")");
-			prevWS = focusedWorkspaces[cfg.screenPreferences[arg.num - 1][i]];
+			prevWS = focusedWorkspaces[screen];
 			//log("Changed prevWS");
-			focusedWorkspaces[cfg.screenPreferences[arg.num - 1][i]] = arg.num;
+			focusedWorkspaces[screen] = newWS;
 			//log("Changed focusedWorkspaces");
-			if(focusedScreen != cfg.screenPreferences[arg.num - 1][i])
+			if(focusedScreen != screen)
 			{
-				focusedScreen = cfg.screenPreferences[arg.num - 1][i];
+				focusedScreen = screen;
 				XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[screen].x + screens[screen].w/2, screens[screen].y + screens[screen].h/2);
 			}
 			//log("Changed focusedScreen");
@@ -286,7 +300,8 @@ void changeWS(const KeyArg arg)
 	//log("Finished changes");
 
 	//log(prevWS);
-	if(prevWS < 1 || prevWS > cfg.numWS)
+	// LOOK: what is this for?????
+	if(prevWS < 1 || prevWS > cfg.workspaces.size())
 	{
 		//untile(prevWS);
 	}
@@ -296,10 +311,16 @@ void changeWS(const KeyArg arg)
 	//log("Roots tiled");
 	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 
+	cout << focusedWorkspaces[0] << endl;
+
 	//EWMH
 	setCurrentDesktop(currWS);
 }
-void wToWS(const KeyArg arg)
+const void changeWS(const CommandArg* argv)
+{
+	cWS(argv[0].num);
+}
+const void wToWS(const CommandArg* argv)
 {
 	Window focusedWindow;
 	int revertToReturn;
@@ -340,11 +361,11 @@ void wToWS(const KeyArg arg)
 			break;
 		}
 	}
-	frames.find(fID)->second.pID = arg.num;
-	frames.find(arg.num)->second.subFrameIDs.push_back(fID);
+	frames.find(fID)->second.pID = argv[0].num;
+	frames.find(argv[0].num)->second.subFrameIDs.push_back(fID);
 
 	//EWMH
-	setWindowDesktop(focusedWindow, arg.num);
+	setWindowDesktop(focusedWindow, argv[0].num);
 
 	XUnmapWindow(dpy, focusedWindow);
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
@@ -371,20 +392,20 @@ int dirFind(int fID, MoveDir dir)
 	{
 		switch(dir)
 		{
-			case Up: i--; break;
-			case Down: i++; break;
-			case Left: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
-			case Right: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case UP: i--; break;
+			case DOWN: i++; break;
+			case LEFT: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case RIGHT: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
 		}
 	}
 	else if(pDir == horizontal)
 	{
 		switch(dir)
 		{
-			case Left: i--; break;
-			case Right: i++; break;
-			case Up: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
-			case Down: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case LEFT: i--; break;
+			case RIGHT: i++; break;
+			case UP: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+			case DOWN: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
 		}
 	}
 	if(i < 0)
@@ -394,7 +415,7 @@ int dirFind(int fID, MoveDir dir)
 
 	return pSF[i];
 }
-void focChange(const KeyArg arg)
+const void focChange(const CommandArg* argv)
 {
 	Window focusedWindow;
 	int revertToReturn;
@@ -403,12 +424,12 @@ void focChange(const KeyArg arg)
 		return;
 
 	int fID = frameIDS.find(focusedWindow)->second;
-	int nID = dirFind(fID, arg.dir);
+	int nID = dirFind(fID, argv[0].dir);
 	int fNID = FFCF(nID);
 	Window w = clients.find(frames.find(fNID)->second.cID)->second.w;
 	XSetInputFocus(dpy, w, RevertToPointerRoot, CurrentTime);
 }
-void wMove(const KeyArg arg)
+const void wMove(const CommandArg* argv)
 {
 	Window focusedWindow;
 	int revertToReturn;
@@ -419,7 +440,7 @@ void wMove(const KeyArg arg)
 	int fID = frameIDS.find(focusedWindow)->second;
 	if(clients.find(frames.find(fID)->second.cID)->second.floating)
 		return;
-	int nID = dirFind(fID, arg.dir);
+	int nID = dirFind(fID, argv[0].dir);
 	int fNID = FFCF(nID);
 	int pID = frames.find(fNID)->second.pID;
 	int oPID = frames.find(fID)->second.pID;
@@ -461,17 +482,17 @@ void wMove(const KeyArg arg)
 		{
 			if(frames.find(pID)->second.dir == vertical)
 			{
-				if(arg.dir == Left || arg.dir == Right)
+				if(argv[0].dir == LEFT || argv[0].dir == RIGHT)
 					return;
 			}
 			else
 			{
-				if(arg.dir == Up || arg.dir == Down)
+				if(argv[0].dir == UP || argv[0].dir == DOWN)
 					return;
 			}
 					
 			int offset;
-			if(arg.dir == Up || arg.dir == Left)
+			if(argv[0].dir == UP || argv[0].dir == LEFT)
 				offset = -1;
 			else
 				offset = 1;
@@ -493,7 +514,7 @@ void wMove(const KeyArg arg)
 	}
 	XSetInputFocus(dpy, focusedWindow, RevertToPointerRoot, CurrentTime);
 }
-void bashSpawn(const KeyArg arg)
+const void bashSpawn(const CommandArg* argv)
 {
 	if(fork() == 0)
 	{
@@ -501,24 +522,33 @@ void bashSpawn(const KeyArg arg)
 		dup2(null, 0);
 		dup2(null, 1);
 		dup2(null, 2);
-		system(arg.str);
+		system(argv[0].str);
 		exit(0);
 	}
-
 }
-void reload(const KeyArg arg)
+const void bashSpawnOnce(const CommandArg* argv)
+{
+	if(cfg.loaded)
+		return;
+	else bashSpawn(argv);
+}
+const void reload(const CommandArg* argv)
 {
 	detectScreens();
 
+	//Clear keybinds
+	keybindsModule.clearKeybinds();
+
 	//Load config again
-	Err cfgErr = cfg.reload();
+	vector<Err> cfgErr = cfg.reloadFile();
 	//Error check
 	handleConfigErrs(cfgErr);
 
 	//Re tile
+	untileRoots();
 	tileRoots();
 }
-void wsDump(const KeyArg arg)
+const void wsDump(const CommandArg* argv)
 {
 	log("Workspace dump:");
 	for(int i = 1; i < currFrameID; i++)
@@ -534,7 +564,7 @@ void wsDump(const KeyArg arg)
 		}
 	}
 }
-void nextMonitor(const KeyArg arg)
+const void nextMonitor(const CommandArg* argv)
 {
 	focusedScreen++;
 	if(focusedScreen >= nscreens)
@@ -542,22 +572,6 @@ void nextMonitor(const KeyArg arg)
 
 	XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[focusedScreen].x + screens[focusedScreen].w/2, screens[focusedScreen].y + screens[focusedScreen].h/2);
 	focusRoot(focusedWorkspaces[focusedScreen]);
-}
-
-void keyPress(XKeyEvent e)
-{
-	if(e.same_screen!=1) return;
-	updateMousePos();
-	//cout << "Keypress recieved\n";
-	KeySym keysym = XLookupKeysym(&e, 0);
-	//cout << "\t" << XKeysymToString(keysym) << " super: " << ((e.state & Mod4Mask) == Mod4Mask) << " alt: " << ((e.state & Mod1Mask) == Mod1Mask) << " shift: " << ((e.state & ShiftMask) == ShiftMask) << std::endl;
-	for(int i = 0; i < cfg.bindsc; i++)
-	{
-		if(cfg.binds[i].keysym == keysym && (e.state & cfg.binds[i].modifiers) == cfg.binds[i].modifiers)
-		{
-			cfg.binds[i].func(cfg.binds[i].args);
-		}
-	}
 }
 
 void configureRequest(XConfigureRequestEvent e)
@@ -570,7 +584,10 @@ void configureRequest(XConfigureRequestEvent e)
 	changes.border_width = e.border_width;
 	changes.sibling = e.above;
 	changes.stack_mode = e.detail;
-	XConfigureWindow(dpy, e.window, e.value_mask, &changes);
+	XConfigureWindow(dpy, e.window, (unsigned int) e.value_mask, &changes);
+	log("Configure request: " << e.window);
+	//XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
+	//tileRoots();
 }
 
 void mapRequest(XMapRequestEvent e)
@@ -649,7 +666,7 @@ void mapRequest(XMapRequestEvent e)
 
 	
 
-	XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
+
 	XSelectInput(dpy, e.window, EnterWindowMask);
 	
 	//Make client
@@ -673,7 +690,7 @@ void mapRequest(XMapRequestEvent e)
 	status = getProp(e.window, "_NET_WM_STATE", &type, &data);
 	if(status == Success && type!=None && (((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_MODAL", false) || ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_ABOVE", false)))
 	{
-		log("\tWindow floating");
+		cout << "Floating" << endl;
 		clients.find(c.ID)->second.floating = true;
 		frames.find(pID)->second.floatingFrameIDs.push_back(f.ID);
 		frames.insert(pair<int, Frame>(f.ID, f));
@@ -729,6 +746,7 @@ void mapRequest(XMapRequestEvent e)
 	updateClientList(clients);
 
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
+	XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
 	tileRoots();
 }
 
@@ -783,10 +801,10 @@ void destroyNotify(XDestroyWindowEvent e)
 void enterNotify(XEnterWindowEvent e)
 {
 	//log(e.xcrossing.x);
-	/* Cancel if crossing into root
-	if(e.xcrossing.window == root)
-		break;
-	*/
+	//Cancel if crossing into root
+	if(e.window == root)
+		return;
+	
 	XWindowAttributes attr;
 	XGetWindowAttributes(dpy, e.window, &attr);
 	int monitor = 0;
@@ -809,7 +827,7 @@ void clientMessage(XClientMessageEvent e)
 	log("Client message: " << name);
 	if(e.message_type == XInternAtom(dpy, "_NET_CURRENT_DESKTOP", false))
 	{
-		changeWS({.num = (int)((long)e.data.l[0] + 1)});
+		cWS(e.data.l[0] + 1);
 		/*
 		//Change desktop
 		int nextWS = (long)e.data.l[0] + 1;
@@ -832,7 +850,10 @@ void clientMessage(XClientMessageEvent e)
 
 static int OnXError(Display* display, XErrorEvent* e)
 {
-	log("XError " << e->type);
+	char* error = new char[50];
+	XGetErrorText(dpy, e->type, error, 50);
+	log("XError " << error);
+	delete[] error;
 	return 0;
 }
 
@@ -921,22 +942,44 @@ int main(int argc, char** argv)
 		{
 			const char* version =
 				"YATwm for X\n"
-				"version 0.0.0";
+				"version 0.1.0";
 			cout << version << endl;
 			return 0;
 		}
 	}
 	//Important init stuff
 	mX = mY = 0;
-	dpy = XOpenDisplay(nullptr);
-	root = Window(DefaultRootWindow(dpy));
+    dpy = XOpenDisplay(nullptr);
+    root = Window(DefaultRootWindow(dpy));
 
+	// Adding commands
+	commandsModule.addCommand("exit", exit, 0, {});
+	commandsModule.addCommand("spawn", spawn, 1, {STR_REST});
+	commandsModule.addCommand("spawnOnce", spawnOnce, 1, {STR_REST});
+	commandsModule.addCommand("toggle", toggle, 0, {});
+	commandsModule.addCommand("kill", kill, 0, {});
+	commandsModule.addCommand("changeWS", changeWS, 1, {NUM});
+	commandsModule.addCommand("wToWS", wToWS, 1, {NUM});
+	commandsModule.addCommand("focChange", focChange, 1, {MOVDIR});
+	commandsModule.addCommand("bashSpawn", bashSpawn, 1, {STR_REST});
+	commandsModule.addCommand("bashSpawnOnce", bashSpawnOnce, 1, {STR_REST});
+	commandsModule.addCommand("reload", reload, 0, {});
+	commandsModule.addCommand("wsDump", wsDump, 0, {});
+	commandsModule.addCommand("nextMonitor", nextMonitor, 0, {});
 
 	//Config
-	std::string home = getenv("HOME");
-	std::string pathAfterHome = "/.config/YATwm/config.toml";
-	std::string file = home + pathAfterHome;
-	Err cfgErr = cfg.loadFromFile(file);
+	std::vector<Err> cfgErr;
+	
+	char* confDir = getenv("XDG_CONFIG_HOME");
+	if(confDir != NULL)
+	{
+		cfgErr = cfg.loadFromFile(string(confDir) + "/YATwm/config");
+	}
+	else
+	{
+		string home = getenv("HOME");
+		cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
+	}
 
 	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
@@ -951,7 +994,6 @@ int main(int argc, char** argv)
 
 	//Error check config
 	handleConfigErrs(cfgErr);
-	
 
 	screens = new ScreenInfo[1];
 	focusedWorkspaces = new int[1];
@@ -961,17 +1003,12 @@ int main(int argc, char** argv)
 	sW = DisplayWidth(dpy, screenNum);
 	sH = DisplayHeight(dpy, screenNum);
 
-	XSetErrorHandler(OnXError);
+	//XSetErrorHandler(OnXError);
 	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask);
 
-	for(int i = 0; i < cfg.bindsc; i++)
-	{
-		XGrabKey(dpy, XKeysymToKeycode(dpy, cfg.binds[i].keysym), cfg.binds[i].modifiers, root, false, GrabModeAsync, GrabModeAsync);
-		//log("Grabbing " << XKeysymToString(cfg.binds[i].keysym));
-	}
 	XDefineCursor(dpy, root, XCreateFontCursor(dpy, XC_top_left_arrow));
 	//EWMH
-	initEWMH(&dpy, &root, cfg.numWS,cfg. workspaceNames);
+	initEWMH(&dpy, &root, cfg.workspaces.size(), cfg.workspaces);
 	setCurrentDesktop(1);
 
 	for(int i = 1; i < cfg.numWS + 1; i++)
@@ -980,14 +1017,6 @@ int main(int argc, char** argv)
 		Frame rootFrame = {i, noID, false, noID, horizontal, v, true};
 		frames.insert(pair<int, Frame>(i, rootFrame));
 		currFrameID++;
-	}
-	for(int i = 0; i < cfg.startupBashc; i++)
-	{
-		if(fork() == 0)
-		{
-			system((cfg.startupBash[i] + " > /dev/null 2> /dev/null").c_str());
-			exit(0);
-		}
 	}
 
 	XSetInputFocus(dpy, root, RevertToNone, CurrentTime);
@@ -1002,7 +1031,7 @@ int main(int argc, char** argv)
 		switch(e.type)
 		{
 			case KeyPress:
-				keyPress(e.xkey);
+				keybindsModule.handleKeypress(e.xkey);
 				break;
 			case ConfigureRequest:
 				configureRequest(e.xconfigurerequest);

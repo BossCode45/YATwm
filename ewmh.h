@@ -5,10 +5,12 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include "structs.h"
+#include "config.h"
 
-void initEWMH(Display** dpy, Window* root, int numWS, const std::string workspaceNames[]);
+void initEWMH(Display** dpy, Window* root, int numWS, std::vector<Workspace> workspaces);
 
 void updateClientList(std::map<int, Client> clients);
 

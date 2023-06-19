@@ -1,93 +1,53 @@
 #pragma once
 
-#include "error.h"
-
-#include <toml++/toml.hpp>
-
+#include "commands.h"
 #include <X11/X.h>
 #include <X11/keysym.h>
 
 #include <string>
+#include <vector>
 
-enum MoveDir
+struct Workspace
 {
-	Up,
-	Right,
-	Down,
-	Left
+	std::string name;
+	int* screenPreferences;
+	int screenPreferencesc;
 };
 
-typedef union
-{
-	char* str;
-	int num;
-	MoveDir dir;
-} KeyArg;
-
-struct KeyBind
-{
-	unsigned int modifiers;
-	KeySym keysym;
-	void(* func) (const KeyArg arg);
-	KeyArg args;
-};
-
-//Keybind commands
-#define KEYCOM(X) \
-	void X (const KeyArg arg)
-KEYCOM(exit);
-KEYCOM(spawn);
-KEYCOM(toggle);
-KEYCOM(kill);
-KEYCOM(changeWS);
-KEYCOM(wToWS);
-KEYCOM(focChange);
-KEYCOM(wMove);
-KEYCOM(bashSpawn);
-KEYCOM(reload);
-KEYCOM(wsDump);
-KEYCOM(nextMonitor);
+#define COMMAND(X)								\
+	const void X (const CommandArg* argv)
 
 class Config
-{   
-	public:
-		Config();
-		~Config();
-		void free();
+{  
+public:
+	Config(CommandsModule& commandsModule);
+	~Config();
+	void free();
 	
-		Err loadFromFile(std::string path);
-		Err reload();
+	std::vector<Err> loadFromFile(std::string path);
+	std::vector<Err> reloadFile();
 
-		// Startup
-		std::string* startupBash;
-		int startupBashc;
+	// Main
+	int gaps;
+	int outerGaps;
+	std::string logFile;
 
-		// Main
-		int gaps;
-		int outerGaps;
-		std::string logFile;
+	// Workspaces
+	std::vector<Workspace> workspaces;
+	int numWS;
+	bool loaded = false;
 
-		// Workspaces
-		int numWS;
-		std::string* workspaceNames;
-		int workspaceNamesc;
-		int maxMonitors;
-		int** screenPreferences;
-		int screenPreferencesc;
+	// Binds
+	bool swapSuperAlt;
 
-		// Keybinds
-		KeyBind* binds;
-		int bindsc;
-	private:
-		template <typename T>
-		T getValue(std::string path, Err* err);
+	// Config Commands
+	COMMAND(gapsCmd);
+	COMMAND(outerGapsCmd);
+	COMMAND(logFileCmd);
+	COMMAND(addWorkspaceCmd);
+	COMMAND(swapSuperAltCmd);
 
-		void loadWorkspaceArrays(toml::table tbl, toml::table defaults, Err* err);
-		void loadStartupBash(toml::table tbl, toml::table defaults, Err* err);
-
-		toml::table tbl;
-		toml::table defaults;
-
-		bool loaded = false;
-		std::string path;
+private:
+	CommandsModule& commandsModule;
+	std::string file;
 };

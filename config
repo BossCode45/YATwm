@@ -1,0 +1,49 @@
+# This is a comment
+
+# Mainly used for testing
+# swapmods
+
+bind mod+shift+e exit
+bind mod+Return spawn alacritty
+bind mod+c spawn firefox
+bind mod+x spawn loginctl lock-session
+bind mod+shift+x bashSpawn loginctl lock-session && systemctl suspend
+gaps 10
+outergaps 10
+
+bind mod+shift+r reload
+bind mod+q kill
+
+# Tiling
+bind mod+t toggle
+
+# Focus
+bind mod+h focChange left
+bind mod+j focChange down
+bind mod+k focChange up
+bind mod+l focChange right
+
+# Workspaces
+addworkspace "1: A" 1
+addworkspace "2: B" 1
+addworkspace "3: C" 1
+addworkspace "4: D" 1
+addworkspace "5: E" 1
+addworkspace "6: F" 2 1
+addworkspace "7: G" 2 1
+addworkspace "8: H" 2 1
+addworkspace "9: I" 2 1
+addworkspace "10: J" 2 1
+
+bind mod+1 changeWS 1
+bind mod+2 changeWS 2
+bind mod+3 changeWS 3
+bind mod+4 changeWS 4
+bind mod+5 changeWS 5
+bind mod+6 changeWS 6
+bind mod+7 changeWS 7
+bind mod+8 changeWS 8
+bind mod+9 changeWS 9
+bind mod+0 changeWS 10
+
+spawnOnce xss-lock --transfer-sleep-lock -- i3lock -et --nofork

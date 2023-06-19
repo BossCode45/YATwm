@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2023-06-18 Sun 21:31 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>YATwm</title>
+<meta name="generator" content="Org Mode" />
+<style>
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">YATwm</h1>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org4543ad1">1. This config is best read in Emacs!</a></li>
+<li><a href="#org8c9779d">2. Disclaimer: This is still very much in beta</a></li>
+<li><a href="#orgd6a129e">3. Usage instructions</a>
+<ul>
+<li><a href="#org71e2ad0">3.1. Installation</a>
+<ul>
+<li><a href="#org4c27fc8">3.1.1. Pre reqs</a></li>
+<li><a href="#org4738b76">3.1.2. Installing and removing</a></li>
+</ul>
+</li>
+<li><a href="#org48288fb">3.2. Config</a>
+<ul>
+<li><a href="#org78ac98a">3.2.1. Syntax</a></li>
+<li><a href="#org70839ee">3.2.2. General</a></li>
+<li><a href="#org7a3dcb5">3.2.3. Workspaces</a></li>
+<li><a href="#org47d354f">3.2.4. Keybinds</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org328b75f">4. Credits</a></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org4543ad1" class="outline-2">
+<h2 id="org4543ad1"><span class="section-number-2">1.</span> This config is best read in Emacs!</h2>
+</div>
+
+<div id="outline-container-org8c9779d" class="outline-2">
+<h2 id="org8c9779d"><span class="section-number-2">2.</span> Disclaimer: This is still very much in beta</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+This only just works, multiple monitors aren't supported and floating windows cannot move and there is no resizing. Many features are just hacked together and are likely to break. However, it is just about usable so if you really want to try then go for it! (feel free to make an issue if you have any questions).<br />
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd6a129e" class="outline-2">
+<h2 id="orgd6a129e"><span class="section-number-2">3.</span> Usage instructions</h2>
+<div class="outline-text-2" id="text-3">
+</div>
+<div id="outline-container-org71e2ad0" class="outline-3">
+<h3 id="org71e2ad0"><span class="section-number-3">3.1.</span> Installation</h3>
+<div class="outline-text-3" id="text-3-1">
+</div>
+<div id="outline-container-org4c27fc8" class="outline-4">
+<h4 id="org4c27fc8"><span class="section-number-4">3.1.1.</span> Pre reqs</h4>
+<div class="outline-text-4" id="text-3-1-1">
+<ul class="org-ul">
+<li><code>Xlib</code> and <code>g++</code> and <code>libnotify</code> to build the program<br /></li>
+<li><code>Xephyr</code> for the test script<br /></li>
+<li><code>rofi</code>, <code>alacritty</code>, and <code>i3lock</code> for the default config<br />
+<ul class="org-ul">
+<li>The current default config is currently just the configuration that I want to use (this will likely change)<br /></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org4738b76" class="outline-4">
+<h4 id="org4738b76"><span class="section-number-4">3.1.2.</span> Installing and removing</h4>
+<div class="outline-text-4" id="text-3-1-2">
+<ul class="org-ul">
+<li><code>make i</code> or <code>make install</code> to install<br /></li>
+<li><code>make r</code> or <code>make remove</code> to remove<br /></li>
+<li><code>./test</code> to test<br /></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline-container-org48288fb" class="outline-3">
+<h3 id="org48288fb"><span class="section-number-3">3.2.</span> Config</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+You can configure YATwm with the config file in <code>$HOME/.config/YATwm/config</code> or <code>$XDG_CONFIG_HOME/YATwm/config</code> if you have that set. I have provided an example config file in the project dir that has all the variables set to their defaults (this will also be installed to <code>/etc/YATwm/config</code>.<br />
+It should alert you with a notification if you have an error, and put the error your log file. If the whole file is missing then it will use the default in <code>/etc/YATwm/config</code>.<br />
+</p>
+</div>
+<div id="outline-container-org78ac98a" class="outline-4">
+<h4 id="org78ac98a"><span class="section-number-4">3.2.1.</span> Syntax</h4>
+<div class="outline-text-4" id="text-3-2-1">
+<p>
+The config file is a list of commands. Each command should be on a new line. For example, to set the gaps you would use the <code>gaps</code> command like this <code>gaps 10</code> (make sure this is all there is on that line). This says to call the command <code>gaps</code> with the arguments of <code>10</code>. Commands can have multiple arguments and these should be separated with a space, if you want a space in one of the arguments then wrap the arg in quotes, e.g. <code>addWorkspace "1: A" 1</code>, here the arguments are <code>1: A</code> and <code>1</code>.<br />
+</p>
+</div>
+<ol class="org-ol">
+<li><a id="orgf44e4fe"></a>Command arg types<br />
+<div class="outline-text-5" id="text-3-2-1-1">
+<ul class="org-ul">
+<li>String: this is just some text, this can be wrapped in quotes if you want a space in it.<br /></li>
+<li>String rest: This will only ever be the final argument. This just takes the rest of the line as a string, so you can use spaces without needing quotes.<br /></li>
+<li>Number: This is a number, with the digits 0-9.<br /></li>
+<li>Number array rest: This will only ever be the final argument. This takes the rest of the line as a list of number, separated with spaces, e.g. <code>2 1 3</code>.<br /></li>
+<li>Direction: This is one of the cardinal directions listed below.<br />
+<ul class="org-ul">
+<li>left<br /></li>
+<li>right<br /></li>
+<li>up<br /></li>
+<li>down<br /></li>
+</ul></li>
+</ul>
+</div>
+</li>
+<li><a id="org8b55f35"></a>List of commands<br />
+<div class="outline-text-5" id="text-3-2-1-2">
+<ul class="org-ul">
+<li>exit: shuts down YATwm<br /></li>
+<li>spawn: Spawns an application using <code>execvp</code><br />
+<ul class="org-ul">
+<li>String rest: what to spawn, first word is the command, and following words are arguments (note: due to limitations with the command system you cannot use quotes)<br /></li>
+</ul></li>
+<li>spawnOnce: Same as spawn but only runs on the first load of the config file<br />
+<ul class="org-ul">
+<li>String rest: what to spawn, first word is the command, and following words are arguments (note: due to limitations with the command system you cannot use quotes)<br /></li>
+</ul></li>
+<li>toggle: Changes the tiling direction for the next window<br /></li>
+<li>kill: Kills the focused window<br /></li>
+<li>changeWS: changes to a different workspace<br />
+<ul class="org-ul">
+<li>Number: Which workspace to change to, starts at 1 for first workspace.<br /></li>
+</ul></li>
+<li>wToWS: moves a window to a workspace<br />
+<ul class="org-ul">
+<li>Number: Which workspace to move the window to, starts at 1 for first workspace.<br /></li>
+</ul></li>
+<li>focChange: Changes the focus in a direction<br />
+<ul class="org-ul">
+<li>Direction: Which direction to focus in<br /></li>
+</ul></li>
+<li>bashSpawn: Spawns something uses <code>system</code> (your shell)<br />
+<ul class="org-ul">
+<li>String rest: A string which gets sent to bash (note: due to limitations with the command system you cannot use quotes)<br /></li>
+</ul></li>
+<li>bashSpawnOnce: Same as bashSpawn but only runs on the first load of the config file<br />
+<ul class="org-ul">
+<li>String rest: A string which gets sent to bash (note: due to limitations with the command system you cannot use quotes)<br /></li>
+</ul></li>
+<li>reload: Reloads YATwm, this reloads the config file and re runs the monitor detection, and will unmap and remap all windows to refresh them.<br /></li>
+<li>nextMonitor: Focuses the next monitor, wraps around.<br /></li>
+<li>gaps: Sets the size of the inner gaps, margins around each window (this ends up looking doubled as each window has it)<br />
+<ul class="org-ul">
+<li>Number: The size in pixels<br /></li>
+</ul></li>
+<li>outergaps: Sets the size of the outer gaps, distance for windows and the edge of the output (add this to the inner gaps to get distance between window and edge of output)<br />
+<ul class="org-ul">
+<li>Number: The size in pixels<br /></li>
+</ul></li>
+<li>logfile: The file to write the log to<br />
+<ul class="org-ul">
+<li>String: The name of the file<br /></li>
+</ul></li>
+<li>swapmods: Swaps super and alt for keybinds<br /></li>
+<li>addworkspace: Adds a workspace (note: This doesn't work very well with refreshes, I'd suggest not messing with it, but you can probably change the names of workspace without anything breaking)<br />
+<ul class="org-ul">
+<li>String: The name of the workspace<br /></li>
+<li>Number array rest: The monitor preferences. This is which monitor it should appear on, first (primary) monitor is one. E.g. <code>2 1</code> to appear on the second monitor first, but if that isn't plugged in then use the first.<br /></li>
+</ul></li>
+<li>bind: Binds a key to a command<br />
+<ul class="org-ul">
+<li>String: The key bind, modifiers and keys are separated with +, e.g. <code>mod+x</code><br /></li>
+<li>String rest: The command to run<br /></li>
+</ul></li>
+<li>wsDump: This is a command for testing, you probably don't want to use it<br /></li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div id="outline-container-org70839ee" class="outline-4">
+<h4 id="org70839ee"><span class="section-number-4">3.2.2.</span> General</h4>
+<div class="outline-text-4" id="text-3-2-2">
+<p>
+You can change either the inner gaps (padding around each window - so double it for space between windows), or the outer gaps (padding around the display - add to inner gaps to get space between window and screen edges).<br />
+They can be changed with the commands <code>gaps</code> and <code>outerGaps</code> in the config file (default <code>10</code> for both).<br />
+YATwm also keeps a log file, the location of this file can be changed with the command <code>logFile</code> (default <code>/tmp/yatlog.txt</code>).<br />
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7a3dcb5" class="outline-4">
+<h4 id="org7a3dcb5"><span class="section-number-4">3.2.3.</span> Workspaces</h4>
+<div class="outline-text-4" id="text-3-2-3">
+<p>
+You can add workspace with the command <code>addworkspace</code> in the config file.<br />
+</p>
+<pre class="example">
+addworkspace "1: A" 1
+addworkspace "2: B" 1
+</pre>
+<p>
+Defaults workspace are listed below (these are the args for the addworkspace command):<br />
+</p>
+<ol class="org-ol">
+<li>"1: A" 1<br /></li>
+<li>"2: B" 1<br /></li>
+<li>"3: C" 1<br /></li>
+<li>"4: D" 1<br /></li>
+<li>"5: E" 1<br /></li>
+<li>"6: F" 2 1<br /></li>
+<li>"7: G" 2 1<br /></li>
+<li>"8: H" 2 1<br /></li>
+<li>"9: I" 2 1<br /></li>
+<li>"10: J" 2 1<br /></li>
+</ol>
+</div>
+</div>
+<div id="outline-container-org47d354f" class="outline-4">
+<h4 id="org47d354f"><span class="section-number-4">3.2.4.</span> Keybinds</h4>
+<div class="outline-text-4" id="text-3-2-4">
+<p>
+Current keybinds (these can all be edited):<br />
+</p>
+<ul class="org-ul">
+<li><code>mod + e</code>     : exit<br /></li>
+<li><code>mod + t</code>     : change next tile direction<br /></li>
+<li><code>mod + q</code>     : quit focused window<br /></li>
+<li><code>mod + shift + r</code>   : reload WM (rechecks monitors)<br /></li>
+<li><code>mod + direction</code>   : change focus in direction (vim keybinds)<br /></li>
+<li><code>mod + shift + direction</code> : move window in direction (vim keybinds)<br /></li>
+<li><code>mod + enter</code>    : alacritty<br /></li>
+<li><code>mod + d</code>     : rofi<br /></li>
+<li><code>mod + c</code>     : firefox<br /></li>
+<li><code>mod + x</code>     : lock<br /></li>
+<li><code>mod + shift + x</code>   : lock and sleep<br /></li>
+<li><code>mod + (num)</code>    : switch to workspace (num) - currently only for 1-10 but you can add more<br /></li>
+<li><code>mod + shift + (num)</code>  : move window to workspace (num) - currently only for 1-10 but you can add more<br /></li>
+</ul>
+<p>
+(mod is super, and the direction keys are h, j, k, l - left, down, up, right respectively like vim)<br />
+</p>
+
+<p>
+You can use the command <code>swapmods</code> to make <code>mod</code> act as <code>alt</code> and <code>alt</code> act as <code>mod</code>.<br />
+</p>
+
+<p>
+To add new keybinds use the bind command:<br />
+</p>
+<pre class="example">
+bind mod+q kill
+bind mod+shift+x bashSpawn loginctl lock-session &amp;&amp; systemctl suspend
+</pre>
+<p>
+Commands are executed going down the list and multiple commands with the same keybind and modifiers will all be executed<br />
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org328b75f" class="outline-2">
+<h2 id="org328b75f"><span class="section-number-2">4.</span> Credits</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+Catwm (<a href="https://github.com/pyknite/catwm">https://github.com/pyknite/catwm</a>)<br />
+</p>
+
+<p>
+basic<sub>wm</sub> (<a href="https://github.com/jichu4n/basic_wm">https://github.com/jichu4n/basic_wm</a>)<br />
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Created: 2023-06-18 Sun 21:31</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
