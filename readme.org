@@ -20,7 +20,7 @@ This only just works, multiple monitors aren't supported and floating windows ca
 You can configure YATwm with the config file in ~$HOME/.config/YATwm/config~ or ~$XDG_CONFIG_HOME/YATwm/config~ if you have that set. I have provided an example config file in the project dir that has all the variables set to their defaults (this will also be installed to ~/etc/YATwm/config~.
 It should alert you with a notification if you have an error, and put the error your log file. If the whole file is missing then it will use the default in ~/etc/YATwm/config~.
 *** Syntax
-The config file is a list of commands. Each command should be on a new line. For example, to set the gaps you would use the ~gaps~ command like this ~gaps 10~ (make sure this is all there is on that line). This says to call the command ~gaps~ with the arguments of ~10~. Commands can have multiple arguments and these should be separated with a space, if you want a space in one of the arguments then wrap the arg in quotes, e.g. ~addWorkspace "1: A" 1~, here the arguments are ~1: A~ and ~1~.
+The config file is a list of commands. Each command should be on a new line. For example, to set the gaps you would use the ~gaps~ command like this ~gaps 10~ (make sure this is all there is on that line). This says to call the command ~gaps~ with the arguments of ~10~. Commands can have multiple arguments and these should be separated with a space, if you want a space in one of the arguments then wrap the arg in quotes, e.g. ~addWorkspace "1: A" 1~, here the arguments are ~1: A~ and ~1~. If you want to have a quote in your argument then make sure that arg is wrapped in quotes or escape it with ~\~ (e.g. ~\'~), to insert ~\~ then use ~\\~.
 **** Command arg types
 - String: this is just some text, this can be wrapped in quotes if you want a space in it.
 - String rest: This will only ever be the final argument. This just takes the rest of the line as a string, so you can use spaces without needing quotes.
@@ -34,9 +34,9 @@ The config file is a list of commands. Each command should be on a new line. For
 **** List of commands
 - exit: shuts down YATwm
 - spawn: Spawns an application using ~execvp~
-  - String rest: what to spawn, first word is the command, and following words are arguments (note: due to limitations with the command system you cannot use quotes)
+  - String rest: what to spawn, first word is the command, and following words are arguments
 - spawnOnce: Same as spawn but only runs on the first load of the config file
-  - String rest: what to spawn, first word is the command, and following words are arguments (note: due to limitations with the command system you cannot use quotes)
+  - String rest: what to spawn, first word is the command, and following words are arguments
 - toggle: Changes the tiling direction for the next window
 - kill: Kills the focused window
 - changeWS: changes to a different workspace
@@ -46,9 +46,9 @@ The config file is a list of commands. Each command should be on a new line. For
 - focChange: Changes the focus in a direction
   - Direction: Which direction to focus in
 - bashSpawn: Spawns something uses ~system~ (your shell)
-  - String rest: A string which gets sent to bash (note: due to limitations with the command system you cannot use quotes)
+  - String rest: A string which gets sent to bash
 - bashSpawnOnce: Same as bashSpawn but only runs on the first load of the config file
-  - String rest: A string which gets sent to bash (note: due to limitations with the command system you cannot use quotes)
+  - String rest: A string which gets sent to bash
 - reload: Reloads YATwm, this reloads the config file and re runs the monitor detection, and will unmap and remap all windows to refresh them.
 - nextMonitor: Focuses the next monitor, wraps around.
 - gaps: Sets the size of the inner gaps, margins around each window (this ends up looking doubled as each window has it)
