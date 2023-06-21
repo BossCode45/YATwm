@@ -13,6 +13,7 @@ struct Client
 	int ID;
 	Window w;
 	bool floating;
+	bool fullscreen;
 };
 
 enum TileDir

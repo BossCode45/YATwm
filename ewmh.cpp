@@ -65,6 +65,18 @@ void setCurrentDesktop(int desktop)
 	XChangeProperty(*dpy_, *root_, netCurrentDesktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&currDesktop, 1);
 }
 
+void setFullscreen(Window w, bool fullscreen)
+{
+	Atom netWMState = XInternAtom(*dpy_, "_NET_WM_STATE", true);
+	Atom netWMStateVal;
+	if(fullscreen)
+		netWMStateVal = XInternAtom(*dpy_, "_NET_WM_STATE_FULLSCREEN", true);
+	else
+		netWMStateVal = XInternAtom(*dpy_, "", true);
+	XChangeProperty(*dpy_, w, netWMState, XA_ATOM, 32, PropModeReplace, (unsigned char*)&netWMStateVal, 1);
+
+}
+
 int getProp(Window w, char* propName, Atom* type, unsigned char** data)
 {
 	Atom prop_type = XInternAtom(*dpy_, propName, false);

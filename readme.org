@@ -51,6 +51,7 @@ The config file is a list of commands. Each command should be on a new line. For
   - String rest: A string which gets sent to bash
 - reload: Reloads YATwm, this reloads the config file and re runs the monitor detection, and will unmap and remap all windows to refresh them.
 - nextMonitor: Focuses the next monitor, wraps around.
+- fullscreen: Toggles if the current window is fullscreen
 - gaps: Sets the size of the inner gaps, margins around each window (this ends up looking doubled as each window has it)
   - Number: The size in pixels
 - outergaps: Sets the size of the outer gaps, distance for windows and the edge of the output (add this to the inner gaps to get distance between window and edge of output)
@@ -100,6 +101,7 @@ Current keybinds (these can all be edited):
 - ~mod + c~					: firefox
 - ~mod + x~					: lock
 - ~mod + shift + x~			: lock and sleep
+- ~mod + f~					: toggle fullscreen
 - ~mod + (num)~				: switch to workspace (num) - currently only for 1-10 but you can add more
 - ~mod + shift + (num)~		: move window to workspace (num) - currently only for 1-10 but you can add more
 (mod is super, and the direction keys are h, j, k, l - left, down, up, right respectively like vim)

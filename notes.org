@@ -1,5 +1,10 @@
 #+TITLE: Features to add
 
+* Main refactor for the future
+** Make it possible to split up the code into mulitple files easier
+- Header files for some functions such as ~tileRoots~, potentially classes as well
+- Main variables like the list of clients as a stuct, pointer can then be passed for things like EWMH
+
 * Remembering focus
 Use the variable ~whichChildFocused~ for each non client frame, this is the index of the child that is focused. To then find focused child for a root recurse through all the frames going through the focused child.
 ** Where it should be updated
@@ -9,18 +14,17 @@ Use the variable ~whichChildFocused~ for each non client frame, this is the inde
 ** Where it should be used
 Whenever I set focus I should use the focused client of whichever workspace is focused
 
-* Change focus and move between monitors
-Perhaps I can just add something to the ~dirFind~ function
-
-* TOML config
-put in ~/.config/YATwm/config.toml
+* Config
+rewrite it to be a scripting language like i3
 
 * Fullscreen windows
 This should be another thing like floating windows except each workspace only gets one
 I should check it first when tiling and if it exists then draw it to the size of the screeen then return
 
 * General EWMH things
-I should really figure out what all the client messages mean
+** I should really figure out what all the client messages mean
+- ~_NET_WM_STATE~ is used to change a windows state e.g. moving to fullscreen. It is an ~Atom[]~
 
 * The eventual program to communicate with YATwm
 Use a unix socket
+Same protocol as config langauge

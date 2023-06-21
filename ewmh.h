@@ -18,4 +18,6 @@ void setWindowDesktop(Window w, int desktop);
 
 void setCurrentDesktop(int desktop);
 
+void setFullscreen(Window w, bool fullscreen);
+
 int getProp(Window w, char* propName, Atom* type, unsigned char** data);
