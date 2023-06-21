@@ -8,6 +8,7 @@ bind mod+Return spawn alacritty
 bind mod+c spawn firefox
 bind mod+x spawn loginctl lock-session
 bind mod+shift+x bashSpawn loginctl lock-session && systemctl suspend
+bind mod+d bashSpawn "rofi -i -show drun"
 gaps 10
 outergaps 10
 
@@ -16,6 +17,7 @@ bind mod+q kill
 
 # Tiling
 bind mod+t toggle
+bind mod+f fullscreen
 
 # Focus
 bind mod+h focChange left

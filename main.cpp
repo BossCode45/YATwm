@@ -579,7 +579,7 @@ const void nextMonitor(const CommandArg* argv)
 	XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[focusedScreen].x + screens[focusedScreen].w/2, screens[focusedScreen].y + screens[focusedScreen].h/2);
 	focusRoot(focusedWorkspaces[focusedScreen]);
 }
-void fullscreen(const KeyArg arg)
+const void fullscreen(const CommandArg* arg)
 {
 	Window focusedWindow;
 	int focusedRevert;
@@ -1018,6 +1018,7 @@ int main(int argc, char** argv)
 	commandsModule.addCommand("reload", reload, 0, {});
 	commandsModule.addCommand("wsDump", wsDump, 0, {});
 	commandsModule.addCommand("nextMonitor", nextMonitor, 0, {});
+	commandsModule.addCommand("fullscreen", fullscreen, 0, {});
 
 	//Config
 	std::vector<Err> cfgErr;
