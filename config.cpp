@@ -98,6 +98,7 @@ std::vector<Err> Config::loadFromFile(std::string path)
 	int line = 0;
 	while(getline(config, cmd))
 	{
+		line++;
 		if(cmd.size() == 0)
 			continue;
 		if(cmd.at(0) == '#')
@@ -111,7 +112,6 @@ std::vector<Err> Config::loadFromFile(std::string path)
 			errs.push_back({e.code, "Error in config (line " + std::to_string(line) + "): " + std::to_string(e.code) + "\n\tMessage: " + e.message});
 		
 		}
-		line++;
 	}
 	loaded = true;
 	return errs;

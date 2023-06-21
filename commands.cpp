@@ -72,18 +72,60 @@ Command* CommandsModule::lookupCommand(string name)
 vector<string> CommandsModule::splitCommand(string command)
 {
 	vector<string> v;
-	string regexString = "((?:\"[^\"\n]+\")|(?:'[^'\n]+')|(?:[^ \n]+))+";
-	std::regex regex(regexString, std::regex_constants::_S_icase);
-	auto begin = std::sregex_iterator(command.begin(), command.end(), regex);
-	auto end = std::sregex_iterator();
-	for (std::sregex_iterator i = begin; i != end; i++)
+	string arg = "";
+	bool inQuotes = false;
+	bool escapeNext = true;
+	char quoteType;
+	for(int i = 0; i < command.size(); i++)
 	{
-		std::smatch match = *i;
-		std::string str = match.str();
-		if(str[0] == '\'' || str[0] == '"')
-			str = str.substr(1, str.size() - 2);
-		v.push_back(str);
+		if(escapeNext)
+		{
+			arg += command[i];
+			escapeNext = false;
+		}
+		else if(command[i] == '\\')
+		{
+			escapeNext = true;
+		}
+		else if(inQuotes)
+		{
+			if(command[i] == quoteType)
+			{
+				if(arg != "")
+				{
+					v.push_back(arg);
+					arg = "";
+				}
+				inQuotes = false;
+			}
+			else
+			{
+				arg += command[i];
+			}
+		}
+		else
+		{
+			if(command[i] == ' ')
+			{
+				if(arg != "")
+				{
+					v.push_back(arg);
+					arg = "";
+				}
+			}
+			else if(command[i] == '"' || command[i] == '\'')
+			{
+				inQuotes = true;
+				quoteType = command[i];
+			}
+			else
+			{
+				arg += command[i];
+			}
+		}
 	}
+	if(arg != "")
+		v.push_back(arg);
 	return v;
 }
 
