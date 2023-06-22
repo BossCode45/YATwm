@@ -41,8 +41,13 @@ using std::pair;
 using std::vector;
 
 std::ofstream yatlog;
+std::time_t timeNow;
+std::tm *now;
+char nowString[80];
 
-#define log(x) yatlog << x << std::endl
+#define log(x)												\
+	updateTime();											\
+	yatlog << nowString << x << std::endl
 
 Display* dpy;
 Window root;
@@ -87,6 +92,7 @@ int FFCF(int sID);
 void detectScreens();
 void focusRoot(int root);
 void handleConfigErrs(vector<Err> cfgErrs);
+void updateTime();
 
 void configureRequest(XConfigureRequestEvent e);
 void mapRequest(XMapRequestEvent e);
@@ -204,6 +210,12 @@ void handleConfigErrs(vector<Err> cfgErrs)
 			}
 		}
 	}
+}
+void updateTime()
+{
+	timeNow = std::time(0);
+	now = std::localtime(&timeNow);
+	strftime(nowString, sizeof(nowString), "[%H:%M:%S] ", now);
 }
 
 //Keybind commands
@@ -617,9 +629,13 @@ void mapRequest(XMapRequestEvent e)
 	XWindowAttributes attr;
 	XGetWindowAttributes(dpy, e.window, &attr);
 	if(gotName)
+	{
 		log("Mapping window: " << name.value);
+	}
 	else
+	{
 		log("Mapping window with unknown name (its probably mpv, mpv is annoying)");
+	}
 	log("\tWindow ID: " << e.window);
 
 	Window focusedWindow;
@@ -1036,11 +1052,10 @@ int main(int argc, char** argv)
 
 	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
+	yatlog << "\n" << endl;
 
 	//Print starting message
-	auto timeUnformatted = std::chrono::system_clock::now();
-	std::time_t time = std::chrono::system_clock::to_time_t(timeUnformatted);
-	log("\nYAT STARTING: " << std::ctime(&time) << "--------------------------------------");
+	log("-------- YATWM STARTING --------");
 
 	//Notifications
 	notify_init("YATwm");
