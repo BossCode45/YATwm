@@ -39,11 +39,14 @@ const void KeybindsModule::handleKeypress(XKeyEvent e)
 
 const void KeybindsModule::bind(const CommandArg* argv)
 {
-	Err e = commandsModule.checkCommand(argv[1].str);
-	if(e.code != NOERR)
+	std::vector<Err> errs = commandsModule.checkCommand(argv[1].str);
+	for(Err e : errs)
 	{
-		e.message = "Binding fail - " + e.message;
-		throw e;
+		if(e.code != NOERR)
+		{
+			e.message = "Binding fail - " + e.message;
+			throw e;
+		}
 	}
 	std::vector<string> keys = split(argv[0].str, '+');
 	Keybind bind;

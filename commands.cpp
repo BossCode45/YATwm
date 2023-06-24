@@ -13,8 +13,14 @@
 
 using std::cout, std::endl, std::string, std::vector, std::tolower;
 
+const void CommandsModule::echo(const CommandArg* argv)
+{
+	cout << argv[0].str << endl;
+}
+
 CommandsModule::CommandsModule()
 {
+	addCommand("echo", &CommandsModule::echo, 1, {STR_REST}, this);
 }
 CommandsModule::~CommandsModule()
 {
@@ -215,11 +221,36 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 void CommandsModule::runCommand(string command)
 {
 	vector<string> split = splitCommand(command);
+	vector<string>::const_iterator start = split.begin();
+	int count = 0;
+	for(string s : split)
+	{
+		if(s == ";")
+		{
+			vector<string>::const_iterator end = start + count;
+			vector<string> partialCmd(start, end);
+			runCommand(partialCmd);
+			count = 0;
+			start = end + 1;
+		}
+		else
+		{
+			count++;
+		}
+	}
+	if(start != split.end())
+	{
+		vector<string> partialCmd(start, (vector<string>::const_iterator)split.end());
+		runCommand(partialCmd);
+	}
+}
+void CommandsModule::runCommand(vector<string> split)
+{
 	Command* cmd = lookupCommand(split[0]);
 	if(cmd == nullptr)
 		throw Err(CMD_ERR_NOT_FOUND, split[0] + " is not a valid command name");
 	if(cmd->argc > split.size() - 1)
-		throw Err(CMD_ERR_WRONG_ARGS, command + " is the wrong args");
+		throw Err(CMD_ERR_WRONG_ARGS, "wrong number of arguments");
 	CommandArg* args;
 	try
 	{
@@ -254,14 +285,42 @@ void CommandsModule::runCommand(string command)
 	delete[] args;
 }
 
-Err CommandsModule::checkCommand(string command)
+vector<Err> CommandsModule::checkCommand(string command)
 {
+	vector<Err> errs;
 	vector<string> split = splitCommand(command);
+	vector<string>::const_iterator start = split.begin();
+	int count = 0;
+	for(string s : split)
+	{
+		if(s == ";")
+		{
+			vector<string>::const_iterator end = start + count;
+			vector<string> partialCmd(start, end);
+			errs.push_back(checkCommand(partialCmd));
+			count = 0;
+			start = end + 1;
+		}
+		else
+		{
+			count++;
+		}
+	}
+	if(start != split.end())
+	{
+		vector<string> partialCmd(start, (vector<string>::const_iterator)split.end());
+		errs.push_back(checkCommand(partialCmd));
+	}
+	return errs;
+}
+
+Err CommandsModule::checkCommand(vector<string> split)
+{
 	Command* cmd = lookupCommand(split[0]);
 	if(cmd == nullptr)
 		return Err(CMD_ERR_NOT_FOUND, split[0] + " is not a valid command name");
 	if(cmd->argc > split.size())
-		return Err(CMD_ERR_WRONG_ARGS, command + " is the wrong args");
+		return Err(CMD_ERR_WRONG_ARGS, "wrong number of arguments");
 	CommandArg* args;
 	try
 	{
