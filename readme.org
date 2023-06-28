@@ -63,8 +63,10 @@ The config file is a list of commands. Each command should be on a new line. For
   - String: The name of the workspace
   - Number array rest: The monitor preferences. This is which monitor it should appear on, first (primary) monitor is one. E.g. ~2 1~ to appear on the second monitor first, but if that isn't plugged in then use the first.
 - bind: Binds a key to a command
-  - String: The key bind, modifiers and keys are separated with +, e.g. ~mod+x~
+  - String: The key bind, modifiers and keys are separated with +, e.g. ~mod+x~. This can also be a key chord, where you have multiple binds, where when pressed in succession will execute the command (make sure to enclose this arg in quotes, and then separate the binds with spaces)
   - String rest: The command to run
+- quitkey: Sets the key to exit a key chord (note: pressing an unbound key also does this)
+  - String: The key bind, modifiers and keys are separated with +, e.g. ~mod+g~.
 - wsDump: This is a command for testing, you probably don't want to use it
 *** General
 You can change either the inner gaps (padding around each window - so double it for space between windows), or the outer gaps (padding around the display - add to inner gaps to get space between window and screen edges).
@@ -104,6 +106,7 @@ Current keybinds (these can all be edited):
 - ~mod + f~					: toggle fullscreen
 - ~mod + (num)~				: switch to workspace (num) - currently only for 1-10 but you can add more
 - ~mod + shift + (num)~		: move window to workspace (num) - currently only for 1-10 but you can add more
+- ~mod + g~					: exit key chord
 (mod is super, and the direction keys are h, j, k, l - left, down, up, right respectively like vim)
 
 You can use the command ~swapmods~ to make ~mod~ act as ~alt~ and ~alt~ act as ~mod~.
