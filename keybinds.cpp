@@ -1,5 +1,6 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
+#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <utility>
@@ -30,6 +31,14 @@ KeybindsModule::KeybindsModule(CommandsModule& commandsModule, Config& cfg, Glob
 {
 	commandsModule.addCommand("bind", &KeybindsModule::bind, 2, {STR, STR_REST}, this);
 	commandsModule.addCommand("quitkey", &KeybindsModule::quitKey, 1, {STR}, this);
+	commandsModule.addCommand("bindmode", &KeybindsModule::bindMode, 1, {STR}, this);
+
+	bindModes = {
+		{"normal", &KeybindsModule::normalBindMode},
+		{"emacs", &KeybindsModule::emacsBindMode}
+	};
+	bindFunc = &KeybindsModule::normalBindMode;
+	
 	this->updateMousePos = updateMousePos;
 	keyMaps.insert({0, std::map<Keybind, KeyFunction>()});
 }
@@ -47,8 +56,7 @@ void KeybindsModule::changeMap(int newMapID)
 		for(std::pair<Keybind, KeyFunction> pair : getKeymap(currentMapID))
 		{
 			Keybind bind = pair.first;
-			KeyCode c = XKeysymToKeycode(globals.dpy, bind.key);
-			XGrabKey(globals.dpy, c, bind.modifiers, globals.root, false, GrabModeAsync, GrabModeAsync);
+			XGrabKey(globals.dpy, bind.key, bind.modifiers, globals.root, false, GrabModeAsync, GrabModeAsync);
 		}
 	}
 	else
@@ -66,7 +74,7 @@ const void KeybindsModule::handleKeypress(XKeyEvent e)
 	updateMousePos();
 
 	const unsigned int masks = ShiftMask | ControlMask | Mod1Mask | Mod4Mask;
-	Keybind k = {XLookupKeysym(&e, 0), e.state & masks};
+	Keybind k = {(KeyCode)e.keycode,  e.state & masks};
 	if(k == exitBind)
 	{
 		changeMap(0);
@@ -91,7 +99,28 @@ const void KeybindsModule::handleKeypress(XKeyEvent e)
 	}
 }
 
-Keybind KeybindsModule::getKeybind(string bindString)
+bool isUpper(const std::string& s) {
+    return std::all_of(s.begin(), s.end(), [](unsigned char c){ return std::isupper(c); });
+}
+
+const void KeybindsModule::bindMode(const CommandArg* argv)
+{
+	if(bindModes.count(argv[0].str) < 1)
+	{
+		throw Err(CFG_ERR_KEYBIND, "Bind mode: " + string(argv[0].str) + " does not exist");
+	}
+	else
+	{
+		bindFunc = bindModes.find(argv[0].str)->second;
+	}
+}
+
+Keybind KeybindsModule::getKeybind(std::string bindString)
+{
+	return (this->*bindFunc)(bindString);
+}
+
+const Keybind KeybindsModule::normalBindMode(string bindString)
 {
 	std::vector<string> keys = split(bindString, '+');
 	Keybind bind;
@@ -116,15 +145,58 @@ Keybind KeybindsModule::getKeybind(string bindString)
 		}
 		else
 		{
+			if(isUpper(key))
+			{
+				bind.modifiers |= ShiftMask;
+			}
 			KeySym s = XStringToKeysym(key.c_str());
-			bind.key = s;
-			if(bind.key == NoSymbol)
+			if(s == NoSymbol)
 			{
 				throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid!");
-				continue;
 			}
+			bind.key = XKeysymToKeycode(globals.dpy, s);
 		}
 	}
+	if(!bind.key)
+		throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid!");
+	return bind;
+}
+
+const Keybind KeybindsModule::emacsBindMode(string bindString)
+{
+	std::vector<string> keys = split(bindString, '-');
+	Keybind bind;
+	bind.modifiers = 0;
+	for(string key : keys)
+	{
+		if(key == "s")
+		{
+			bind.modifiers |= Mod4Mask >> 3 * cfg.swapSuperAlt;
+		}
+		else if(key == "M")
+		{
+			bind.modifiers |= Mod1Mask << 3 * cfg.swapSuperAlt;
+		}
+		else if(key == "C")
+		{
+			bind.modifiers |= ControlMask;
+		}
+		else
+		{
+			if(isUpper(key))
+			{
+				bind.modifiers |= ShiftMask;
+			}
+			KeySym s = XStringToKeysym(key.c_str());
+			if(s == NoSymbol)
+			{
+				throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid!");
+			}
+			bind.key = XKeysymToKeycode(globals.dpy, s);
+		}
+	}
+	if(!bind.key)
+		throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid!");
 	return bind;
 }
 

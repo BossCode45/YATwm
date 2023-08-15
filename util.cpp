@@ -1,6 +1,7 @@
 #include "util.h"
 
 #include <sstream>
+#include <algorithm>
 
 using std::string;
 
@@ -21,4 +22,11 @@ const string evNames[] = {"", "", "KeyPress", "KeyRelease", "ButtonPress", "Butt
 string getEventName(int e)
 {
 	return evNames[e];
+}
+
+string lowercase(string s)
+{
+    string s2 = s;
+    std::transform(s2.begin(), s2.end(), s2.begin(), [](unsigned char c){ return std::tolower(c); });
+    return s2;
 }

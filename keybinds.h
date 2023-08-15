@@ -13,7 +13,7 @@
 #include "util.h"
 
 struct Keybind {
-	KeySym key;
+	KeyCode key;
 	unsigned int modifiers;
 	bool operator<(const Keybind &o) const;
 	bool operator==(const Keybind &o) const;
@@ -28,6 +28,7 @@ struct KeyFunction
 #define getKeymap(X) \
 	keyMaps.find(X)->second
 
+
 class KeybindsModule
 {
 public:
@@ -35,12 +36,17 @@ public:
 	~KeybindsModule() = default;
 	const void bind(const CommandArg* argv);
 	const void quitKey(const CommandArg* argv);
+	const void bindMode(const CommandArg* argv);
 	const void handleKeypress(XKeyEvent e);
 	const void clearKeybinds();
 private:
 	Keybind getKeybind(std::string bindString);
 	void changeMap(int newMapID);
 	std::map<int, std::map<Keybind, KeyFunction>> keyMaps;
+	const Keybind emacsBindMode(std::string bindString);
+	const Keybind normalBindMode(std::string bindString);
+	std::map<std::string, const Keybind(KeybindsModule::*)(std::string bindString)> bindModes;
+	const Keybind(KeybindsModule::* bindFunc)(std::string bindString);
 	// Modifier keys to ignore when canceling a keymap
 	KeyCode ignoredKeys[8] = {50, 37, 133, 64, 62, 105, 134, 108};
 	int currentMapID = 0;

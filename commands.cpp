@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "error.h"
+#include "util.h"
 
 #include <cctype>
 #include <iostream>
@@ -11,7 +12,7 @@
 #include <regex>
 #include <cstring>
 
-using std::cout, std::endl, std::string, std::vector, std::tolower;
+using std::cout, std::endl, std::string, std::vector;
 
 const void CommandsModule::echo(const CommandArg* argv)
 {
@@ -133,13 +134,6 @@ vector<string> CommandsModule::splitCommand(string command)
 	if(arg != "")
 		v.push_back(arg);
 	return v;
-}
-
-string lowercase(string s)
-{
-    string s2 = s;
-    std::transform(s2.begin(), s2.end(), s2.begin(), [](unsigned char c){ return std::tolower(c); });
-    return s2;
 }
 
 CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandArgType* argTypes, const int argc)
