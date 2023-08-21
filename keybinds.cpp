@@ -5,13 +5,14 @@
 #include <sstream>
 #include <utility>
 #include <vector>
+#include <regex>
 
 #include "commands.h"
 #include "error.h"
 #include "keybinds.h"
 #include "util.h"
 
-using std::string, std::cout, std::endl;
+using std::string;
 
 bool Keybind::operator<(const Keybind &o) const {
 	if(key != o.key)
@@ -164,39 +165,53 @@ const Keybind KeybindsModule::normalBindMode(string bindString)
 
 const Keybind KeybindsModule::emacsBindMode(string bindString)
 {
-	std::vector<string> keys = split(bindString, '-');
 	Keybind bind;
 	bind.modifiers = 0;
-	for(string key : keys)
+
+	const std::regex keyRegex("^(?:([CMs])-)?(?:([CMs])-)?(?:([CMs])-)?([^\\s]+)$");
+	std::smatch keyMatch;
+	if(std::regex_match(bindString, keyMatch, keyRegex))
 	{
-		if(key == "s")
+		for (int i = 1; i < 3; i++)
 		{
-			bind.modifiers |= Mod4Mask >> 3 * cfg.swapSuperAlt;
-		}
-		else if(key == "M")
-		{
-			bind.modifiers |= Mod1Mask << 3 * cfg.swapSuperAlt;
-		}
-		else if(key == "C")
-		{
-			bind.modifiers |= ControlMask;
-		}
-		else
-		{
-			if(isUpper(key))
+			std::ssub_match modifierMatch = keyMatch[i];
+			if(modifierMatch.matched)
 			{
-				bind.modifiers |= ShiftMask;
+				std::string modifier = modifierMatch.str();
+				if(modifier == "s")
+				{
+					bind.modifiers |= Mod4Mask >> 3 * cfg.swapSuperAlt;
+				}
+				else if(modifier == "M")
+				{
+					bind.modifiers |= Mod1Mask << 3 * cfg.swapSuperAlt;
+				}
+				else if(modifier == "C")
+				{
+					bind.modifiers |= ControlMask;
+				}
 			}
-			KeySym s = XStringToKeysym(key.c_str());
-			if(s == NoSymbol)
-			{
-				throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid!");
-			}
-			bind.key = XKeysymToKeycode(globals.dpy, s);
 		}
 	}
-	if(!bind.key)
-		throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid!");
+	KeySym keySym = XStringToKeysym(keyMatch[4].str().c_str());
+	
+	if(isUpper(keyMatch[4].str().c_str()) && keySym != NoSymbol)
+	{
+		bind.modifiers |= ShiftMask;
+	}
+	if(keySym == NoSymbol)
+	{
+		if(keyMatch[4].str() == "RET")
+			keySym = XK_Return;
+		if(keyMatch[4].str() == "ESC")
+			keySym = XK_Escape;
+		if(keyMatch[4].str() == "SPC")
+			keySym = XK_space;
+		else
+			throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid");
+	}
+	bind.key = XKeysymToKeycode(globals.dpy, keySym);
+    
 	return bind;
 }
 
