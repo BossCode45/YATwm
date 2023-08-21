@@ -168,7 +168,7 @@ const Keybind KeybindsModule::emacsBindMode(string bindString)
 	Keybind bind;
 	bind.modifiers = 0;
 
-	const std::regex keyRegex("^(?:([CMs])-)?(?:([CMs])-)?(?:([CMs])-)?([^\\s]+)$");
+	const std::regex keyRegex("^(?:([CMs])-)?(?:([CMs])-)?(?:([CMs])-)?([^\s]|(SPC|ESC|RET|))$");
 	std::smatch keyMatch;
 	if(std::regex_match(bindString, keyMatch, keyRegex))
 	{
