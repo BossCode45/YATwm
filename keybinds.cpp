@@ -168,7 +168,7 @@ const Keybind KeybindsModule::emacsBindMode(string bindString)
 	Keybind bind;
 	bind.modifiers = 0;
 
-	const std::regex keyRegex("^(?:([CMs])-)?(?:([CMs])-)?(?:([CMs])-)?([^\s]|(SPC|ESC|RET|))$");
+	const std::regex keyRegex("^(?:([CMs])-)?(?:([CMs])-)?(?:([CMs])-)?([^\\s]|(SPC|ESC|RET|))$");
 	std::smatch keyMatch;
 	if(std::regex_match(bindString, keyMatch, keyRegex))
 	{
@@ -203,10 +203,14 @@ const Keybind KeybindsModule::emacsBindMode(string bindString)
 	{
 		if(keyMatch[4].str() == "RET")
 			keySym = XK_Return;
-		if(keyMatch[4].str() == "ESC")
+		else if(keyMatch[4].str() == "ESC")
 			keySym = XK_Escape;
-		if(keyMatch[4].str() == "SPC")
+		else if(keyMatch[4].str() == "SPC")
 			keySym = XK_space;
+		else if(keyMatch[4].str() == "-")
+			keySym = XK_minus;
+		else if(keyMatch[4].str() == "+")
+			keySym = XK_plus;
 		else
 			throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid");
 	}

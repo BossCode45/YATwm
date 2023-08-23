@@ -63,10 +63,12 @@ The config file is a list of commands. Each command should be on a new line. For
   - String: The name of the workspace
   - Number array rest: The monitor preferences. This is which monitor it should appear on, first (primary) monitor is one. E.g. ~2 1~ to appear on the second monitor first, but if that isn't plugged in then use the first.
 - bind: Binds a key to a command
-  - String: The key bind, modifiers and keys are separated with +, e.g. ~mod+x~. This can also be a key chord, where you have multiple binds, where when pressed in succession will execute the command (make sure to enclose this arg in quotes, and then separate the binds with spaces)
+  - String: The key bind, structured according to the bind mode. This can also be a key chord, where you have multiple binds, where when pressed in succession will execute the command (make sure to enclose this arg in quotes, and then separate the binds with spaces)
   - String rest: The command to run
 - quitkey: Sets the key to exit a key chord (note: pressing an unbound key also does this)
-  - String: The key bind, modifiers and keys are separated with +, e.g. ~mod+g~.
+  - String: The key bind, structured according to the bind mode.
+- bindmode: Sets the bind mode (Description of these further down)
+  - String: The bind mode to use
 - wsDump: This is a command for testing, you probably don't want to use it
 *** General
 You can change either the inner gaps (padding around each window - so double it for space between windows), or the outer gaps (padding around the display - add to inner gaps to get space between window and screen edges).
@@ -117,7 +119,8 @@ bind mod+q kill
 bind mod+shift+x bashSpawn loginctl lock-session && systemctl suspend
 #+end_src
 Commands are executed going down the list and multiple commands with the same keybind and modifiers will all be executed
-
+**** Bind modes
+The current two bind modes are ~normal~ and ~emacs~. The normal bind mode has the same syntax as i3, so key and modifiers separated with a '+', and use the xlib KeySym name for them. The emacs bind mode has the same syntax as emacs, so separate modifiers and keys with a '-', and the key comes last. It uses xlib keysyms, but for multi letter keys such as ~RET~, ~SPC~, ~ESC~, ~+~, ~-~ it has special logic to interpret how they would be written in emacs (note: if there are any other exceptions please let me know).
 * Credits
 Catwm (https://github.com/pyknite/catwm)
 
