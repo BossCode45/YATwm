@@ -1117,7 +1117,7 @@ int main(int argc, char** argv)
 				clientMessage(e.xclient);
 				break;
 			default:
-				//cout << "Unhandled event, code: " << evNames[e.type] << "!\n";
+				// cout << "Unhandled event: " << getEventName(e.type) << endl;
 				break;
 		}
 	}

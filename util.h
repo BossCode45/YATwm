@@ -4,10 +4,13 @@
 #include <string>
 #include <X11/Xlib.h>
 
-#define evNames {0, 0, "KeyPress", "KeyRelease", "ButtonPress", "ButtonRelease", "MotionNotify", "EnterNotify", "LeaveNotify", "FocusIn", "FocusOut", "KeymapNotify", "Expose", "GraphicsExpose", "NoExpose", "VisibilityNotify", "CreateNotify", "DestroyNotify", "UnmapNotify", "MapNotify", "MapRequest", "ReparentNotify", "ConfigureNotify", "ConfigureRequest", "GravityNotify", "ResizeRequest", "CirculateNotify", "CirculateRequest", "PropertyNotify", "SelectionClear", "SelectionRequest", "SelectionNotify", "ColormapNotify", "ClientMessage", "MappingNotify", "GenericEvent", "LASTEvent"};
+
+std::string getEventName(int e);
 
 
 std::vector<std::string> split (const std::string &s, char delim);
+
+std::string lowercase(std::string s);
 
 
 struct Globals {

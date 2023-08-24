@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2023-06-21 Wed 20:26 -->
+<!-- 2023-06-28 Wed 21:24 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>YATwm</title>
@@ -200,36 +200,36 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orge9be048">1. This config is best read in Emacs!</a></li>
-<li><a href="#org90a4bc0">2. Disclaimer: This is still very much in beta</a></li>
-<li><a href="#org5eaba64">3. Usage instructions</a>
+<li><a href="#orgbfb53c0">1. This config is best read in Emacs!</a></li>
+<li><a href="#org10dcbf8">2. Disclaimer: This is still very much in beta</a></li>
+<li><a href="#org522cd53">3. Usage instructions</a>
 <ul>
-<li><a href="#org41321d1">3.1. Installation</a>
+<li><a href="#org5f71891">3.1. Installation</a>
 <ul>
-<li><a href="#org318ad8e">3.1.1. Pre reqs</a></li>
-<li><a href="#orgf06bf1e">3.1.2. Installing and removing</a></li>
+<li><a href="#org3dc64ae">3.1.1. Pre reqs</a></li>
+<li><a href="#org309a902">3.1.2. Installing and removing</a></li>
 </ul>
 </li>
-<li><a href="#org3c09ef5">3.2. Config</a>
+<li><a href="#orgb007d3a">3.2. Config</a>
 <ul>
-<li><a href="#org43f17c0">3.2.1. Syntax</a></li>
-<li><a href="#org384a204">3.2.2. General</a></li>
-<li><a href="#orga3a5f0e">3.2.3. Workspaces</a></li>
-<li><a href="#orgee481dd">3.2.4. Keybinds</a></li>
+<li><a href="#org6dcf252">3.2.1. Syntax</a></li>
+<li><a href="#org9f46c02">3.2.2. General</a></li>
+<li><a href="#org7f3b7f1">3.2.3. Workspaces</a></li>
+<li><a href="#org123f75e">3.2.4. Keybinds</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgd9a91f5">4. Credits</a></li>
+<li><a href="#org5ea945f">4. Credits</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orge9be048" class="outline-2">
-<h2 id="orge9be048"><span class="section-number-2">1.</span> This config is best read in Emacs!</h2>
+<div id="outline-container-orgbfb53c0" class="outline-2">
+<h2 id="orgbfb53c0"><span class="section-number-2">1.</span> This config is best read in Emacs!</h2>
 </div>
 
-<div id="outline-container-org90a4bc0" class="outline-2">
-<h2 id="org90a4bc0"><span class="section-number-2">2.</span> Disclaimer: This is still very much in beta</h2>
+<div id="outline-container-org10dcbf8" class="outline-2">
+<h2 id="org10dcbf8"><span class="section-number-2">2.</span> Disclaimer: This is still very much in beta</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 This only just works, multiple monitors aren't supported and floating windows cannot move and there is no resizing. Many features are just hacked together and are likely to break. However, it is just about usable so if you really want to try then go for it! (feel free to make an issue if you have any questions).<br />
@@ -237,16 +237,16 @@ This only just works, multiple monitors aren't supported and floating windows ca
 </div>
 </div>
 
-<div id="outline-container-org5eaba64" class="outline-2">
-<h2 id="org5eaba64"><span class="section-number-2">3.</span> Usage instructions</h2>
+<div id="outline-container-org522cd53" class="outline-2">
+<h2 id="org522cd53"><span class="section-number-2">3.</span> Usage instructions</h2>
 <div class="outline-text-2" id="text-3">
 </div>
-<div id="outline-container-org41321d1" class="outline-3">
-<h3 id="org41321d1"><span class="section-number-3">3.1.</span> Installation</h3>
+<div id="outline-container-org5f71891" class="outline-3">
+<h3 id="org5f71891"><span class="section-number-3">3.1.</span> Installation</h3>
 <div class="outline-text-3" id="text-3-1">
 </div>
-<div id="outline-container-org318ad8e" class="outline-4">
-<h4 id="org318ad8e"><span class="section-number-4">3.1.1.</span> Pre reqs</h4>
+<div id="outline-container-org3dc64ae" class="outline-4">
+<h4 id="org3dc64ae"><span class="section-number-4">3.1.1.</span> Pre reqs</h4>
 <div class="outline-text-4" id="text-3-1-1">
 <ul class="org-ul">
 <li><code>Xlib</code> and <code>g++</code> and <code>libnotify</code> to build the program<br /></li>
@@ -258,8 +258,8 @@ This only just works, multiple monitors aren't supported and floating windows ca
 </ul>
 </div>
 </div>
-<div id="outline-container-orgf06bf1e" class="outline-4">
-<h4 id="orgf06bf1e"><span class="section-number-4">3.1.2.</span> Installing and removing</h4>
+<div id="outline-container-org309a902" class="outline-4">
+<h4 id="org309a902"><span class="section-number-4">3.1.2.</span> Installing and removing</h4>
 <div class="outline-text-4" id="text-3-1-2">
 <ul class="org-ul">
 <li><code>make i</code> or <code>make install</code> to install<br /></li>
@@ -269,23 +269,23 @@ This only just works, multiple monitors aren't supported and floating windows ca
 </div>
 </div>
 </div>
-<div id="outline-container-org3c09ef5" class="outline-3">
-<h3 id="org3c09ef5"><span class="section-number-3">3.2.</span> Config</h3>
+<div id="outline-container-orgb007d3a" class="outline-3">
+<h3 id="orgb007d3a"><span class="section-number-3">3.2.</span> Config</h3>
 <div class="outline-text-3" id="text-3-2">
 <p>
 You can configure YATwm with the config file in <code>$HOME/.config/YATwm/config</code> or <code>$XDG_CONFIG_HOME/YATwm/config</code> if you have that set. I have provided an example config file in the project dir that has all the variables set to their defaults (this will also be installed to <code>/etc/YATwm/config</code>.<br />
 It should alert you with a notification if you have an error, and put the error your log file. If the whole file is missing then it will use the default in <code>/etc/YATwm/config</code>.<br />
 </p>
 </div>
-<div id="outline-container-org43f17c0" class="outline-4">
-<h4 id="org43f17c0"><span class="section-number-4">3.2.1.</span> Syntax</h4>
+<div id="outline-container-org6dcf252" class="outline-4">
+<h4 id="org6dcf252"><span class="section-number-4">3.2.1.</span> Syntax</h4>
 <div class="outline-text-4" id="text-3-2-1">
 <p>
-The config file is a list of commands. Each command should be on a new line. For example, to set the gaps you would use the <code>gaps</code> command like this <code>gaps 10</code> (make sure this is all there is on that line). This says to call the command <code>gaps</code> with the arguments of <code>10</code>. Commands can have multiple arguments and these should be separated with a space, if you want a space in one of the arguments then wrap the arg in quotes, e.g. <code>addWorkspace "1: A" 1</code>, here the arguments are <code>1: A</code> and <code>1</code>. If you want to have a quote in your argument then make sure that arg is wrapped in quotes or escape it with <code>\</code> (e.g. <code>\'</code>), to insert <code>\</code> then use <code>\\</code>.<br />
+The config file is a list of commands. Each command should be on a new line. For example, to set the gaps you would use the <code>gaps</code> command like this <code>gaps 10</code> (make sure this is all there is on that line). This says to call the command <code>gaps</code> with the arguments of <code>10</code>. Commands can have multiple arguments and these should be separated with a space, if you want a space in one of the arguments then wrap the arg in quotes, e.g. <code>addWorkspace "1: A" 1</code>, here the arguments are <code>1: A</code> and <code>1</code>. If you want to have a quote in your argument then make sure that arg is wrapped in quotes or escape it with <code>\</code> (e.g. <code>\'</code>), to insert <code>\</code> then use <code>\\</code>. If you want to have multiple commands on the same line, e.g. binding a key to multiple commands, then use <code>;</code> as an argument on its own to separate them (tip: if you are using this for keybinds then enclose <b>all</b> the keybind commands in quotes, e.g. <code>bind mod+l "spawn i3lock ; spawn systemctl suspend"</code>).<br />
 </p>
 </div>
 <ol class="org-ol">
-<li><a id="orgd79f7a9"></a>Command arg types<br />
+<li><a id="orge3364c9"></a>Command arg types<br />
 <div class="outline-text-5" id="text-3-2-1-1">
 <ul class="org-ul">
 <li>String: this is just some text, this can be wrapped in quotes if you want a space in it.<br /></li>
@@ -302,7 +302,7 @@ The config file is a list of commands. Each command should be on a new line. For
 </ul>
 </div>
 </li>
-<li><a id="org948d88f"></a>List of commands<br />
+<li><a id="orgbdd70f3"></a>List of commands<br />
 <div class="outline-text-5" id="text-3-2-1-2">
 <ul class="org-ul">
 <li>exit: shuts down YATwm<br /></li>
@@ -359,8 +359,12 @@ The config file is a list of commands. Each command should be on a new line. For
 </ul></li>
 <li>bind: Binds a key to a command<br />
 <ul class="org-ul">
-<li>String: The key bind, modifiers and keys are separated with +, e.g. <code>mod+x</code><br /></li>
+<li>String: The key bind, modifiers and keys are separated with +, e.g. <code>mod+x</code>. This can also be a key chord, where you have multiple binds, where when pressed in succession will execute the command (make sure to enclose this arg in quotes, and then separate the binds with spaces)<br /></li>
 <li>String rest: The command to run<br /></li>
+</ul></li>
+<li>quitkey: Sets the key to exit a key chord (note: pressing an unbound key also does this)<br />
+<ul class="org-ul">
+<li>String: The key bind, modifiers and keys are separated with +, e.g. <code>mod+g</code>.<br /></li>
 </ul></li>
 <li>wsDump: This is a command for testing, you probably don't want to use it<br /></li>
 </ul>
@@ -368,8 +372,8 @@ The config file is a list of commands. Each command should be on a new line. For
 </li>
 </ol>
 </div>
-<div id="outline-container-org384a204" class="outline-4">
-<h4 id="org384a204"><span class="section-number-4">3.2.2.</span> General</h4>
+<div id="outline-container-org9f46c02" class="outline-4">
+<h4 id="org9f46c02"><span class="section-number-4">3.2.2.</span> General</h4>
 <div class="outline-text-4" id="text-3-2-2">
 <p>
 You can change either the inner gaps (padding around each window - so double it for space between windows), or the outer gaps (padding around the display - add to inner gaps to get space between window and screen edges).<br />
@@ -379,8 +383,8 @@ YATwm also keeps a log file, the location of this file can be changed with the c
 </div>
 </div>
 
-<div id="outline-container-orga3a5f0e" class="outline-4">
-<h4 id="orga3a5f0e"><span class="section-number-4">3.2.3.</span> Workspaces</h4>
+<div id="outline-container-org7f3b7f1" class="outline-4">
+<h4 id="org7f3b7f1"><span class="section-number-4">3.2.3.</span> Workspaces</h4>
 <div class="outline-text-4" id="text-3-2-3">
 <p>
 You can add workspace with the command <code>addworkspace</code> in the config file.<br />
@@ -406,8 +410,8 @@ Defaults workspace are listed below (these are the args for the addworkspace com
 </ol>
 </div>
 </div>
-<div id="outline-container-orgee481dd" class="outline-4">
-<h4 id="orgee481dd"><span class="section-number-4">3.2.4.</span> Keybinds</h4>
+<div id="outline-container-org123f75e" class="outline-4">
+<h4 id="org123f75e"><span class="section-number-4">3.2.4.</span> Keybinds</h4>
 <div class="outline-text-4" id="text-3-2-4">
 <p>
 Current keybinds (these can all be edited):<br />
@@ -427,6 +431,7 @@ Current keybinds (these can all be edited):<br />
 <li><code>mod + f</code>     : toggle fullscreen<br /></li>
 <li><code>mod + (num)</code>    : switch to workspace (num) - currently only for 1-10 but you can add more<br /></li>
 <li><code>mod + shift + (num)</code>  : move window to workspace (num) - currently only for 1-10 but you can add more<br /></li>
+<li><code>mod + g</code>     : exit key chord<br /></li>
 </ul>
 <p>
 (mod is super, and the direction keys are h, j, k, l - left, down, up, right respectively like vim)<br />
@@ -451,8 +456,8 @@ Commands are executed going down the list and multiple commands with the same ke
 </div>
 </div>
 
-<div id="outline-container-orgd9a91f5" class="outline-2">
-<h2 id="orgd9a91f5"><span class="section-number-2">4.</span> Credits</h2>
+<div id="outline-container-org5ea945f" class="outline-2">
+<h2 id="org5ea945f"><span class="section-number-2">4.</span> Credits</h2>
 <div class="outline-text-2" id="text-4">
 <p>
 Catwm (<a href="https://github.com/pyknite/catwm">https://github.com/pyknite/catwm</a>)<br />
@@ -465,7 +470,7 @@ basic<sub>wm</sub> (<a href="https://github.com/jichu4n/basic_wm">https://github
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2023-06-21 Wed 20:26</p>
+<p class="date">Created: 2023-06-28 Wed 21:24</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

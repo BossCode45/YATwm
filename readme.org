@@ -20,7 +20,7 @@ This only just works, multiple monitors aren't supported and floating windows ca
 You can configure YATwm with the config file in ~$HOME/.config/YATwm/config~ or ~$XDG_CONFIG_HOME/YATwm/config~ if you have that set. I have provided an example config file in the project dir that has all the variables set to their defaults (this will also be installed to ~/etc/YATwm/config~.
 It should alert you with a notification if you have an error, and put the error your log file. If the whole file is missing then it will use the default in ~/etc/YATwm/config~.
 *** Syntax
-The config file is a list of commands. Each command should be on a new line. For example, to set the gaps you would use the ~gaps~ command like this ~gaps 10~ (make sure this is all there is on that line). This says to call the command ~gaps~ with the arguments of ~10~. Commands can have multiple arguments and these should be separated with a space, if you want a space in one of the arguments then wrap the arg in quotes, e.g. ~addWorkspace "1: A" 1~, here the arguments are ~1: A~ and ~1~. If you want to have a quote in your argument then make sure that arg is wrapped in quotes or escape it with ~\~ (e.g. ~\'~), to insert ~\~ then use ~\\~.
+The config file is a list of commands. Each command should be on a new line. For example, to set the gaps you would use the ~gaps~ command like this ~gaps 10~ (make sure this is all there is on that line). This says to call the command ~gaps~ with the arguments of ~10~. Commands can have multiple arguments and these should be separated with a space, if you want a space in one of the arguments then wrap the arg in quotes, e.g. ~addWorkspace "1: A" 1~, here the arguments are ~1: A~ and ~1~. If you want to have a quote in your argument then make sure that arg is wrapped in quotes or escape it with ~\~ (e.g. ~\'~), to insert ~\~ then use ~\\~. If you want to have multiple commands on the same line, e.g. binding a key to multiple commands, then use ~;~ as an argument on its own to separate them (tip: if you are using this for keybinds then enclose *all* the keybind commands in quotes, e.g. ~bind mod+l "spawn i3lock ; spawn systemctl suspend"~).
 **** Command arg types
 - String: this is just some text, this can be wrapped in quotes if you want a space in it.
 - String rest: This will only ever be the final argument. This just takes the rest of the line as a string, so you can use spaces without needing quotes.
@@ -63,8 +63,12 @@ The config file is a list of commands. Each command should be on a new line. For
   - String: The name of the workspace
   - Number array rest: The monitor preferences. This is which monitor it should appear on, first (primary) monitor is one. E.g. ~2 1~ to appear on the second monitor first, but if that isn't plugged in then use the first.
 - bind: Binds a key to a command
-  - String: The key bind, modifiers and keys are separated with +, e.g. ~mod+x~
+  - String: The key bind, structured according to the bind mode. This can also be a key chord, where you have multiple binds, where when pressed in succession will execute the command (make sure to enclose this arg in quotes, and then separate the binds with spaces)
   - String rest: The command to run
+- quitkey: Sets the key to exit a key chord (note: pressing an unbound key also does this)
+  - String: The key bind, structured according to the bind mode.
+- bindmode: Sets the bind mode (Description of these further down)
+  - String: The bind mode to use
 - wsDump: This is a command for testing, you probably don't want to use it
 *** General
 You can change either the inner gaps (padding around each window - so double it for space between windows), or the outer gaps (padding around the display - add to inner gaps to get space between window and screen edges).
@@ -104,6 +108,7 @@ Current keybinds (these can all be edited):
 - ~mod + f~					: toggle fullscreen
 - ~mod + (num)~				: switch to workspace (num) - currently only for 1-10 but you can add more
 - ~mod + shift + (num)~		: move window to workspace (num) - currently only for 1-10 but you can add more
+- ~mod + g~					: exit key chord
 (mod is super, and the direction keys are h, j, k, l - left, down, up, right respectively like vim)
 
 You can use the command ~swapmods~ to make ~mod~ act as ~alt~ and ~alt~ act as ~mod~.
@@ -114,7 +119,8 @@ bind mod+q kill
 bind mod+shift+x bashSpawn loginctl lock-session && systemctl suspend
 #+end_src
 Commands are executed going down the list and multiple commands with the same keybind and modifiers will all be executed
-
+**** Bind modes
+The current two bind modes are ~normal~ and ~emacs~. The normal bind mode has the same syntax as i3, so key and modifiers separated with a '+', and use the xlib KeySym name for them. The emacs bind mode has the same syntax as emacs, so separate modifiers and keys with a '-', and the key comes last. It uses xlib keysyms, but for multi letter keys such as ~RET~, ~SPC~, ~ESC~, ~+~, ~-~ it has special logic to interpret how they would be written in emacs (note: if there are any other exceptions please let me know).
 * Credits
 Catwm (https://github.com/pyknite/catwm)
 

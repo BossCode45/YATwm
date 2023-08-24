@@ -51,6 +51,7 @@ private:
 	std::vector<Command> commandList;
 	std::vector<std::string> splitCommand(std::string command);
 	CommandArg* getCommandArgs(std::vector<std::string>& args, const CommandArgType* argTypes, const int argc);
+	const void echo(const CommandArg* argv);
 public:   
 	CommandsModule();
 	~CommandsModule();
@@ -63,7 +64,9 @@ public:
 	void addCommand(Command c);
 	Command* lookupCommand(std::string name);
 	void runCommand(std::string command);
-	Err checkCommand(std::string command);
+	void runCommand(std::vector<std::string> split);
+	std::vector<Err> checkCommand(std::string command);
+	Err checkCommand(std::vector<std::string> split);
 };
 
 // YES I KNOW THIS IS BAD
