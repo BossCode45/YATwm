@@ -32,6 +32,7 @@
 #include "util.h"
 #include "ewmh.h"
 #include "error.h"
+#include "scratch.h"
 
 using std::cout;
 using std::string;
@@ -59,6 +60,7 @@ void updateMousePos();
 CommandsModule commandsModule;
 Config cfg(commandsModule);
 KeybindsModule keybindsModule(commandsModule, cfg, globals, &updateMousePos);
+ScratchModule scratchModule(commandsModule, cfg, globals);
 
 int sW, sH;
 int bH;
@@ -99,6 +101,7 @@ void mapRequest(XMapRequestEvent e);
 void destroyNotify(XDestroyWindowEvent e);
 void enterNotify(XEnterWindowEvent e);
 void clientMessage(XClientMessageEvent e);
+void propertyNotify(XPropertyEvent e);
 
 static int OnXError(Display* display, XErrorEvent* e);
 
@@ -698,10 +701,13 @@ void mapRequest(XMapRequestEvent e)
 	}
 	XFree(data);
 
+	XSelectInput(dpy, e.window, EnterWindowMask | PropertyChangeMask);
 	
-
-
-	XSelectInput(dpy, e.window, EnterWindowMask);
+	if(scratchModule.checkScratch(e.window))
+	{
+		log("\tWindow going to scratch");
+		return;
+	}
 	
 	//Make client
 	Client c = {currClientID, e.window, false, false};
@@ -900,6 +906,20 @@ void clientMessage(XClientMessageEvent e)
 	}
 	XFree(name);
 }
+void propertyNotify(XPropertyEvent e)
+{
+	if(e.state == PropertyDelete)
+		return;
+
+	if(e.atom == XInternAtom(dpy, "WM_NAME", false))
+	{
+		if(scratchModule.checkScratch(e.window))
+		{
+			log("Name change, window going to scratch");
+			return;
+		}
+	}
+}
 
 static int OnXError(Display* display, XErrorEvent* e)
 {
@@ -1072,7 +1092,7 @@ int main(int argc, char** argv)
 	sH = DisplayHeight(dpy, screenNum);
 
 	//XSetErrorHandler(OnXError);
-	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask);
+	XSelectInput(dpy, root, SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask | PropertyChangeMask);
 
 	XDefineCursor(dpy, root, XCreateFontCursor(dpy, XC_top_left_arrow));
 	//EWMH
@@ -1115,6 +1135,9 @@ int main(int argc, char** argv)
 				break;
 			case ClientMessage:
 				clientMessage(e.xclient);
+				break;
+			case PropertyNotify:
+				propertyNotify(e.xproperty);
 				break;
 			default:
 				// cout << "Unhandled event: " << getEventName(e.type) << endl;
