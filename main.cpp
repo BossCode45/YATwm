@@ -2,13 +2,12 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
-
-#include <libnotify/notification.h>
-
-#include <libnotify/notify.h>
-
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
+
+#include <libnotify/notification.h>
+#include <libnotify/notify.h>
+
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -19,12 +18,16 @@
 #include <map>
 #include <ostream>
 #include <string>
+#include <sys/poll.h>
+#include <sys/select.h>
 #include <vector>
 #include <unistd.h>
 #include <cstring>
 #include <algorithm>
 #include <fcntl.h>
+#include <poll.h>
 
+#include "IPC.h"
 #include "commands.h"
 #include "keybinds.h"
 #include "structs.h"
@@ -59,6 +62,7 @@ void updateMousePos();
 CommandsModule commandsModule;
 Config cfg(commandsModule);
 KeybindsModule keybindsModule(commandsModule, cfg, globals, &updateMousePos);
+IPCModule ipc(commandsModule, cfg, globals);
 
 int sW, sH;
 int bH;
@@ -1090,39 +1094,64 @@ int main(int argc, char** argv)
 	XSetInputFocus(dpy, root, RevertToNone, CurrentTime);
 	XWarpPointer(dpy, root, root, 0, 0, 0, 0, 960, 540);
 
+	fd_set fdset;
+	int x11fd = ConnectionNumber(dpy);
+	FD_ZERO(&fdset);
+	FD_SET(x11fd, &fdset);
+	FD_SET(ipc.getFD(), &fdset);
+	
 	log("Begin mainloop");
 	while(keepGoing)
 	{
-		XEvent e;
-		XNextEvent(dpy, &e);
-
-		switch(e.type)
+		FD_ZERO(&fdset);
+		FD_SET(x11fd, &fdset);
+		FD_SET(ipc.getFD(), &fdset);
+		int ready = select(x11fd + 1, &fdset, NULL, NULL, NULL);
+		if(FD_ISSET(ipc.getFD(), &fdset))
 		{
-			case KeyPress:
-				keybindsModule.handleKeypress(e.xkey);
-				break;
-			case ConfigureRequest:
-				configureRequest(e.xconfigurerequest);
-				break;
-			case MapRequest:
-				mapRequest(e.xmaprequest);
-				break;
-			case DestroyNotify:
-				destroyNotify(e.xdestroywindow);
-				break;
-			case EnterNotify:
-				enterNotify(e.xcrossing);
-				break;
-			case ClientMessage:
-				clientMessage(e.xclient);
-				break;
-			default:
-				// cout << "Unhandled event: " << getEventName(e.type) << endl;
-				break;
+			ipc.doListen();
+		}
+		if(FD_ISSET(x11fd, &fdset))
+		{
+			XEvent e;
+			while(XPending(dpy))
+			{
+				XNextEvent(dpy, &e);
+
+				switch(e.type)
+				{
+				case KeyPress:
+					keybindsModule.handleKeypress(e.xkey);
+					break;
+				case ConfigureRequest:
+					configureRequest(e.xconfigurerequest);
+					break;
+				case MapRequest:
+					mapRequest(e.xmaprequest);
+					break;
+				case DestroyNotify:
+					destroyNotify(e.xdestroywindow);
+					break;
+				case EnterNotify:
+					enterNotify(e.xcrossing);
+					break;
+				case ClientMessage:
+					clientMessage(e.xclient);
+					break;
+				default:
+					// cout << "Unhandled event: " << getEventName(e.type) << endl;
+					break;
+				}
+			}
+		}
+		if(ready == -1)
+		{
+			cout << "E" << endl;
+			cout << "ERROR" << endl;
 		}
 	}
 
 	//Kill children
-
+	ipc.quitIPC();
 	XCloseDisplay(dpy);
 }
