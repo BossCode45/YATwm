@@ -231,10 +231,6 @@ const void spawn(const CommandArg* argv)
 {
 	if(fork() == 0)
 	{
-		int null = open("/dev/null", O_WRONLY);
-		dup2(null, 0);
-		dup2(null, 1);
-		dup2(null, 2);
 		const std::string argsStr = argv[0].str;
 		vector<std::string> args = split(argsStr, ' ');
 		char** execvpArgs = new char*[args.size()];
@@ -242,6 +238,10 @@ const void spawn(const CommandArg* argv)
 		{
 			execvpArgs[i] = strdup(args[i].c_str());
 		}
+		int null = open("/dev/null", O_WRONLY);
+		dup2(null, 0);
+		dup2(null, 1);
+		dup2(null, 2);
 		execvp(execvpArgs[0], execvpArgs);
 		exit(0);
 	}
@@ -1083,6 +1083,8 @@ int main(int argc, char** argv)
 	initEWMH(&dpy, &root, cfg.workspaces.size(), cfg.workspaces);
 	setCurrentDesktop(1);
 
+	ipc.init();
+
 	for(int i = 1; i < cfg.numWS + 1; i++)
 	{
 		vector<int> v;
@@ -1147,7 +1149,7 @@ int main(int argc, char** argv)
 		if(ready == -1)
 		{
 			cout << "E" << endl;
-			cout << "ERROR" << endl;
+			log("ERROR");
 		}
 	}
 

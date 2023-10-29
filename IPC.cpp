@@ -1,6 +1,8 @@
 #include "IPC.h"
+#include "ewmh.h"
 
 #include <cstring>
+#include <string>
 #include <sys/socket.h>
 #include <iostream>
 #include <unistd.h>
@@ -22,9 +24,14 @@ IPCModule::IPCModule(CommandsModule& commandsModule, Config& cfg, Globals& globa
 
 	if(bind(sockfd, (sockaddr*)&address, len) == -1)
 	{
-		cout << "ERROR" << endl;
+		cout << "ERROR " << errno << endl;
 	}
 	cout << "SOCKETED" << endl;
+}
+
+void IPCModule::init()
+{
+	setIPCPath((unsigned char*)path, strlen(path));
 }
 
 void IPCModule::doListen()
@@ -69,7 +76,6 @@ void IPCModule::doListen()
 void IPCModule::quitIPC()
 {
 	close(sockfd);
-	cout << path << endl;
 }
 
 int IPCModule::getFD()

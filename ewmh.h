@@ -20,4 +20,6 @@ void setCurrentDesktop(int desktop);
 
 void setFullscreen(Window w, bool fullscreen);
 
+void setIPCPath(unsigned char* path, int len);
+
 int getProp(Window w, char* propName, Atom* type, unsigned char** data);

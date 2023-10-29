@@ -1,5 +1,9 @@
 #include "ewmh.h"
+#include <X11/X.h>
+#include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <iostream>
+#include <ostream>
 #include <string>
 
 Display** dpy_;
@@ -67,14 +71,20 @@ void setCurrentDesktop(int desktop)
 
 void setFullscreen(Window w, bool fullscreen)
 {
-	Atom netWMState = XInternAtom(*dpy_, "_NET_WM_STATE", true);
+	Atom netWMState = XInternAtom(*dpy_, "_NET_WM_STATE", false);
 	Atom netWMStateVal;
 	if(fullscreen)
-		netWMStateVal = XInternAtom(*dpy_, "_NET_WM_STATE_FULLSCREEN", true);
+		netWMStateVal = XInternAtom(*dpy_, "_NET_WM_STATE_FULLSCREEN", false);
 	else
-		netWMStateVal = XInternAtom(*dpy_, "", true);
+		netWMStateVal = XInternAtom(*dpy_, "", false);
 	XChangeProperty(*dpy_, w, netWMState, XA_ATOM, 32, PropModeReplace, (unsigned char*)&netWMStateVal, 1);
 
+}
+
+void setIPCPath(unsigned char* path, int len)
+{
+	Atom socketPathAtom = XInternAtom(*dpy_, "YATWM_SOCKET_PATH", false);
+	XChangeProperty(*dpy_, *root_, socketPathAtom, XA_STRING, 8, PropModeReplace, path, len);
 }
 
 int getProp(Window w, char* propName, Atom* type, unsigned char** data)

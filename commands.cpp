@@ -5,6 +5,7 @@
 #include <cctype>
 #include <iostream>
 #include <algorithm>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -143,70 +144,70 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 	{
 		switch(argTypes[i-1])
 		{
-			case STR: args[i-1].str = (char*)split[i].c_str(); break;
-			case NUM:
+		case STR: args[i-1].str = (char*)split[i].c_str(); break;
+		case NUM:
+		{
+			try
+			{
+				args[i-1].num = std::stoi(split[i]);
+				break;
+			}
+			catch(std::invalid_argument e)
+			{
+				delete[] args;
+				throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a number!");
+			}
+		}
+		case MOVDIR:
+		{
+			if(lowercase(split[i]) == "up")
+				args[i-1].dir = UP;
+			else if(lowercase(split[i]) == "down")
+				args[i-1].dir = DOWN;
+			else if(lowercase(split[i]) == "left")
+				args[i-1].dir = LEFT;
+			else if(lowercase(split[i]) == "right")
+				args[i-1].dir = RIGHT;
+			else
+			{
+				delete[] args;
+				throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a direction!");
+			}
+			break;
+		}
+		case STR_REST:
+		{
+			string rest = "";
+			for(int j = i; j < split.size(); j++)
+			{
+				rest += split[j];
+				if(j != split.size() - 1)
+					rest += " ";
+			}
+			args[i-1].str = new char[rest.size()];
+			strcpy(args[i-1].str, rest.c_str());
+			return args;
+		}
+		case NUM_ARR_REST:
+		{
+			int* rest = new int[split.size() - i];
+			for(int j = 0; j < split.size() - i; j++)
+			{
+				try
 				{
-					try
-					{
-						args[i-1].num = std::stoi(split[i]);
-						break;
-					}
-					catch(std::invalid_argument e)
-					{
-						delete[] args;
-						throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a number!");
-					}
+					rest[j] = std::stoi(split[j + i]);
 				}
-			case MOVDIR:
+				catch(std::invalid_argument e)
 				{
-					if(lowercase(split[i]) == "up")
-						args[i-1].dir = UP;
-					else if(lowercase(split[i]) == "down")
-						args[i-1].dir = DOWN;
-					else if(lowercase(split[i]) == "left")
-						args[i-1].dir = LEFT;
-					else if(lowercase(split[i]) == "right")
-						args[i-1].dir = RIGHT;
-					else
-					{
-						delete[] args;
-						throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a direction!");
-					}
-					break;
+					delete[] rest;
+					delete[] args;
+					throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a number!");
 				}
-			case STR_REST:
-				{
-					string rest = "";
-					for(int j = i; j < split.size(); j++)
-					{
-						rest += split[j];
-						if(j != split.size() - 1)
-							rest += " ";
-					}
-					args[i-1].str = new char[rest.size()];
-					strcpy(args[i-1].str, rest.c_str());
-					return args;
-				}
-			case NUM_ARR_REST:
-				{
-					int* rest = new int[split.size() - i];
-					for(int j = 0; j < split.size() - i; j++)
-					{
-						try
-						{
-							rest[j] = std::stoi(split[j + i]);
-						}
-						catch(std::invalid_argument e)
-						{
-							delete[] rest;
-							delete[] args;
-							throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a number!");
-						}
-					}
-					args[i-1].numArr = {rest, (int) split.size() - i};
-					return args;
-				}
-			default: cout << "UH OH SOMETHING IS VERY WRONG" << endl;
+			}
+			args[i-1].numArr = {rest, (int) split.size() - i};
+			return args;
+		}
+		default: cout << "UH OH SOMETHING IS VERY WRONG" << endl;
 		}
 	}
 	return args;

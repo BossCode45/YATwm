@@ -11,6 +11,7 @@ class IPCModule
 {
 public:
 	IPCModule(CommandsModule& commandsModule, Config& cfg, Globals& globals);
+	void init();
 	void doListen();
 	void quitIPC();
 	int getFD();

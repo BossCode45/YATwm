@@ -7,8 +7,6 @@ Xephyr -screen 1600x900+2080+90 :1 &
 
 sleep 0.1
 
-rm /tmp/YATwm.sock
-
 DISPLAY=:1 ./YATwm
 
 pkill Xephyr
