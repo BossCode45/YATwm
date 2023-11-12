@@ -358,7 +358,7 @@ const void wToWS(const CommandArg* argv)
 			//Frame disolve
 			pSF.erase(pSF.begin() + i);
 			int pID = frames.find(fID)->second.pID;
-			if(pSF.size() < 2 && !frames.find(pID)->second.isRoot)
+			if(pSF.size() < 2 && !frames.find(pID)->second.rootData)
 			{
 				//Erase parent frame
 				int lastChildID = frames.find(frames.find(pID)->second.subFrameIDs[0])->second.ID;
@@ -475,7 +475,7 @@ const void wMove(const CommandArg* argv)
 		{
 			//Frame dissolve
 			oPSF.erase(oPSF.begin() + i);
-			if(oPSF.size() < 2 && !frames.find(oPID)->second.isRoot)
+			if(oPSF.size() < 2 && !frames.find(oPID)->second.rootData)
 			{
 				//Erase parent frame
 				int lastChildID = frames.find(frames.find(oPID)->second.subFrameIDs[0])->second.ID;
@@ -574,7 +574,7 @@ const void wsDump(const CommandArg* argv)
 		if(getFrame(i).isClient)
 		{
 			int id = i;
-			while(!getFrame(id).isRoot)
+			while(!getFrame(id).rootData)
 			{
 				id=getFrame(id).pID;
 			}
@@ -713,8 +713,7 @@ void mapRequest(XMapRequestEvent e)
 	//Make frame
 	//pID = (frameIDS.count(focusedWindow)>0)? frames.find(frameIDS.find(focusedWindow)->second)->second.pID : currWS;
 	vector<int> v;
-	vector<int> floating;
-	Frame f = {currFrameID, pID, true, c.ID, noDir, v, false, floating};
+	Frame f = {currFrameID, pID, true, c.ID, noDir, v, NULL};
 	currFrameID++;
 
 
@@ -726,7 +725,7 @@ void mapRequest(XMapRequestEvent e)
 	{
 		cout << "Floating" << endl;
 		clients.find(c.ID)->second.floating = true;
-		frames.find(pID)->second.floatingFrameIDs.push_back(f.ID);
+		frames.find(pID)->second.rootData->floatingFrameIDs.push_back(f.ID);
 		frames.insert(pair<int, Frame>(f.ID, f));
 		setWindowDesktop(e.window, currWS);
 		updateClientList(clients);
@@ -760,7 +759,7 @@ void mapRequest(XMapRequestEvent e)
 		vector<int> v;
 		v.push_back(frames.find(frameIDS.find(focusedWindow)->second)->second.ID);
 		v.push_back(f.ID);
-		Frame pF = {currFrameID, pID, false, noID, nextDir, v, false, floating};
+		Frame pF = {currFrameID, pID, false, noID, nextDir, v, NULL};
 
 		//Update the IDS
 		f.pID = currFrameID;
@@ -795,7 +794,7 @@ void destroyNotify(XDestroyWindowEvent e)
 	vector<int>& pS = frames.find(pID)->second.subFrameIDs;
 	if(clients.find(frames.find(fID)->second.cID)->second.floating)
 	{
-		pS = frames.find(pID)->second.floatingFrameIDs;
+		pS = frames.find(pID)->second.rootData->floatingFrameIDs;
 	}
 	for(int i = 0; i < pS.size(); i++)
 	{
@@ -806,7 +805,7 @@ void destroyNotify(XDestroyWindowEvent e)
 			frames.erase(fID);
 			frameIDS.erase(e.window);
 
-			if(pS.size() < 2 && !frames.find(pID)->second.isRoot)
+			if(pS.size() < 2 && !frames.find(pID)->second.rootData)
 			{
 				//Erase parent frame
 				int lastChildID = frames.find(frames.find(pID)->second.subFrameIDs[0])->second.ID;
@@ -936,7 +935,7 @@ void untileRoots()
 }
 int tile(int frameID, int x, int y, int w, int h)
 {
-	for(int fID : frames.find(frameID)->second.floatingFrameIDs)
+	for(int fID : frames.find(frameID)->second.rootData->floatingFrameIDs)
 	{
 		Window w = clients.find(frames.find(fID)->second.cID)->second.w;
 		XMapWindow(dpy, w);
@@ -982,7 +981,7 @@ int tile(int frameID, int x, int y, int w, int h)
 
 void untile(int frameID)
 {
-	for(int fID : frames.find(frameID)->second.floatingFrameIDs)
+	for(int fID : frames.find(frameID)->second.rootData->floatingFrameIDs)
 	{
 		Window w = clients.find(frames.find(fID)->second.cID)->second.w;
 		XUnmapWindow(dpy, w);
@@ -1082,7 +1081,7 @@ int main(int argc, char** argv)
 	for(int i = 1; i < cfg.numWS + 1; i++)
 	{
 		vector<int> v;
-		Frame rootFrame = {i, noID, false, noID, horizontal, v, true};
+		Frame rootFrame = {i, noID, false, noID, horizontal, v, new RootData};
 		frames.insert(pair<int, Frame>(i, rootFrame));
 		currFrameID++;
 	}
