@@ -26,8 +26,8 @@ enum TileDir
 struct RootData
 {
 	std::vector<int> floatingFrameIDs;
+	Window focus;
 	//int workspaceNumber;
-	//int whichChildFocused = 0;
 };
 
 struct Frame

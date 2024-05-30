@@ -93,6 +93,8 @@ void detectScreens();
 void focusRoot(int root);
 void handleConfigErrs(vector<Err> cfgErrs);
 void updateTime();
+void cWS(int newWS);
+void focusWindow(Window w);
 
 void configureRequest(XConfigureRequestEvent e);
 void mapRequest(XMapRequestEvent e);
@@ -169,13 +171,13 @@ void focusRoot(int root)
 	if(getFrame(root).subFrameIDs.size() == 0)
 	{
 		//log("\tRoot has no children");
-		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+		focusWindow(root);
 		return;
 	}
 	int client = getFrame(getClientChild(root)).cID;
 	Window w = getClient(client).w;
 	//log("\tFocusing window: " << w);
-	XSetInputFocus(dpy, w, RevertToPointerRoot, CurrentTime);
+	focusWindow(w);
 }
 void handleConfigErrs(vector<Err> cfgErrs)
 {
@@ -216,6 +218,59 @@ void updateTime()
 	timeNow = std::time(0);
 	now = std::localtime(&timeNow);
 	strftime(nowString, sizeof(nowString), "[%H:%M:%S] ", now);
+}
+void cWS(int newWS)
+{
+	int prevWS = currWS;
+
+	currWS = newWS;
+	if(prevWS == currWS)
+		return;
+	untileRoots();
+
+	//log("Changing WS with keybind");
+
+	for(int i = 0; i < cfg.workspaces[newWS - 1].screenPreferencesc; i++)
+	{
+		if(nscreens > cfg.workspaces[newWS - 1].screenPreferences[i])
+		{
+			int screen = cfg.workspaces[newWS - 1].screenPreferences[i];
+			//log("Found screen (screen " << screenPreferences[arg.num - 1][i] << ")");
+			prevWS = focusedWorkspaces[screen];
+			//log("Changed prevWS");
+			focusedWorkspaces[screen] = newWS;
+			//log("Changed focusedWorkspaces");
+			if(focusedScreen != screen)
+			{
+				focusedScreen = screen;
+				XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[screen].x + screens[screen].w/2, screens[screen].y + screens[screen].h/2);
+			}
+			//log("Changed focusedScreen");
+			break;
+		}
+	}
+
+	//log("Finished changes");
+
+	//log(prevWS);
+	// LOOK: what is this for?????
+	if(prevWS < 1 || prevWS > cfg.workspaces.size())
+	{
+		//untile(prevWS);
+	}
+	//log("Untiled");
+	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
+	tileRoots();
+	//log("Roots tiled");
+	focusWindow(getFrame(currWS).rootData->focus);
+
+	//EWMH
+	setCurrentDesktop(currWS);
+}
+void focusWindow(Window w)
+{
+	XSetInputFocus(dpy, w, RevertToPointerRoot, CurrentTime);
+	getFrame(currWS).rootData->focus = w;
 }
 
 //Keybind commands
@@ -283,57 +338,6 @@ const void kill(const CommandArg* argv)
       XKillClient(dpy, w);
     }
 }
-// Took this out as it is used commonly
-void cWS(int newWS)
-{
-	int prevWS = currWS;
-
-	currWS = newWS;
-	if(prevWS == currWS)
-		return;
-	untileRoots();
-
-	//log("Changing WS with keybind");
-
-	for(int i = 0; i < cfg.workspaces[newWS - 1].screenPreferencesc; i++)
-	{
-		if(nscreens > cfg.workspaces[newWS - 1].screenPreferences[i])
-		{
-			int screen = cfg.workspaces[newWS - 1].screenPreferences[i];
-			//log("Found screen (screen " << screenPreferences[arg.num - 1][i] << ")");
-			prevWS = focusedWorkspaces[screen];
-			//log("Changed prevWS");
-			focusedWorkspaces[screen] = newWS;
-			//log("Changed focusedWorkspaces");
-			if(focusedScreen != screen)
-			{
-				focusedScreen = screen;
-				XWarpPointer(dpy, root, root, 0, 0, 0, 0, screens[screen].x + screens[screen].w/2, screens[screen].y + screens[screen].h/2);
-			}
-			//log("Changed focusedScreen");
-			break;
-		}
-	}
-
-	//log("Finished changes");
-
-	//log(prevWS);
-	// LOOK: what is this for?????
-	if(prevWS < 1 || prevWS > cfg.workspaces.size())
-	{
-		//untile(prevWS);
-	}
-	//log("Untiled");
-	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
-	tileRoots();
-	//log("Roots tiled");
-	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
-
-	cout << focusedWorkspaces[0] << endl;
-
-	//EWMH
-	setCurrentDesktop(currWS);
-}
 const void changeWS(const CommandArg* argv)
 {
 	cWS(argv[0].num);
@@ -389,7 +393,7 @@ const void wToWS(const CommandArg* argv)
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	untileRoots();
 	tileRoots();
-	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+	focusWindow(root);
 }
 int dirFind(int fID, MoveDir dir)
 {
@@ -445,7 +449,7 @@ const void focChange(const CommandArg* argv)
 	int nID = dirFind(fID, argv[0].dir);
 	int fNID = FFCF(nID);
 	Window w = clients.find(frames.find(fNID)->second.cID)->second.w;
-	XSetInputFocus(dpy, w, RevertToPointerRoot, CurrentTime);
+	focusWindow(w);
 }
 const void wMove(const CommandArg* argv)
 {
@@ -527,10 +531,10 @@ const void wMove(const CommandArg* argv)
 		untileRoots();
 		tileRoots();
 		//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
-		XSetInputFocus(dpy, focusedWindow, RevertToPointerRoot, CurrentTime);
+		focusWindow(focusedWindow);
 		return;
 	}
-	XSetInputFocus(dpy, focusedWindow, RevertToPointerRoot, CurrentTime);
+	focusWindow(focusedWindow);
 }
 const void bashSpawn(const CommandArg* argv)
 {
@@ -616,7 +620,7 @@ void configureRequest(XConfigureRequestEvent e)
 	changes.stack_mode = e.detail;
 	XConfigureWindow(dpy, e.window, (unsigned int) e.value_mask, &changes);
 	log("Configure request: " << e.window);
-	//XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
+	//focusWindow(e.window);
 	//tileRoots();
 }
 
@@ -771,7 +775,7 @@ void mapRequest(XMapRequestEvent e)
 		//Insert the new frame into the frames map
 		frames.insert(pair<int, Frame>(pF.ID, pF));
 	}
-
+	
 	//Add to frames map
 	frames.insert(pair<int, Frame>(f.ID, f));
 
@@ -779,7 +783,7 @@ void mapRequest(XMapRequestEvent e)
 	updateClientList(clients);
 
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
-	XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
+	focusWindow(e.window);
 	tileRoots();
 }
 
@@ -825,7 +829,7 @@ void destroyNotify(XDestroyWindowEvent e)
 			break;
 		}
 	}
-	XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+	focusWindow(root);
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	tileRoots();
 
@@ -852,7 +856,7 @@ void enterNotify(XEnterWindowEvent e)
 		}
 	}
 	focusedScreen = monitor;
-	XSetInputFocus(dpy, e.window, RevertToNone, CurrentTime);
+	focusWindow(e.window);
 }
 void clientMessage(XClientMessageEvent e)
 {
@@ -872,7 +876,7 @@ void clientMessage(XClientMessageEvent e)
 
 		untile(prevWS);
 		tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
-		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+		focusWindow(root);
 
 		//EWMH
 		setCurrentDesktop(currWS);
@@ -935,10 +939,13 @@ void untileRoots()
 }
 int tile(int frameID, int x, int y, int w, int h)
 {
-	for(int fID : frames.find(frameID)->second.rootData->floatingFrameIDs)
+	if(getFrame(frameID).rootData)
 	{
-		Window w = clients.find(frames.find(fID)->second.cID)->second.w;
-		XMapWindow(dpy, w);
+		for(int fID : frames.find(frameID)->second.rootData->floatingFrameIDs)
+		{
+			Window w = clients.find(frames.find(fID)->second.cID)->second.w;
+			XMapWindow(dpy, w);
+		}
 	}
 	TileDir dir = frames.find(frameID)->second.dir;
 	int i = 0;
@@ -981,10 +988,13 @@ int tile(int frameID, int x, int y, int w, int h)
 
 void untile(int frameID)
 {
-	for(int fID : frames.find(frameID)->second.rootData->floatingFrameIDs)
+	if(getFrame(frameID).rootData)
 	{
-		Window w = clients.find(frames.find(fID)->second.cID)->second.w;
-		XUnmapWindow(dpy, w);
+		for(int fID : frames.find(frameID)->second.rootData->floatingFrameIDs)
+		{
+			Window w = clients.find(frames.find(fID)->second.cID)->second.w;
+			XUnmapWindow(dpy, w);
+		}
 	}
 	vector<int>& subFrameIDs = frames.find(frameID)->second.subFrameIDs;
 	TileDir dir = frames.find(frameID)->second.dir;
@@ -1081,12 +1091,14 @@ int main(int argc, char** argv)
 	for(int i = 1; i < cfg.numWS + 1; i++)
 	{
 		vector<int> v;
-		Frame rootFrame = {i, noID, false, noID, horizontal, v, new RootData};
+		RootData* rootData = new RootData;
+		rootData->focus = root;
+		Frame rootFrame = {i, noID, false, noID, horizontal, v, rootData};
 		frames.insert(pair<int, Frame>(i, rootFrame));
 		currFrameID++;
 	}
 
-	XSetInputFocus(dpy, root, RevertToNone, CurrentTime);
+	focusWindow(root);
 	XWarpPointer(dpy, root, root, 0, 0, 0, 0, 960, 540);
 
 	log("Begin mainloop");
