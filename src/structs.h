@@ -23,6 +23,13 @@ enum TileDir
 	noDir
 };
 
+struct RootData
+{
+	std::vector<int> floatingFrameIDs;
+	Window focus;
+	//int workspaceNumber;
+};
+
 struct Frame
 {
 	int ID;
@@ -30,15 +37,15 @@ struct Frame
 
 	bool isClient;
 
-	//If its a client (window)
+	// If its a client (window)
 	int cID;
 
-	//If it isn't a client
+	// If it isn't a client
 	TileDir dir;
 	std::vector<int> subFrameIDs;
-	bool isRoot;
-	std::vector<int> floatingFrameIDs;
-	//int whichChildFocused = 0;
+
+	// Null if not root
+	RootData* rootData;
 };
 
 struct ScreenInfo

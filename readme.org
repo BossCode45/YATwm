@@ -1,6 +1,6 @@
 #+TITLE: YATwm
 #+OPTIONS: \n:t
-* This config is best read in Emacs!
+* This readme is best read in Emacs!
 
 * Disclaimer: This is still very much in beta
 This only just works, multiple monitors aren't supported and floating windows cannot move and there is no resizing. Many features are just hacked together and are likely to break. However, it is just about usable so if you really want to try then go for it! (feel free to make an issue if you have any questions).
