@@ -1,0 +1,128 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-std=c++17",
+      "-I/usr/include/gdk-pixbuf-2.0",
+      "-I/usr/include/glib-2.0",
+      "-I/usr/lib64/glib-2.0/include",
+      "-I/usr/include/sysprof-4",
+      "-I/usr/include/libpng16",
+      "-I/usr/include/libmount",
+      "-I/usr/include/blkid",
+      "-pthread",
+      "-c",
+      "-o",
+      "ewmh.o",
+      "ewmh.cpp"
+    ],
+    "directory": "/home/boss/Documents/Coding/WM/YATwm",
+    "file": "/home/boss/Documents/Coding/WM/YATwm/ewmh.cpp",
+    "output": "/home/boss/Documents/Coding/WM/YATwm/ewmh.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-std=c++17",
+      "-I/usr/include/gdk-pixbuf-2.0",
+      "-I/usr/include/glib-2.0",
+      "-I/usr/lib64/glib-2.0/include",
+      "-I/usr/include/sysprof-4",
+      "-I/usr/include/libpng16",
+      "-I/usr/include/libmount",
+      "-I/usr/include/blkid",
+      "-pthread",
+      "-c",
+      "-o",
+      "main.o",
+      "main.cpp"
+    ],
+    "directory": "/home/boss/Documents/Coding/WM/YATwm",
+    "file": "/home/boss/Documents/Coding/WM/YATwm/main.cpp",
+    "output": "/home/boss/Documents/Coding/WM/YATwm/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-std=c++17",
+      "-I/usr/include/gdk-pixbuf-2.0",
+      "-I/usr/include/glib-2.0",
+      "-I/usr/lib64/glib-2.0/include",
+      "-I/usr/include/sysprof-4",
+      "-I/usr/include/libpng16",
+      "-I/usr/include/libmount",
+      "-I/usr/include/blkid",
+      "-pthread",
+      "-c",
+      "-o",
+      "util.o",
+      "util.cpp"
+    ],
+    "directory": "/home/boss/Documents/Coding/WM/YATwm",
+    "file": "/home/boss/Documents/Coding/WM/YATwm/util.cpp",
+    "output": "/home/boss/Documents/Coding/WM/YATwm/util.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-std=c++17",
+      "-I/usr/include/gdk-pixbuf-2.0",
+      "-I/usr/include/glib-2.0",
+      "-I/usr/lib64/glib-2.0/include",
+      "-I/usr/include/sysprof-4",
+      "-I/usr/include/libpng16",
+      "-I/usr/include/libmount",
+      "-I/usr/include/blkid",
+      "-pthread",
+      "-c",
+      "-o",
+      "config.o",
+      "config.cpp"
+    ],
+    "directory": "/home/boss/Documents/Coding/WM/YATwm",
+    "file": "/home/boss/Documents/Coding/WM/YATwm/config.cpp",
+    "output": "/home/boss/Documents/Coding/WM/YATwm/config.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-std=c++17",
+      "-I/usr/include/gdk-pixbuf-2.0",
+      "-I/usr/include/glib-2.0",
+      "-I/usr/lib64/glib-2.0/include",
+      "-I/usr/include/sysprof-4",
+      "-I/usr/include/libpng16",
+      "-I/usr/include/libmount",
+      "-I/usr/include/blkid",
+      "-pthread",
+      "-c",
+      "-o",
+      "keybinds.o",
+      "keybinds.cpp"
+    ],
+    "directory": "/home/boss/Documents/Coding/WM/YATwm",
+    "file": "/home/boss/Documents/Coding/WM/YATwm/keybinds.cpp",
+    "output": "/home/boss/Documents/Coding/WM/YATwm/keybinds.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-std=c++17",
+      "-I/usr/include/gdk-pixbuf-2.0",
+      "-I/usr/include/glib-2.0",
+      "-I/usr/lib64/glib-2.0/include",
+      "-I/usr/include/sysprof-4",
+      "-I/usr/include/libpng16",
+      "-I/usr/include/libmount",
+      "-I/usr/include/blkid",
+      "-pthread",
+      "-c",
+      "-o",
+      "commands.o",
+      "commands.cpp"
+    ],
+    "directory": "/home/boss/Documents/Coding/WM/YATwm",
+    "file": "/home/boss/Documents/Coding/WM/YATwm/commands.cpp",
+    "output": "/home/boss/Documents/Coding/WM/YATwm/commands.o"
+  }
+]

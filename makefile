@@ -2,9 +2,9 @@
 CXX := g++
 CXXFLAGS := -std=c++17 `pkg-config --cflags --libs libnotify`# -g -fsanitize=address -fno-omit-frame-pointer
 LINKFLAGS := -lX11 -lXrandr
-OBJS_DIR := .
-OUT_DIR := .
-SOURCE_DIR := .
+OBJS_DIR := build
+OUT_DIR := out
+SOURCE_DIR := src
 EXEC := YATwm
 SOURCE_FILES := $(wildcard $(SOURCE_DIR)/*.cpp)
 SOURCE_HEADERS := $(wildcard $(SOURCE_DIR)/*.h)
@@ -12,7 +12,7 @@ OBJS := $(subst $(SOURCE_DIR),$(OBJS_DIR), $(patsubst %.cpp,%.o,$(SOURCE_FILES))
 INSTALL_DIR = /
 
 $(EXEC): $(OBJS)
-	$(CXX) $(OBJS) $(CXXFLAGS) $(LINKFLAGS) -o $(OUT_DIR)/$(EXEC)
+	$(CXX) $(OBJS) $(CXXFLAGS) $(LINKFLAGS) -o $(EXEC)
 
 $(OBJS_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -39,4 +39,4 @@ $(OBJS_DIR)/ipc.o: $(SOURCE_DIR)/ipc.cpp $(SOURCE_DIR)/ipc.h $(SOURCE_DIR)/comma
 
 clean:
 	rm $(OBJS_DIR)/*.o 
-	rm $(OUT_DIR)/$(EXEC)
+	rm $(EXEC)
