@@ -16,6 +16,10 @@ IPCModule::IPCModule(CommandsModule& commandsModule, Config& cfg, Globals& globa
 	 cfg(cfg),
 	 globals(globals)
 {
+}
+
+void IPCModule::init()
+{
 	sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 	address.sun_family = AF_UNIX;
 	strcpy(address.sun_path, path);
@@ -27,15 +31,14 @@ IPCModule::IPCModule(CommandsModule& commandsModule, Config& cfg, Globals& globa
 		cout << "ERROR " << errno << endl;
 	}
 	cout << "SOCKETED" << endl;
-}
-
-void IPCModule::init()
-{
 	setIPCPath((unsigned char*)path, strlen(path));
+	ready = true;
 }
 
 void IPCModule::doListen()
 {
+	if(!ready)
+		return;
 	if(listen(sockfd, 1) != 0)
 	{
 		cout << "ERROR 2" << endl;
@@ -75,11 +78,16 @@ void IPCModule::doListen()
 
 void IPCModule::quitIPC()
 {
+	if(!ready)
+		return;
 	close(sockfd);
+	ready = false;
 }
 
 int IPCModule::getFD()
 {
+	if(!ready)
+		return -1;
 	if(sockfd > 0)
 		return sockfd;
 	return -1;

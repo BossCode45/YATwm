@@ -185,7 +185,7 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 					rest += " ";
 			}
 			args[i-1].str = new char[rest.size()];
-			strcpy(args[i-1].str, rest.c_str());
+			strncpy(args[i-1].str, rest.c_str(), rest.size());
 			return args;
 		}
 		case NUM_ARR_REST:

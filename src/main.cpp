@@ -1028,11 +1028,11 @@ int main(int argc, char** argv)
 			return 0;
 		}
 	}
+	
 	//Important init stuff
 	mX = mY = 0;
     dpy = XOpenDisplay(nullptr);
     root = Window(DefaultRootWindow(dpy));
-
 	// Adding commands
 	commandsModule.addCommand("exit", exit, 0, {});
 	commandsModule.addCommand("spawn", spawn, 1, {STR_REST});
@@ -1051,6 +1051,8 @@ int main(int argc, char** argv)
 
 	//Config
 	std::vector<Err> cfgErr;
+
+	cout << "Registered commands" << endl;
 	
 	char* confDir = getenv("XDG_CONFIG_HOME");
 	if(confDir != NULL)
@@ -1063,6 +1065,8 @@ int main(int argc, char** argv)
 		cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
 	}
 
+	cout << "Done config" << endl;
+	
 	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
 	yatlog << "\n" << endl;
@@ -1119,7 +1123,7 @@ int main(int argc, char** argv)
 		FD_ZERO(&fdset);
 		FD_SET(x11fd, &fdset);
 		FD_SET(ipc.getFD(), &fdset);
-		int ready = select(x11fd + 1, &fdset, NULL, NULL, NULL);
+		int ready = select(std::max(x11fd, ipc.getFD()) + 1, &fdset, NULL, NULL, NULL);
 		if(FD_ISSET(ipc.getFD(), &fdset))
 		{
 			ipc.doListen();

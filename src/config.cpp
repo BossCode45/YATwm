@@ -4,13 +4,10 @@
 
 #include <X11/Xlib.h>
 
-#include <cstdio>
-#include <cstring>
 #include <fstream>
-#include <ios>
+#include <ostream>
 #include <string>
 #include <vector>
-#include <sstream>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -94,9 +91,8 @@ std::vector<Err> Config::loadFromFile(std::string path)
 
 	//Probably need something for workspaces and binds too...
 
-	string cmd;
 	int line = 0;
-	while(getline(config, cmd))
+	for(string cmd; std::getline(config, cmd);)
 	{
 		line++;
 		if(cmd.size() == 0)

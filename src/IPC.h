@@ -22,5 +22,6 @@ private:
 	int sockfd;
 	int len;
 	bool first = true;
+	bool ready = false;
 	sockaddr_un address;
 };
