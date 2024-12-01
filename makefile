@@ -2,14 +2,15 @@
 CXX := g++
 CXXFLAGS := -std=c++17 `pkg-config --cflags --libs libnotify`# -g -fsanitize=address -fno-omit-frame-pointer
 LINKFLAGS := -lX11 -lXrandr
-OBJS_DIR := build
-OUT_DIR := out
-SOURCE_DIR := src
+OBJS_DIR := ./build
+OUT_DIR := ./out
+SOURCE_DIR := ./src
 EXEC := YATwm
 SOURCE_FILES := $(wildcard $(SOURCE_DIR)/*.cpp)
 SOURCE_HEADERS := $(wildcard $(SOURCE_DIR)/*.h)
 OBJS := $(subst $(SOURCE_DIR),$(OBJS_DIR), $(patsubst %.cpp,%.o,$(SOURCE_FILES)))
-INSTALL_DIR = /
+out ?= 
+INSTALL_DIR = $(out)
 
 $(EXEC): $(OBJS)
 	$(CXX) $(OBJS) $(CXXFLAGS) $(LINKFLAGS) -o $(EXEC)
@@ -18,14 +19,14 @@ $(OBJS_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 i: $(EXEC)
-	sudo install -D -m 755 $(EXEC) $(INSTALL_DIR)usr/bin/$(EXEC)
-	sudo install -D -m 644 yat.desktop $(INSTALL_DIR)usr/share/xsessions/yat.desktop
-	sudo install -D -m 644 config $(INSTALL_DIR)etc/YATwm/config
+	sudo -D -m 755 $(EXEC) $(INSTALL_DIR)/usr/bin/$(EXEC)
+	sudo -D -m 644 yat.desktop $(INSTALL_DIR)/usr/share/xsessions/yat.desktop
+	sudo -D -m 644 config $(INSTALL_DIR)/etc/YATwm/config
 install: i
 r:
-	sudo rm $(INSTALL_DIR)usr/bin/$(EXEC)
-	sudo rm $(INSTALL_DIR)usr/share/xsessions/yat.desktop
-	sudo rm -rf $(INSTALL_DIR)etc/YATwm
+	rm $(INSTALL_DIR)/usr/bin/$(EXEC)
+	rm $(INSTALL_DIR)/usr/share/xsessions/yat.desktop
+	rm -rf $(INSTALL_DIR)/etc/YATwm
 remove: r
 
 #Files to be compiled
