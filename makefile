@@ -2,9 +2,9 @@
 CXX := g++
 CXXFLAGS := -std=c++17 `pkg-config --cflags --libs libnotify`# -g -fsanitize=address -fno-omit-frame-pointer
 LINKFLAGS := -lX11 -lXrandr
-OBJS_DIR := .
-OUT_DIR := .
-SOURCE_DIR := .
+OBJS_DIR := build
+OUT_DIR := out
+SOURCE_DIR := src
 EXEC := YATwm
 SOURCE_FILES := $(wildcard $(SOURCE_DIR)/*.cpp)
 SOURCE_HEADERS := $(wildcard $(SOURCE_DIR)/*.h)
@@ -12,7 +12,7 @@ OBJS := $(subst $(SOURCE_DIR),$(OBJS_DIR), $(patsubst %.cpp,%.o,$(SOURCE_FILES))
 INSTALL_DIR = /
 
 $(EXEC): $(OBJS)
-	$(CXX) $(OBJS) $(CXXFLAGS) $(LINKFLAGS) -o $(OUT_DIR)/$(EXEC)
+	$(CXX) $(OBJS) $(CXXFLAGS) $(LINKFLAGS) -o $(EXEC)
 
 $(OBJS_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -33,9 +33,10 @@ $(OBJS_DIR)/main.o: $(SOURCE_FILES) $(SOURCE_HEADERS)
 $(OBJS_DIR)/ewmh.o: $(SOURCE_DIR)/ewmh.cpp $(SOURCE_DIR)/ewmh.h
 $(OBJS_DIR)/util.o: $(SOURCE_DIR)/util.cpp $(SOURCE_DIR)/util.h
 $(OBJS_DIR)/commands.o: $(SOURCE_DIR)/commands.cpp $(SOURCE_DIR)/commands.h
-$(OBJS_DIR)/config.o: $(SOURCE_DIR)/config.cpp $(SOURCE_DIR)/config.h
+$(OBJS_DIR)/config.o: $(SOURCE_DIR)/config.cpp $(SOURCE_DIR)/config.h $(SOURCE_DIR)/commands.h
 $(OBJS_DIR)/keybinds.o: $(SOURCE_DIR)/keybinds.cpp $(SOURCE_DIR)/keybinds.h $(SOURCE_DIR)/commands.h
+$(OBJS_DIR)/ipc.o: $(SOURCE_DIR)/ipc.cpp $(SOURCE_DIR)/ipc.h $(SOURCE_DIR)/commands.h $(SOURCE_DIR)/ewmh.h
 
 clean:
 	rm $(OBJS_DIR)/*.o 
-	rm $(OUT_DIR)/$(EXEC)
+	rm $(EXEC)

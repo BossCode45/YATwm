@@ -2,13 +2,12 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
-
-#include <libnotify/notification.h>
-
-#include <libnotify/notify.h>
-
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
+
+#include <libnotify/notification.h>
+#include <libnotify/notify.h>
+
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -19,12 +18,16 @@
 #include <map>
 #include <ostream>
 #include <string>
+#include <sys/poll.h>
+#include <sys/select.h>
 #include <vector>
 #include <unistd.h>
 #include <cstring>
 #include <algorithm>
 #include <fcntl.h>
+#include <poll.h>
 
+#include "IPC.h"
 #include "commands.h"
 #include "keybinds.h"
 #include "structs.h"
@@ -59,6 +62,7 @@ void updateMousePos();
 CommandsModule commandsModule;
 Config cfg(commandsModule);
 KeybindsModule keybindsModule(commandsModule, cfg, globals, &updateMousePos);
+IPCModule ipc(commandsModule, cfg, globals);
 
 int sW, sH;
 int bH;
@@ -282,10 +286,6 @@ const void spawn(const CommandArg* argv)
 {
 	if(fork() == 0)
 	{
-		int null = open("/dev/null", O_WRONLY);
-		dup2(null, 0);
-		dup2(null, 1);
-		dup2(null, 2);
 		const std::string argsStr = argv[0].str;
 		vector<std::string> args = split(argsStr, ' ');
 		char** execvpArgs = new char*[args.size()];
@@ -293,6 +293,10 @@ const void spawn(const CommandArg* argv)
 		{
 			execvpArgs[i] = strdup(args[i].c_str());
 		}
+		int null = open("/dev/null", O_WRONLY);
+		dup2(null, 0);
+		dup2(null, 1);
+		dup2(null, 2);
 		execvp(execvpArgs[0], execvpArgs);
 		exit(0);
 	}
@@ -1024,11 +1028,11 @@ int main(int argc, char** argv)
 			return 0;
 		}
 	}
+	
 	//Important init stuff
 	mX = mY = 0;
     dpy = XOpenDisplay(nullptr);
     root = Window(DefaultRootWindow(dpy));
-
 	// Adding commands
 	commandsModule.addCommand("exit", exit, 0, {});
 	commandsModule.addCommand("spawn", spawn, 1, {STR_REST});
@@ -1047,6 +1051,8 @@ int main(int argc, char** argv)
 
 	//Config
 	std::vector<Err> cfgErr;
+
+	cout << "Registered commands" << endl;
 	
 	char* confDir = getenv("XDG_CONFIG_HOME");
 	if(confDir != NULL)
@@ -1059,6 +1065,8 @@ int main(int argc, char** argv)
 		cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
 	}
 
+	cout << "Done config" << endl;
+	
 	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
 	yatlog << "\n" << endl;
@@ -1088,6 +1096,8 @@ int main(int argc, char** argv)
 	initEWMH(&dpy, &root, cfg.workspaces.size(), cfg.workspaces);
 	setCurrentDesktop(1);
 
+	ipc.init();
+
 	for(int i = 1; i < cfg.numWS + 1; i++)
 	{
 		vector<int> v;
@@ -1101,39 +1111,64 @@ int main(int argc, char** argv)
 	focusWindow(root);
 	XWarpPointer(dpy, root, root, 0, 0, 0, 0, 960, 540);
 
+	fd_set fdset;
+	int x11fd = ConnectionNumber(dpy);
+	FD_ZERO(&fdset);
+	FD_SET(x11fd, &fdset);
+	FD_SET(ipc.getFD(), &fdset);
+	
 	log("Begin mainloop");
 	while(keepGoing)
 	{
-		XEvent e;
-		XNextEvent(dpy, &e);
-
-		switch(e.type)
+		FD_ZERO(&fdset);
+		FD_SET(x11fd, &fdset);
+		FD_SET(ipc.getFD(), &fdset);
+		int ready = select(std::max(x11fd, ipc.getFD()) + 1, &fdset, NULL, NULL, NULL);
+		if(FD_ISSET(ipc.getFD(), &fdset))
 		{
-			case KeyPress:
-				keybindsModule.handleKeypress(e.xkey);
-				break;
-			case ConfigureRequest:
-				configureRequest(e.xconfigurerequest);
-				break;
-			case MapRequest:
-				mapRequest(e.xmaprequest);
-				break;
-			case DestroyNotify:
-				destroyNotify(e.xdestroywindow);
-				break;
-			case EnterNotify:
-				enterNotify(e.xcrossing);
-				break;
-			case ClientMessage:
-				clientMessage(e.xclient);
-				break;
-			default:
-				// cout << "Unhandled event: " << getEventName(e.type) << endl;
-				break;
+			ipc.doListen();
+		}
+		if(FD_ISSET(x11fd, &fdset))
+		{
+			XEvent e;
+			while(XPending(dpy))
+			{
+				XNextEvent(dpy, &e);
+
+				switch(e.type)
+				{
+				case KeyPress:
+					keybindsModule.handleKeypress(e.xkey);
+					break;
+				case ConfigureRequest:
+					configureRequest(e.xconfigurerequest);
+					break;
+				case MapRequest:
+					mapRequest(e.xmaprequest);
+					break;
+				case DestroyNotify:
+					destroyNotify(e.xdestroywindow);
+					break;
+				case EnterNotify:
+					enterNotify(e.xcrossing);
+					break;
+				case ClientMessage:
+					clientMessage(e.xclient);
+					break;
+				default:
+					// cout << "Unhandled event: " << getEventName(e.type) << endl;
+					break;
+				}
+			}
+		}
+		if(ready == -1)
+		{
+			cout << "E" << endl;
+			log("ERROR");
 		}
 	}
 
 	//Kill children
-
+	ipc.quitIPC();
 	XCloseDisplay(dpy);
 }

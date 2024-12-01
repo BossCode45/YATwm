@@ -12,7 +12,7 @@
 #include "keybinds.h"
 #include "util.h"
 
-using std::string;
+using std::string, std::cout, std::endl;
 
 bool Keybind::operator<(const Keybind &o) const {
 	if(key != o.key)
