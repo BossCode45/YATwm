@@ -49,11 +49,9 @@ void IPCModule::doListen()
 		first = false;
 		return;
 	}
-	cout << "DOLISTEN" << endl;
 	unsigned int socklen = 0;
 	sockaddr_un remote;
 	int newsock = accept(sockfd, (sockaddr*)&remote, &socklen);
-	cout << "LISTENING" << endl;
 	char buffer[256];
 	memset(buffer, 0, 256);
 	read(newsock, buffer, 256);
@@ -69,9 +67,8 @@ void IPCModule::doListen()
 	{
 		cout << e.code << " " << e.message << endl;
 	}
-	char* message = "RAN COMMAND";
+	const char* message = "RAN COMMAND";
 	send(newsock, message, strlen(message), 0);
-	cout << "RAN COMMAND" << endl;
 	shutdown(newsock, SHUT_RDWR);
 	close(newsock);
 }
