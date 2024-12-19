@@ -5,6 +5,7 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
 
+#include <bits/getopt_core.h>
 #include <libnotify/notification.h>
 #include <libnotify/notify.h>
 
@@ -26,6 +27,7 @@
 #include <algorithm>
 #include <fcntl.h>
 #include <poll.h>
+#include <getopt.h>
 
 #include "IPC.h"
 #include "commands.h"
@@ -48,8 +50,8 @@ std::time_t timeNow;
 std::tm *now;
 char nowString[80];
 
-#define log(x)												\
-	updateTime();											\
+#define log(x)					\
+	updateTime();				\
 	yatlog << nowString << x << std::endl
 
 Display* dpy;
@@ -62,7 +64,7 @@ void updateMousePos();
 CommandsModule commandsModule;
 Config cfg(commandsModule);
 KeybindsModule keybindsModule(commandsModule, cfg, globals, &updateMousePos);
-IPCModule ipc(commandsModule, cfg, globals);
+IPCServerModule ipc(commandsModule, cfg, globals);
 
 int sW, sH;
 int bH;
@@ -193,8 +195,8 @@ void handleConfigErrs(vector<Err> cfgErrs)
 			std::string title = "YATwm fatal config error (Code " + std::to_string(cfgErr.code) + ")";
 			std::string body = cfgErr.message;
 			NotifyNotification* n = notify_notification_new(title.c_str(),
-															body.c_str(),
-															0);
+									body.c_str(),
+									0);
 			notify_notification_set_timeout(n, 10000);
 			if(!notify_notification_show(n, 0))
 			{
@@ -207,8 +209,8 @@ void handleConfigErrs(vector<Err> cfgErrs)
 			std::string title = "YATwm non fatal config error (Code " + std::to_string(cfgErr.code) + ")";
 			std::string body = "Check logs for more information";
 			NotifyNotification* n = notify_notification_new(title.c_str(),
-															body.c_str(),
-															0);
+									body.c_str(),
+									0);
 			notify_notification_set_timeout(n, 10000);
 			if(!notify_notification_show(n, 0))
 			{
@@ -317,30 +319,30 @@ const void kill(const CommandArg* argv)
 	int revertToReturn;
 	XGetInputFocus(dpy, &w, &revertToReturn);
 	Atom* supported_protocols;
-    int num_supported_protocols;
-    if (XGetWMProtocols(dpy,
-                        w,
-                        &supported_protocols,
-                        &num_supported_protocols) &&
-        (std::find(supported_protocols,
-                     supported_protocols + num_supported_protocols,
-                     XInternAtom(dpy, "WM_DELETE_WINDOW", false)) !=
-         supported_protocols + num_supported_protocols)) {
-      // 1. Construct message.
-      XEvent msg;
-      memset(&msg, 0, sizeof(msg));
-      msg.xclient.type = ClientMessage;
-      msg.xclient.message_type = XInternAtom(dpy, "WM_PROTOCOLS", false);
-      msg.xclient.window = w;
-      msg.xclient.format = 32;
-      msg.xclient.data.l[0] = XInternAtom(dpy, "WM_DELETE_WINDOW", false);
-      // 2. Send message to window to be closed.
-	  cout << "Nice kill\n";
-      XSendEvent(dpy, w, false, 0, &msg);
-    } else {
-	  cout << "Mean kill\n";
-      XKillClient(dpy, w);
-    }
+	int num_supported_protocols;
+	if (XGetWMProtocols(dpy,
+			    w,
+			    &supported_protocols,
+			    &num_supported_protocols) &&
+	    (std::find(supported_protocols,
+		       supported_protocols + num_supported_protocols,
+		       XInternAtom(dpy, "WM_DELETE_WINDOW", false)) !=
+	     supported_protocols + num_supported_protocols)) {
+		// 1. Construct message.
+		XEvent msg;
+		memset(&msg, 0, sizeof(msg));
+		msg.xclient.type = ClientMessage;
+		msg.xclient.message_type = XInternAtom(dpy, "WM_PROTOCOLS", false);
+		msg.xclient.window = w;
+		msg.xclient.format = 32;
+		msg.xclient.data.l[0] = XInternAtom(dpy, "WM_DELETE_WINDOW", false);
+		// 2. Send message to window to be closed.
+		cout << "Nice kill\n";
+		XSendEvent(dpy, w, false, 0, &msg);
+	} else {
+		cout << "Mean kill\n";
+		XKillClient(dpy, w);
+	}
 }
 const void changeWS(const CommandArg* argv)
 {
@@ -418,20 +420,20 @@ int dirFind(int fID, MoveDir dir)
 	{
 		switch(dir)
 		{
-			case UP: i--; break;
-			case DOWN: i++; break;
-			case LEFT: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
-			case RIGHT: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+		case UP: i--; break;
+		case DOWN: i++; break;
+		case LEFT: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+		case RIGHT: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
 		}
 	}
 	else if(pDir == horizontal)
 	{
 		switch(dir)
 		{
-			case LEFT: i--; break;
-			case RIGHT: i++; break;
-			case UP: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
-			case DOWN: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+		case LEFT: i--; break;
+		case RIGHT: i++; break;
+		case UP: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
+		case DOWN: return (frames.find(fID)->second.pID > cfg.numWS)? dirFind(frames.find(fID)->second.pID, dir) : fID;
 		}
 	}
 	if(i < 0)
@@ -677,19 +679,19 @@ void mapRequest(XMapRequestEvent e)
 		pID = focusedWorkspaces[monitor];
 		focusedScreen = monitor;
 		/*
-		if(mX == rX && mY == rY)
-		{
-			//Use focused screen
-			log("\tFocused screen is: " << focusedScreen);
-		}
-		else
-		{
-			//Use mouse
-			//TODO: Make this find the monitor
-			log("\tMouse is at x: " << rX << ", y: " << rY);
-			mX = rX;
-			mY = rY;
-		}
+		  if(mX == rX && mY == rY)
+		  {
+		  //Use focused screen
+		  log("\tFocused screen is: " << focusedScreen);
+		  }
+		  else
+		  {
+		  //Use mouse
+		  //TODO: Make this find the monitor
+		  log("\tMouse is at x: " << rX << ", y: " << rY);
+		  mX = rX;
+		  mY = rY;
+		  }
 		*/
 	}
 
@@ -876,7 +878,7 @@ void clientMessage(XClientMessageEvent e)
 		currWS = nextWS;
 
 		if(prevWS == currWS)
-			return;
+		return;
 
 		untile(prevWS);
 		tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
@@ -928,9 +930,9 @@ void tileRoots()
 			Client c = getClient(fullscreenClientID);
 			XMapWindow(dpy, c.w);
 			XMoveWindow(dpy, c.w,
-						screens[i].x, screens[i].y);
+				    screens[i].x, screens[i].y);
 			XResizeWindow(dpy, c.w,
-						screens[i].w, screens[i].h);
+				      screens[i].w, screens[i].h);
 		}
 	}
 }
@@ -983,9 +985,9 @@ int tile(int frameID, int x, int y, int w, int h)
 		wH -= cfg.gaps * 2;
 		XMapWindow(dpy, c.w);
 		XMoveWindow(dpy, c.w,
-					wX, wY);
+			    wX, wY);
 		XResizeWindow(dpy, c.w,
-					wW, wH);
+			      wW, wH);
 	}
 	return noID;
 }
@@ -1015,24 +1017,92 @@ void untile(int frameID)
 	}
 }
 
+void printVersion()
+{
+	const char* version =
+	"YATwm for X\n"
+	"version 0.0.1";
+	cout << version << endl;
+}
+
 int main(int argc, char** argv)
 {
-	if(argc > 1)
+	int versionFlag = 0;
+	bool immediateExit = false;
+	while(1)
 	{
-		if(strcmp(argv[1], "--version") == 0)
+		static option long_options[] = {{"version", no_argument, &versionFlag, 1},
+										{0, 0, 0, 0}};
+		
+		int optionIndex;
+		char c = getopt_long(argc, argv, "v", long_options, &optionIndex);
+
+		if(c == -1)
+			break;
+		
+		switch(c)
 		{
-			const char* version =
-				"YATwm for X\n"
-				"version 0.1.0";
-			cout << version << endl;
-			return 0;
+		case 0:
+			if(long_options[optionIndex].flag != 0)
+				break;
+			//Option had arg
+			break;
+		case 'v':
+			versionFlag = 1;
+		case '?':
+			//Error??
+			break;
+		default:
+			//Big error???
+			cout << "BIG ERROR WITH OPTIONS" << endl;
 		}
 	}
-	
+
+	if(versionFlag == 1)
+	{
+		printVersion();
+		immediateExit = true;
+	}
+
+	if(optind < argc)
+	{
+		//Extra options - probably meant to be a command sent on IPC
+		std::string message;
+		while(optind < argc)
+		{
+			message += argv[optind++];
+			if(optind != argc)
+				message += " ";
+		}
+
+		cout << message << endl;
+
+		IPCClientModule IPCClient;
+		switch(IPCClient.init())
+		{
+		case 1:
+			cout << "X error: is YATwm running?" << endl;
+			exit(1);
+		case -1:
+			cout << "Socket error" << endl;
+			exit(1);
+		}
+		IPCClient.sendMessage(message.c_str(), message.length());
+		char buff[256];
+		IPCClient.getMessage(buff, 256);
+		cout << buff << endl;
+		IPCClient.quit();
+		
+		immediateExit = true;
+	}
+
+	if(immediateExit)
+		exit(0);
+			
 	//Important init stuff
 	mX = mY = 0;
-    dpy = XOpenDisplay(nullptr);
-    root = Window(DefaultRootWindow(dpy));
+	dpy = XOpenDisplay(nullptr);
+	root = Window(DefaultRootWindow(dpy));
 	// Adding commands
 	commandsModule.addCommand("exit", exit, 0, {});
 	commandsModule.addCommand("spawn", spawn, 1, {STR_REST});
