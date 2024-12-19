@@ -7,10 +7,10 @@
 #include "config.h"
 #include "util.h"
 
-class IPCModule
+class IPCServerModule
 {
 public:
-	IPCModule(CommandsModule& commandsModule, Config& cfg, Globals& globals);
+	IPCServerModule(CommandsModule& commandsModule, Config& cfg, Globals& globals);
 	void init();
 	void doListen();
 	void quitIPC();
@@ -24,4 +24,25 @@ private:
 	bool first = true;
 	bool ready = false;
 	sockaddr_un address;
+};
+
+class IPCClientModule
+{
+public:
+	IPCClientModule();
+
+	// Returns 0 for success, 1 for X error, -1 for socket error
+	int init();
+	
+	// Returns 0 for success, 1 for not ready, -1 for socket error
+	int sendMessage(const char* message, int length);
+
+	// Returns 0 for success, 1 for not ready, -1 for socket error
+	int getMessage(char* buff, int buffsize);
+
+	
+	void quit();
+private:
+	bool ready;
+	int sockfd;
 };
