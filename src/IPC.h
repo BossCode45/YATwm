@@ -3,7 +3,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#include "commands.h"
+#include <commands.h>
 #include "config.h"
 #include "util.h"
 

@@ -36,7 +36,8 @@
 #include "config.h"
 #include "util.h"
 #include "ewmh.h"
-#include "error.h"
+//TODO: FIX THIS
+#include <error.h>
 
 using std::cout;
 using std::string;
