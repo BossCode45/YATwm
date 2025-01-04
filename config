@@ -1,10 +1,13 @@
 # This is a comment
 
 # Mainly used for testing
-# swapmods
+swapmods
+
+quitkey mod+g
 
 bind mod+shift+e exit
 bind mod+Return spawn alacritty
+bind "mod+r k" spawn kitty
 bind mod+c spawn firefox
 bind mod+x spawn loginctl lock-session
 bind mod+shift+x bashSpawn loginctl lock-session && systemctl suspend

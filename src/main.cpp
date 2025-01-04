@@ -5,7 +5,6 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
 
-#include <bits/getopt_core.h>
 #include <libnotify/notification.h>
 #include <libnotify/notify.h>
 
@@ -36,8 +35,7 @@
 #include "config.h"
 #include "util.h"
 #include "ewmh.h"
-//TODO: FIX THIS
-#include <error.h>
+#include "error.h"
 
 using std::cout;
 using std::string;
@@ -1030,13 +1028,15 @@ int main(int argc, char** argv)
 {
 	int versionFlag = 0;
 	bool immediateExit = false;
+	string configLocation = "";
 	while(1)
 	{
 		static option long_options[] = {{"version", no_argument, &versionFlag, 1},
+										{"config", required_argument, NULL, 'c'},
 										{0, 0, 0, 0}};
 		
 		int optionIndex;
-		char c = getopt_long(argc, argv, "v", long_options, &optionIndex);
+		char c = getopt_long(argc, argv, "c:v", long_options, &optionIndex);
 
 		if(c == -1)
 			break;
@@ -1048,8 +1048,12 @@ int main(int argc, char** argv)
 				break;
 			//Option had arg
 			break;
+		case 'c':
+			configLocation = string(optarg);
+			break;
 		case 'v':
 			versionFlag = 1;
+			break;
 		case '?':
 			//Error??
 			break;
@@ -1124,16 +1128,19 @@ int main(int argc, char** argv)
 	std::vector<Err> cfgErr;
 
 	cout << "Registered commands" << endl;
-	
-	char* confDir = getenv("XDG_CONFIG_HOME");
-	if(confDir != NULL)
-	{
-		cfgErr = cfg.loadFromFile(string(confDir) + "/YATwm/config");
-	}
+
+	if(configLocation != "")
+		cfgErr = cfg.loadFromFile(configLocation);
 	else
 	{
-		string home = getenv("HOME");
-		cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
+		char* confDir = getenv("XDG_CONFIG_HOME");
+		if(confDir != NULL)
+			cfgErr = cfg.loadFromFile(string(confDir) + "/YATwm/config");
+		else
+		{
+			string home = getenv("HOME");
+			cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
+		}
 	}
 
 	cout << "Done config" << endl;
@@ -1234,7 +1241,6 @@ int main(int argc, char** argv)
 		}
 		if(ready == -1)
 		{
-			cout << "E" << endl;
 			log("ERROR");
 		}
 	}
