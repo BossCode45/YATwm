@@ -1,7 +1,6 @@
 #include "config.h"
-#include <commands.h>
-//TODO: FIX THIS
-#include <error.h>
+#include "commands.h"
+#include "error.h"
 
 #include <X11/Xlib.h>
 

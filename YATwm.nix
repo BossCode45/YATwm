@@ -33,6 +33,5 @@ runHook postInstall
         xorg.libXrandr
         libnotify
         pkg-config
-        inputs.libCommands.packages.x86_64-linux.default
     ];
 }

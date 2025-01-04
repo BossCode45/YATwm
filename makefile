@@ -1,7 +1,7 @@
 .PHONY: clean
 CXX := g++
 CXXFLAGS := -std=c++17 `pkg-config --cflags --libs libnotify`# -g -fsanitize=address -fno-omit-frame-pointer
-LINKFLAGS := -lX11 -lXrandr -lcommands
+LINKFLAGS := -lX11 -lXrandr
 OBJS_DIR := ./build
 OUT_DIR := ./out
 SOURCE_DIR := ./src
@@ -32,6 +32,7 @@ remove: r
 #Files to be compiled
 $(OBJS_DIR)/main.o: $(SOURCE_FILES) $(SOURCE_HEADERS)
 $(OBJS_DIR)/ewmh.o: $(SOURCE_DIR)/ewmh.cpp $(SOURCE_DIR)/ewmh.h
+$(OBJS_DIR)/command.o: $(SOURCE_DIR)/commands.cpp $(SOURCE_DIR)/commands.h $(SOURCE_DIR)/util.h $(SOURCE_DIR)/error.h
 $(OBJS_DIR)/util.o: $(SOURCE_DIR)/util.cpp $(SOURCE_DIR)/util.h
 $(OBJS_DIR)/config.o: $(SOURCE_DIR)/config.cpp $(SOURCE_DIR)/config.h
 $(OBJS_DIR)/keybinds.o: $(SOURCE_DIR)/keybinds.cpp $(SOURCE_DIR)/keybinds.h

@@ -2,10 +2,6 @@
     description = "YATwm";
     inputs = {
         nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
-        libCommands = {
-            url = "github:BossCode45/commands";
-            inputs.nixpkgs.follows = "nixpkgs";
-        };
     };
     outputs = { self, nixpkgs, ... }@inputs:
         let pkgs = nixpkgs.legacyPackages.x86_64-linux;
@@ -20,7 +16,6 @@
                       pkgs.libnotify
                       pkgs.pkg-config
                       pkgs.clang-tools
-                      inputs.libCommands.packages.x86_64-linux.default
                   ];
               };
               packages.x86_64-linux.YATwm =  (pkgs.callPackage ./YATwm.nix {inherit inputs;});

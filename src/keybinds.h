@@ -8,7 +8,7 @@
 #include <X11/keysym.h>
 #include <vector>
 
-#include <commands.h>
+#include "commands.h"
 #include "config.h"
 #include "util.h"
 

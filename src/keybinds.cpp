@@ -7,9 +7,8 @@
 #include <vector>
 #include <regex>
 
-#include <commands.h>
-//TODO: FIX THIS
-#include <error.h>
+#include "commands.h"
+#include "error.h"
 #include "keybinds.h"
 #include "util.h"
 
