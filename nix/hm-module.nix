@@ -116,6 +116,13 @@ List of commands to be executed at startup.
 Name for workspace.
 '';
                     };
+#                     key = mkOption {
+#                         type = stypes.str;
+#                         example = "1";
+#                         description = ''
+# Key that will be used for switching to this monitor. mod+<key> will switch, and mod+shift+<key> will move the currently focused window.
+# '';
+#                     };
                     monitorPriorities = mkOption {
                         type = types.listOf types.int;
                         default = [1];

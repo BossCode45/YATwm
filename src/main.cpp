@@ -17,6 +17,7 @@
 #include <iostream>
 #include <map>
 #include <ostream>
+#include <regex>
 #include <string>
 #include <sys/poll.h>
 #include <sys/select.h>

@@ -1,54 +1,60 @@
-# This is a comment
+# Home manager generated config:
 
-# Mainly used for testing
+# Keybinds:
+bindmode emacs
+quitkey s-g
 swapmods
+bind "s-0" changeWS 10
+bind "s-1" changeWS 1
+bind "s-2" changeWS 2
+bind "s-3" changeWS 3
+bind "s-4" changeWS 4
+bind "s-5" changeWS 5
+bind "s-6" changeWS 6
+bind "s-7" changeWS 7
+bind "s-8" changeWS 8
+bind "s-9" changeWS 9
+bind "s-E" exit
+bind "s-R" reload
+bind "s-RET" spawn alacritty
+bind "s-S-0" wToWS 10
+bind "s-S-1" wToWS 1
+bind "s-S-2" wToWS 2
+bind "s-S-3" wToWS 3
+bind "s-S-4" wToWS 4
+bind "s-S-5" wToWS 5
+bind "s-S-6" wToWS 6
+bind "s-S-7" wToWS 7
+bind "s-S-8" wToWS 8
+bind "s-S-9" wToWS 9
+bind "s-S-p s" wToWS 11
+bind "s-X" bashSpawn loginctl lock-session && systemctl suspend
+bind "s-d" bashSpawn rofi -i -show drun
+bind "s-f" fullscreen
+bind "s-h" focChange left
+bind "s-j" focChange down
+bind "s-k" focChange up
+bind "s-l" focChange right
+bind "s-p s" changeWS 11
+bind "s-r k" spawn kitty
+bind "s-t" toggle
+bind "s-x" spawn loginctl lock-session
 
-quitkey mod+g
+# Workspaces:
+addWorkspace "1: A" 1
+addWorkspace "2: B" 1
+addWorkspace "3: C" 1
+addWorkspace "4: D" 1
+addWorkspace "5: E" 1
+addWorkspace "6: F" 2 1
+addWorkspace "7: G" 2 1
+addWorkspace "8: H" 2 1
+addWorkspace "9: I" 2 1
+addWorkspace "10: J" 2 1
+addWorkspace "S" 1
 
-bind mod+shift+e exit
-bind mod+Return spawn alacritty
-bind "mod+r k" spawn kitty
-bind mod+c spawn firefox
-bind mod+x spawn loginctl lock-session
-bind mod+shift+x bashSpawn loginctl lock-session && systemctl suspend
-bind mod+d bashSpawn "rofi -i -show drun"
-gaps 10
-outergaps 10
 
-bind mod+shift+r reload
-bind mod+q kill
+# Gaps:
+gaps 3
+outergaps 3
 
-# Tiling
-bind mod+t toggle
-bind mod+f fullscreen
-
-# Focus
-bind mod+h focChange left
-bind mod+j focChange down
-bind mod+k focChange up
-bind mod+l focChange right
-
-# Workspaces
-addworkspace "1: A" 1
-addworkspace "2: B" 1
-addworkspace "3: C" 1
-addworkspace "4: D" 1
-addworkspace "5: E" 1
-addworkspace "6: F" 2 1
-addworkspace "7: G" 2 1
-addworkspace "8: H" 2 1
-addworkspace "9: I" 2 1
-addworkspace "10: J" 2 1
-
-bind mod+1 changeWS 1
-bind mod+2 changeWS 2
-bind mod+3 changeWS 3
-bind mod+4 changeWS 4
-bind mod+5 changeWS 5
-bind mod+6 changeWS 6
-bind mod+7 changeWS 7
-bind mod+8 changeWS 8
-bind mod+9 changeWS 9
-bind mod+0 changeWS 10
-
-spawnOnce xss-lock --transfer-sleep-lock -- i3lock -et --nofork

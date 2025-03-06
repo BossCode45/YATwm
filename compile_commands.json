@@ -1,13 +1,31 @@
 [
   {
     "arguments": [
-      "/nix/store/9bv7dcvmfcjnmg5mnqwqlq2wxfn8d7yi-gcc-wrapper-13.2.0/bin/g++",
+      "/nix/store/888bkaqdpfpx72dd8bdc69qsqlgbhcvf-gcc-wrapper-13.3.0/bin/g++",
       "-std=c++17",
-      "-I/nix/store/drrf5w7pcc5q9h4si9i8vm2hclg0zijg-libnotify-0.8.3-dev/include",
-      "-I/nix/store/a45ri2jgzpv6q36va2y6wq471y88hpnl-gdk-pixbuf-2.42.10-dev/include/gdk-pixbuf-2.0",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include/glib-2.0",
-      "-I/nix/store/k1qjs35nw1lbssg1l1xpmh0082hy7wl4-glib-2.78.4/lib/glib-2.0/include",
+      "-I/nix/store/xq34vhc04n55v53xj9hbn0h0vj2ywcv6-libnotify-0.8.3-dev/include",
+      "-I/nix/store/089kvf479gh1jnapqi296pjn2yvmyplj-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include/glib-2.0",
+      "-I/nix/store/8mmkgqj0r37s2rlxjvpj8dya7k9gcg77-glib-2.82.1/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "build/keybinds.o",
+      "src/keybinds.cpp"
+    ],
+    "directory": "/home/boss/Documents/Coding/WM/YATwm",
+    "file": "/home/boss/Documents/Coding/WM/YATwm/src/keybinds.cpp",
+    "output": "/home/boss/Documents/Coding/WM/YATwm/build/keybinds.o"
+  },
+  {
+    "arguments": [
+      "/nix/store/888bkaqdpfpx72dd8bdc69qsqlgbhcvf-gcc-wrapper-13.3.0/bin/g++",
+      "-std=c++17",
+      "-I/nix/store/xq34vhc04n55v53xj9hbn0h0vj2ywcv6-libnotify-0.8.3-dev/include",
+      "-I/nix/store/089kvf479gh1jnapqi296pjn2yvmyplj-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include/glib-2.0",
+      "-I/nix/store/8mmkgqj0r37s2rlxjvpj8dya7k9gcg77-glib-2.82.1/lib/glib-2.0/include",
       "-c",
       "-o",
       "build/main.o",
@@ -19,31 +37,13 @@
   },
   {
     "arguments": [
-      "/nix/store/9bv7dcvmfcjnmg5mnqwqlq2wxfn8d7yi-gcc-wrapper-13.2.0/bin/g++",
+      "/nix/store/888bkaqdpfpx72dd8bdc69qsqlgbhcvf-gcc-wrapper-13.3.0/bin/g++",
       "-std=c++17",
-      "-I/nix/store/drrf5w7pcc5q9h4si9i8vm2hclg0zijg-libnotify-0.8.3-dev/include",
-      "-I/nix/store/a45ri2jgzpv6q36va2y6wq471y88hpnl-gdk-pixbuf-2.42.10-dev/include/gdk-pixbuf-2.0",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include/glib-2.0",
-      "-I/nix/store/k1qjs35nw1lbssg1l1xpmh0082hy7wl4-glib-2.78.4/lib/glib-2.0/include",
-      "-c",
-      "-o",
-      "build/config.o",
-      "src/config.cpp"
-    ],
-    "directory": "/home/boss/Documents/Coding/WM/YATwm",
-    "file": "/home/boss/Documents/Coding/WM/YATwm/src/config.cpp",
-    "output": "/home/boss/Documents/Coding/WM/YATwm/build/config.o"
-  },
-  {
-    "arguments": [
-      "/nix/store/9bv7dcvmfcjnmg5mnqwqlq2wxfn8d7yi-gcc-wrapper-13.2.0/bin/g++",
-      "-std=c++17",
-      "-I/nix/store/drrf5w7pcc5q9h4si9i8vm2hclg0zijg-libnotify-0.8.3-dev/include",
-      "-I/nix/store/a45ri2jgzpv6q36va2y6wq471y88hpnl-gdk-pixbuf-2.42.10-dev/include/gdk-pixbuf-2.0",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include/glib-2.0",
-      "-I/nix/store/k1qjs35nw1lbssg1l1xpmh0082hy7wl4-glib-2.78.4/lib/glib-2.0/include",
+      "-I/nix/store/xq34vhc04n55v53xj9hbn0h0vj2ywcv6-libnotify-0.8.3-dev/include",
+      "-I/nix/store/089kvf479gh1jnapqi296pjn2yvmyplj-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include/glib-2.0",
+      "-I/nix/store/8mmkgqj0r37s2rlxjvpj8dya7k9gcg77-glib-2.82.1/lib/glib-2.0/include",
       "-c",
       "-o",
       "build/ewmh.o",
@@ -55,31 +55,13 @@
   },
   {
     "arguments": [
-      "/nix/store/9bv7dcvmfcjnmg5mnqwqlq2wxfn8d7yi-gcc-wrapper-13.2.0/bin/g++",
+      "/nix/store/888bkaqdpfpx72dd8bdc69qsqlgbhcvf-gcc-wrapper-13.3.0/bin/g++",
       "-std=c++17",
-      "-I/nix/store/drrf5w7pcc5q9h4si9i8vm2hclg0zijg-libnotify-0.8.3-dev/include",
-      "-I/nix/store/a45ri2jgzpv6q36va2y6wq471y88hpnl-gdk-pixbuf-2.42.10-dev/include/gdk-pixbuf-2.0",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include/glib-2.0",
-      "-I/nix/store/k1qjs35nw1lbssg1l1xpmh0082hy7wl4-glib-2.78.4/lib/glib-2.0/include",
-      "-c",
-      "-o",
-      "build/util.o",
-      "src/util.cpp"
-    ],
-    "directory": "/home/boss/Documents/Coding/WM/YATwm",
-    "file": "/home/boss/Documents/Coding/WM/YATwm/src/util.cpp",
-    "output": "/home/boss/Documents/Coding/WM/YATwm/build/util.o"
-  },
-  {
-    "arguments": [
-      "/nix/store/9bv7dcvmfcjnmg5mnqwqlq2wxfn8d7yi-gcc-wrapper-13.2.0/bin/g++",
-      "-std=c++17",
-      "-I/nix/store/drrf5w7pcc5q9h4si9i8vm2hclg0zijg-libnotify-0.8.3-dev/include",
-      "-I/nix/store/a45ri2jgzpv6q36va2y6wq471y88hpnl-gdk-pixbuf-2.42.10-dev/include/gdk-pixbuf-2.0",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include/glib-2.0",
-      "-I/nix/store/k1qjs35nw1lbssg1l1xpmh0082hy7wl4-glib-2.78.4/lib/glib-2.0/include",
+      "-I/nix/store/xq34vhc04n55v53xj9hbn0h0vj2ywcv6-libnotify-0.8.3-dev/include",
+      "-I/nix/store/089kvf479gh1jnapqi296pjn2yvmyplj-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include/glib-2.0",
+      "-I/nix/store/8mmkgqj0r37s2rlxjvpj8dya7k9gcg77-glib-2.82.1/lib/glib-2.0/include",
       "-c",
       "-o",
       "build/IPC.o",
@@ -91,13 +73,13 @@
   },
   {
     "arguments": [
-      "/nix/store/9bv7dcvmfcjnmg5mnqwqlq2wxfn8d7yi-gcc-wrapper-13.2.0/bin/g++",
+      "/nix/store/888bkaqdpfpx72dd8bdc69qsqlgbhcvf-gcc-wrapper-13.3.0/bin/g++",
       "-std=c++17",
-      "-I/nix/store/drrf5w7pcc5q9h4si9i8vm2hclg0zijg-libnotify-0.8.3-dev/include",
-      "-I/nix/store/a45ri2jgzpv6q36va2y6wq471y88hpnl-gdk-pixbuf-2.42.10-dev/include/gdk-pixbuf-2.0",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include/glib-2.0",
-      "-I/nix/store/k1qjs35nw1lbssg1l1xpmh0082hy7wl4-glib-2.78.4/lib/glib-2.0/include",
+      "-I/nix/store/xq34vhc04n55v53xj9hbn0h0vj2ywcv6-libnotify-0.8.3-dev/include",
+      "-I/nix/store/089kvf479gh1jnapqi296pjn2yvmyplj-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include/glib-2.0",
+      "-I/nix/store/8mmkgqj0r37s2rlxjvpj8dya7k9gcg77-glib-2.82.1/lib/glib-2.0/include",
       "-c",
       "-o",
       "build/commands.o",
@@ -109,20 +91,38 @@
   },
   {
     "arguments": [
-      "/nix/store/9bv7dcvmfcjnmg5mnqwqlq2wxfn8d7yi-gcc-wrapper-13.2.0/bin/g++",
+      "/nix/store/888bkaqdpfpx72dd8bdc69qsqlgbhcvf-gcc-wrapper-13.3.0/bin/g++",
       "-std=c++17",
-      "-I/nix/store/drrf5w7pcc5q9h4si9i8vm2hclg0zijg-libnotify-0.8.3-dev/include",
-      "-I/nix/store/a45ri2jgzpv6q36va2y6wq471y88hpnl-gdk-pixbuf-2.42.10-dev/include/gdk-pixbuf-2.0",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include",
-      "-I/nix/store/s0nl17v1827bl7qyjgkkar90c2a40ykb-glib-2.78.4-dev/include/glib-2.0",
-      "-I/nix/store/k1qjs35nw1lbssg1l1xpmh0082hy7wl4-glib-2.78.4/lib/glib-2.0/include",
+      "-I/nix/store/xq34vhc04n55v53xj9hbn0h0vj2ywcv6-libnotify-0.8.3-dev/include",
+      "-I/nix/store/089kvf479gh1jnapqi296pjn2yvmyplj-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include/glib-2.0",
+      "-I/nix/store/8mmkgqj0r37s2rlxjvpj8dya7k9gcg77-glib-2.82.1/lib/glib-2.0/include",
       "-c",
       "-o",
-      "build/keybinds.o",
-      "src/keybinds.cpp"
+      "build/util.o",
+      "src/util.cpp"
     ],
     "directory": "/home/boss/Documents/Coding/WM/YATwm",
-    "file": "/home/boss/Documents/Coding/WM/YATwm/src/keybinds.cpp",
-    "output": "/home/boss/Documents/Coding/WM/YATwm/build/keybinds.o"
+    "file": "/home/boss/Documents/Coding/WM/YATwm/src/util.cpp",
+    "output": "/home/boss/Documents/Coding/WM/YATwm/build/util.o"
+  },
+  {
+    "arguments": [
+      "/nix/store/888bkaqdpfpx72dd8bdc69qsqlgbhcvf-gcc-wrapper-13.3.0/bin/g++",
+      "-std=c++17",
+      "-I/nix/store/xq34vhc04n55v53xj9hbn0h0vj2ywcv6-libnotify-0.8.3-dev/include",
+      "-I/nix/store/089kvf479gh1jnapqi296pjn2yvmyplj-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include",
+      "-I/nix/store/5dd834gbg319lfmfwgv54mswcq9k4k57-glib-2.82.1-dev/include/glib-2.0",
+      "-I/nix/store/8mmkgqj0r37s2rlxjvpj8dya7k9gcg77-glib-2.82.1/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "build/config.o",
+      "src/config.cpp"
+    ],
+    "directory": "/home/boss/Documents/Coding/WM/YATwm",
+    "file": "/home/boss/Documents/Coding/WM/YATwm/src/config.cpp",
+    "output": "/home/boss/Documents/Coding/WM/YATwm/build/config.o"
   }
 ]
