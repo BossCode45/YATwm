@@ -57,7 +57,7 @@ Config::Config(CommandsModule& commandsModule)
 	commandsModule.addCommand("gaps", &Config::gapsCmd, 1, {NUM}, this);
 	commandsModule.addCommand("outergaps", &Config::outerGapsCmd, 1, {NUM}, this);
 	commandsModule.addCommand("logfile", &Config::logFileCmd, 1, {STR_REST}, this);
-	commandsModule.addCommand("addworkspace", &Config::addWorkspaceCmd, 2, {STR, NUM_ARR_REST}, this);
+	commandsModule.addCommand("addWorkspace", &Config::addWorkspaceCmd, 2, {STR, NUM_ARR_REST}, this);
 	commandsModule.addCommand("swapmods", &Config::swapSuperAltCmd, 0, {}, this);
 }
 

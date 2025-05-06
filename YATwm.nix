@@ -3,7 +3,9 @@
     fetchgit,
     xorg,
     libnotify,
-    pkg-config
+    pkg-config,
+    inputs,
+    ...
 }:
 
 
@@ -14,7 +16,7 @@ stdenv.mkDerivation {
     src = fetchgit {
         url = "https://git.tehbox.org/cgit/boss/YATwm.git/";
         rev = "v0.0.1";
-        hash = "sha256-c0GIwZFZoaYsq6cK1cPzjxwPZzNg7tyDh44vLFsdMAI=";
+        hash = "sha256-yQoyXGJE8JrSon/P5uhyN1rRwBH/kz0LCGIly3yNDhg=";
     };
 
     installPhase = ''
@@ -26,5 +28,10 @@ install -D -m 644 config $out/etc/YATwm/config
 runHook postInstall
     '';
     
-    buildInputs = [ xorg.libX11 xorg.libXrandr libnotify pkg-config ];
+    buildInputs = [
+        xorg.libX11
+        xorg.libXrandr
+        libnotify
+        pkg-config
+    ];
 }

@@ -3,15 +3,14 @@
 #include "util.h"
 
 #include <cctype>
+#include <filesystem>
 #include <iostream>
 #include <algorithm>
-#include <iterator>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
-#include <regex>
 #include <cstring>
+#include <fstream>
 
 using std::cout, std::endl, std::string, std::vector;
 
@@ -20,9 +19,47 @@ const void CommandsModule::echo(const CommandArg* argv)
 	cout << argv[0].str << endl;
 }
 
+const void CommandsModule::loadFile(const CommandArg* argv)
+{
+	std::vector<Err> errs;
+
+	string path = cwd + "/" + std::string(argv[0].str);
+	
+	std::ifstream file(path);
+	if(!file.good())
+		throw Err(CMD_ERR_NON_FATAL, "File '" + std::string(argv[0].str) + "' doesn't exist");
+
+	string prevCWD = cwd;
+	cwd = std::filesystem::path(path).parent_path();
+	
+	cout << "Loading file '" << argv[0].str << "'" << endl;
+	
+	int line = 0;
+	for(string cmd; std::getline(file, cmd);)
+	{
+		line++;
+		if(cmd.size() == 0)
+			continue;
+		if(cmd.at(0) == '#')
+			continue;
+		try
+		{
+			this->runCommand(cmd);
+		}
+		catch (Err e)
+		{
+			throw Err(e.code, "Error in file '" + std::string(argv[0].str) + "' (line " + std::to_string(line) + "): " + std::to_string(e.code) + "\n\tMessage: " + e.message);
+		}
+	}
+
+	cwd = prevCWD;
+}
+
 CommandsModule::CommandsModule()
 {
 	addCommand("echo", &CommandsModule::echo, 1, {STR_REST}, this);
+	addCommand("loadFile", &CommandsModule::loadFile, 1, {STR_REST}, this);
+	cwd = std::filesystem::current_path();
 }
 CommandsModule::~CommandsModule()
 {

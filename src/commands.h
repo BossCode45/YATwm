@@ -52,6 +52,8 @@ private:
 	std::vector<std::string> splitCommand(std::string command);
 	CommandArg* getCommandArgs(std::vector<std::string>& args, const CommandArgType* argTypes, const int argc);
 	const void echo(const CommandArg* argv);
+	const void loadFile(const CommandArg* argv);
+	std::string cwd;
 public:   
 	CommandsModule();
 	~CommandsModule();

@@ -7,12 +7,15 @@ This only just works, multiple monitors aren't supported and floating windows ca
 
 * Usage instructions
 ** Installation
-*** Pre reqs
+*** Nixos
+Use the flake.
+*** Other distros
+**** Pre reqs
 - ~Xlib~ and ~g++~ and ~libnotify~ to build the program
 - ~Xephyr~ for the test script
 - ~rofi~, ~alacritty~, and ~i3lock~ for the default config
 	- The current default config is currently just the configuration that I want to use (this will likely change)
-*** Installing and removing
+**** Installing and removing
 - ~make i~ or ~make install~ to install
 - ~make r~ or ~make remove~ to remove
 - ~./test~ to test

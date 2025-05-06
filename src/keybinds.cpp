@@ -168,48 +168,55 @@ const Keybind KeybindsModule::emacsBindMode(string bindString)
 	Keybind bind;
 	bind.modifiers = 0;
 
-	const std::regex keyRegex("^(?:([CMs])-)?(?:([CMs])-)?(?:([CMs])-)?([^\\s]|(SPC|ESC|RET|))$");
+	//cout << "Adding keybind: '"  << bindString << "'" << endl;
+
+	const std::regex keyRegex("^((?:[CMSs]-)*)([^\\s]|(?:SPC|ESC|RET))$");
 	std::smatch keyMatch;
 	if(std::regex_match(bindString, keyMatch, keyRegex))
 	{
-		for (int i = 1; i < 3; i++)
+		std::ssub_match modifierMatch = keyMatch[1];
+		for(std::string modifier : split(modifierMatch, '-'))
 		{
-			std::ssub_match modifierMatch = keyMatch[i];
-			if(modifierMatch.matched)
+			if(modifier == "s")
 			{
-				std::string modifier = modifierMatch.str();
-				if(modifier == "s")
-				{
-					bind.modifiers |= Mod4Mask >> 3 * cfg.swapSuperAlt;
-				}
-				else if(modifier == "M")
-				{
-					bind.modifiers |= Mod1Mask << 3 * cfg.swapSuperAlt;
-				}
-				else if(modifier == "C")
-				{
-					bind.modifiers |= ControlMask;
-				}
+				//cout << "\tModifier: s" << endl;
+				bind.modifiers |= cfg.swapSuperAlt?Mod1Mask:Mod4Mask;
+			}
+			else if(modifier == "M")
+			{
+				//cout << "\tModifier: M" << endl;
+				bind.modifiers |= cfg.swapSuperAlt?Mod4Mask:Mod1Mask;
+			}
+			else if(modifier == "C")
+			{
+				//cout << "\tModifier: C" << endl;
+				bind.modifiers |= ControlMask;
+			}
+			else if(modifier == "S")
+			{
+				//cout << "\tModifier: S" << endl;
+				bind.modifiers |= ShiftMask;
 			}
 		}
 	}
-	KeySym keySym = XStringToKeysym(keyMatch[4].str().c_str());
+	KeySym keySym = XStringToKeysym(keyMatch[2].str().c_str());
+	//cout << "\tKey: " << keyMatch[2].str() << endl;
 	
-	if(isUpper(keyMatch[4].str().c_str()) && keySym != NoSymbol)
+	if(isUpper(keyMatch[2].str().c_str()) && keySym != NoSymbol)
 	{
 		bind.modifiers |= ShiftMask;
 	}
 	if(keySym == NoSymbol)
 	{
-		if(keyMatch[4].str() == "RET")
+		if(keyMatch[2].str() == "RET")
 			keySym = XK_Return;
-		else if(keyMatch[4].str() == "ESC")
+		else if(keyMatch[2].str() == "ESC")
 			keySym = XK_Escape;
-		else if(keyMatch[4].str() == "SPC")
+		else if(keyMatch[2].str() == "SPC")
 			keySym = XK_space;
-		else if(keyMatch[4].str() == "-")
+		else if(keyMatch[2].str() == "-")
 			keySym = XK_minus;
-		else if(keyMatch[4].str() == "+")
+		else if(keyMatch[2].str() == "+")
 			keySym = XK_plus;
 		else
 			throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid");
