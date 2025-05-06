@@ -15,7 +15,7 @@ stdenv.mkDerivation {
 
     src = fetchgit {
         url = "https://git.tehbox.org/cgit/boss/YATwm.git/";
-        rev = "0bc070e";
+        rev = "v0.0.1";
         hash = "sha256-yQoyXGJE8JrSon/P5uhyN1rRwBH/kz0LCGIly3yNDhg=";
     };
 
