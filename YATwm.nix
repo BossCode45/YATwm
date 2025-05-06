@@ -16,7 +16,7 @@ stdenv.mkDerivation {
     src = fetchgit {
         url = "https://git.tehbox.org/cgit/boss/YATwm.git/";
         rev = "v0.0.1";
-        hash = "sha256-yQoyXGJE8JrSon/P5uhyN1rRwBH/kz0LCGIly3yNDhg=";
+        hash = "sha256-A4Yra/903rOeEbXfFia/A2HRPrFyE1b05mzHWlDImCY=";
     };
 
     installPhase = ''
