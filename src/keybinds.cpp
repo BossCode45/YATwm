@@ -12,6 +12,10 @@
 #include "keybinds.h"
 #include "util.h"
 
+// #define ENABLE_DEBUG
+
+#include "debug.h"
+
 using std::string, std::cout, std::endl;
 
 bool Keybind::operator<(const Keybind &o) const {
@@ -69,9 +73,6 @@ void KeybindsModule::changeMap(int newMapID)
 const void KeybindsModule::handleKeypress(XKeyEvent e)
 {
 	if(e.same_screen!=1) return;
-	// cout << "Key Pressed" << endl;
-	// cout << "\tState: " << e.state << endl;
-	// cout << "\tCode: " <<  XKeysymToString(XKeycodeToKeysym(globals.dpy, e.keycode, 0)) << endl;
 	updateMousePos();
 
 	const unsigned int masks = ShiftMask | ControlMask | Mod1Mask | Mod4Mask;
@@ -82,9 +83,14 @@ const void KeybindsModule::handleKeypress(XKeyEvent e)
 	}
 	else if(getKeymap(currentMapID).count(k) > 0)
 	{
+		debug(cout << "Key Pressed" << endl);
+		debug(cout << "\tState: " << e.state << endl);
+		debug(cout << "\tCode: " <<  XKeysymToString(XKeycodeToKeysym(globals.dpy, e.keycode, 0)) << endl);
+		
 		KeyFunction& c = getKeymap(currentMapID).find(k)->second;
-		if(getKeymap(c.mapID).size() == 0)
+		if(c.mapID == -1)
 		{
+			debug(cout << '\t' << c.command << endl);
 			commandsModule.runCommand(c.command);
 			changeMap(0);
 		}
@@ -168,7 +174,7 @@ const Keybind KeybindsModule::emacsBindMode(string bindString)
 	Keybind bind;
 	bind.modifiers = 0;
 
-	//cout << "Adding keybind: '"  << bindString << "'" << endl;
+	debug(cout << "Adding keybind: '"  << bindString << "'" << endl);
 
 	const std::regex keyRegex("^((?:[CMSs]-)*)([^\\s]|(?:SPC|ESC|RET))$");
 	std::smatch keyMatch;
@@ -179,34 +185,34 @@ const Keybind KeybindsModule::emacsBindMode(string bindString)
 		{
 			if(modifier == "s")
 			{
-				//cout << "\tModifier: s" << endl;
+				debug(cout << "\tModifier: s" << endl);
 				bind.modifiers |= cfg.swapSuperAlt?Mod1Mask:Mod4Mask;
 			}
 			else if(modifier == "M")
 			{
-				//cout << "\tModifier: M" << endl;
+				debug(cout << "\tModifier: M" << endl);
 				bind.modifiers |= cfg.swapSuperAlt?Mod4Mask:Mod1Mask;
 			}
 			else if(modifier == "C")
 			{
-				//cout << "\tModifier: C" << endl;
+				debug(cout << "\tModifier: C" << endl);
 				bind.modifiers |= ControlMask;
 			}
 			else if(modifier == "S")
 			{
-				//cout << "\tModifier: S" << endl;
+				debug(cout << "\tModifier: S" << endl);
 				bind.modifiers |= ShiftMask;
 			}
 		}
 	}
 	KeySym keySym = XStringToKeysym(keyMatch[2].str().c_str());
-	//cout << "\tKey: " << keyMatch[2].str() << endl;
+	debug(cout << "\tKey: " << keyMatch[2].str() << endl);
 	
-	if(isUpper(keyMatch[2].str().c_str()) && keySym != NoSymbol)
+	if(keySym != NoSymbol && isUpper(keyMatch[2].str().c_str()))
 	{
 		bind.modifiers |= ShiftMask;
 	}
-	if(keySym == NoSymbol)
+	else if(keySym == NoSymbol)
 	{
 		if(keyMatch[2].str() == "RET")
 			keySym = XK_Return;
@@ -218,10 +224,16 @@ const Keybind KeybindsModule::emacsBindMode(string bindString)
 			keySym = XK_minus;
 		else if(keyMatch[2].str() == "+")
 			keySym = XK_plus;
+		else if(keyMatch[2].str() == "[")
+			keySym = XK_bracketleft;
+		else if(keyMatch[2].str() == "]")
+			keySym = XK_bracketright;
 		else
 			throw Err(CFG_ERR_KEYBIND, "Keybind '" + bindString + "' is invalid");
 	}
 	bind.key = XKeysymToKeycode(globals.dpy, keySym);
+
+	debug(cout << "\tState: " << bind.modifiers << endl);
     
 	return bind;
 }
@@ -258,9 +270,10 @@ const void KeybindsModule::bind(const CommandArg* argv)
 	Keybind bind = getKeybind(keys[keys.size() - 1]);
 	if(getKeymap(currentBindingMap).count(bind) <= 0)
 	{
-		KeyFunction function = {argv[1].str, nextKeymapID};
-		keyMaps.insert({nextKeymapID, std::map<Keybind, KeyFunction>()});
-		nextKeymapID++;
+		KeyFunction function = {argv[1].str, -1};
+		debug(cout << "\tCommand: " << argv[1].str << endl);
+		// keyMaps.insert({nextKeymapID, std::map<Keybind, KeyFunction>()});
+		// nextKeymapID++;
 		getKeymap(currentBindingMap).insert({bind, function});
 		if(currentBindingMap == currentMapID)
 		{

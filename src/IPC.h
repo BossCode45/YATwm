@@ -5,20 +5,22 @@
 
 #include "commands.h"
 #include "config.h"
+#include "ewmh.h"
 #include "util.h"
 
 class IPCServerModule
 {
 public:
-	IPCServerModule(CommandsModule& commandsModule, Config& cfg, Globals& globals);
+	IPCServerModule(Globals& globals, Config& cfg, CommandsModule& commandsModule, EWMHModule& ewmh);
 	void init();
 	void doListen();
 	void quitIPC();
 	int getFD();
 private:
-	CommandsModule& commandsModule;
-	Config& cfg;
 	Globals& globals;
+	Config& cfg;
+	CommandsModule& commandsModule;
+	EWMHModule& ewmh;
 	int sockfd;
 	int len;
 	bool first = true;

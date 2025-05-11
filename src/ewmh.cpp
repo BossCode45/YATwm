@@ -1,99 +1,126 @@
 #include "ewmh.h"
+#include "util.h"
 #include <X11/X.h>
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
-#include <iostream>
-#include <ostream>
+#include <cstdint>
+#include <cstring>
 #include <string>
 
-Display** dpy_;
-Window* root_;
+#include <iostream>
 
-void initEWMH(Display** dpy, Window* root, int numWS, std::vector<Workspace> workspaces)
+EWMHModule::EWMHModule(Globals& globals, Config& cfg)
+	:globals(globals)
+	,cfg(cfg)
 {
-	dpy_ = dpy;
-	root_ = root;
+}
 
-	Atom supported[] = {XInternAtom(*dpy_, "_NET_NUMBER_OF_DESKTOPS", false), XInternAtom(*dpy_, "_NET_DESKTOP_NAMES", false), XInternAtom(*dpy_, "_NET_CLIENT_LIST", false), XInternAtom(*dpy_, "_NET_CURRENT_DESKTOP", false)};
-	int wsNamesLen = numWS; //For  null bytes
-	for(int i = 0; i < numWS; i++)
+void EWMHModule::init()
+{
+	Atom supported[] = {XInternAtom(globals.dpy, "_NET_NUMBER_OF_DESKTOPS", false), XInternAtom(globals.dpy, "_NET_DESKTOP_NAMES", false), XInternAtom(globals.dpy, "_NET_CLIENT_LIST", false), XInternAtom(globals.dpy, "_NET_CURRENT_DESKTOP", false), XInternAtom(globals.dpy, "_NET_DESKTOP_VIEWPORT", false)};
+	int wsNamesLen = cfg.numWS; //For  null bytes
+	for(int i = 0; i < cfg.numWS; i++)
 	{
-		wsNamesLen += workspaces[i].name.length();
+		wsNamesLen += cfg.workspaces[i].name.length();
 	}
-	char wsNames[wsNamesLen];
+	char *wsNames = new char[wsNamesLen];
 	int pos = 0;
-	for(int i = 0; i < numWS; i++)
+	for(int i = 0; i < cfg.numWS; i++)
 	{
-		for(char toAdd : workspaces[i].name)
+		for(char toAdd : cfg.workspaces[i].name)
 		{
 			wsNames[pos++] = toAdd;		
 		}
 		wsNames[pos++] = '\0';
 	}
-	unsigned long numDesktops = numWS;
-	Atom netSupportedAtom = XInternAtom(*dpy_, "_NET_SUPPORTED", false);
-	Atom netNumDesktopsAtom = XInternAtom(*dpy_, "_NET_NUMBER_OF_DESKTOPS", false);
-	Atom netDesktopNamesAtom = XInternAtom(*dpy_, "_NET_DESKTOP_NAMES", false);
-	Atom XA_UTF8STRING = XInternAtom(*dpy_, "UTF8_STRING", false);
-	XChangeProperty(*dpy_, *root_, netSupportedAtom, XA_ATOM, 32, PropModeReplace, (unsigned char*)supported, 3);
-	XChangeProperty(*dpy_, *root_, netDesktopNamesAtom, XA_UTF8STRING, 8, PropModeReplace, (unsigned char*)&wsNames, wsNamesLen);
-	XChangeProperty(*dpy_, *root_, netNumDesktopsAtom, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&numDesktops, 1);
+	unsigned long numDesktops = cfg.numWS;
+	Atom netSupportedAtom = XInternAtom(globals.dpy, "_NET_SUPPORTED", false);
+	Atom netNumDesktopsAtom = XInternAtom(globals.dpy, "_NET_NUMBER_OF_DESKTOPS", false);
+	Atom netDesktopNamesAtom = XInternAtom(globals.dpy, "_NET_DESKTOP_NAMES", false);
+	Atom XA_UTF8STRING = XInternAtom(globals.dpy, "UTF8_STRING", false);
+	XChangeProperty(globals.dpy, globals.root, netSupportedAtom, XA_ATOM, 32, PropModeReplace, (unsigned char*)supported, 5);
+	XChangeProperty(globals.dpy, globals.root, netDesktopNamesAtom, XA_UTF8STRING, 8, PropModeReplace, (unsigned char*)wsNames, wsNamesLen);
+	XChangeProperty(globals.dpy, globals.root, netNumDesktopsAtom, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&numDesktops, 1);
 
-
+	delete[] wsNames;
 }
 
-void updateClientList(std::map<int, Client> clients)
+void EWMHModule::updateClientList(std::map<int, Client> clients)
 {
-	Atom netClientList = XInternAtom(*dpy_, "_NET_CLIENT_LIST", false);
-	XDeleteProperty(*dpy_, *root_, netClientList);
+	Atom netClientList = XInternAtom(globals.dpy, "_NET_CLIENT_LIST", false);
+	XDeleteProperty(globals.dpy, globals.root, netClientList);
 
 	std::map<int, Client>::iterator cItr;
 	for(cItr = clients.begin(); cItr != clients.end(); cItr++)
 	{
-		XChangeProperty(*dpy_, *root_, netClientList, XA_WINDOW, 32, PropModeAppend, (unsigned char*)&cItr->second.w, 1);
+		XChangeProperty(globals.dpy, globals.root, netClientList, XA_WINDOW, 32, PropModeAppend, (unsigned char*)&cItr->second.w, 1);
 	}
 
 }
 
-void setWindowDesktop(Window w, int desktop)
+void EWMHModule::updateScreens(ScreenInfo* screens, int nscreens)
 {
-	unsigned long currDesktop = desktop - 1;
-	Atom netWMDesktop = XInternAtom(*dpy_, "_NET_WM_DESKTOP", false);
-	XChangeProperty(*dpy_, w, netWMDesktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&currDesktop, 1);
+	unsigned long *desktopViewports = new unsigned long[cfg.numWS*2];
+	memset(desktopViewports, 0, sizeof(int)*cfg.numWS*2);
+
+	for(int i = 0; i < cfg.numWS; i++)
+	{
+		for(int j = 0; j < cfg.workspaces[i].screenPreferencesc; j++)
+		{
+			if(cfg.workspaces[i].screenPreferences[j] < nscreens)
+			{
+				desktopViewports[i*2] = screens[cfg.workspaces[i].screenPreferences[j]].x;
+				desktopViewports[i*2 + 1] = screens[cfg.workspaces[i].screenPreferences[j]].y;
+				break;
+			}
+		}
+	}
+
+	Atom netDesktopViewport = XInternAtom(globals.dpy, "_NET_DESKTOP_VIEWPORT", false);
+	int status = XChangeProperty(globals.dpy, globals.root, netDesktopViewport, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)desktopViewports, cfg.numWS*2);
+
+	delete[] desktopViewports;
 }
 
-void setCurrentDesktop(int desktop)
+void EWMHModule::setWindowDesktop(Window w, int desktop)
 {
 	unsigned long currDesktop = desktop - 1;
-	Atom netCurrentDesktop = XInternAtom(*dpy_, "_NET_CURRENT_DESKTOP", false);
-	XChangeProperty(*dpy_, *root_, netCurrentDesktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&currDesktop, 1);
+	Atom netWMDesktop = XInternAtom(globals.dpy, "_NET_WM_DESKTOP", false);
+	XChangeProperty(globals.dpy, w, netWMDesktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&currDesktop, 1);
 }
 
-void setFullscreen(Window w, bool fullscreen)
+void EWMHModule::setCurrentDesktop(int desktop)
 {
-	Atom netWMState = XInternAtom(*dpy_, "_NET_WM_STATE", false);
+	unsigned long currDesktop = desktop - 1;
+	Atom netCurrentDesktop = XInternAtom(globals.dpy, "_NET_CURRENT_DESKTOP", false);
+	XChangeProperty(globals.dpy, globals.root, netCurrentDesktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&currDesktop, 1);
+}
+
+void EWMHModule::setFullscreen(Window w, bool fullscreen)
+{
+	Atom netWMState = XInternAtom(globals.dpy, "_NET_WM_STATE", false);
 	Atom netWMStateVal;
 	if(fullscreen)
-		netWMStateVal = XInternAtom(*dpy_, "_NET_WM_STATE_FULLSCREEN", false);
+		netWMStateVal = XInternAtom(globals.dpy, "_NET_WM_STATE_FULLSCREEN", false);
 	else
-		netWMStateVal = XInternAtom(*dpy_, "", false);
-	XChangeProperty(*dpy_, w, netWMState, XA_ATOM, 32, PropModeReplace, (unsigned char*)&netWMStateVal, 1);
+		netWMStateVal = XInternAtom(globals.dpy, "", false);
+	XChangeProperty(globals.dpy, w, netWMState, XA_ATOM, 32, PropModeReplace, (unsigned char*)&netWMStateVal, 1);
 
 }
 
-void setIPCPath(unsigned char* path, int len)
+void EWMHModule::setIPCPath(unsigned char* path, int len)
 {
-	Atom socketPathAtom = XInternAtom(*dpy_, "YATWM_SOCKET_PATH", false);
-	XChangeProperty(*dpy_, *root_, socketPathAtom, XA_STRING, 8, PropModeReplace, path, len);
+	Atom socketPathAtom = XInternAtom(globals.dpy, "YATWM_SOCKET_PATH", false);
+	XChangeProperty(globals.dpy, globals.root, socketPathAtom, XA_STRING, 8, PropModeReplace, path, len);
 }
 
-int getProp(Window w, char* propName, Atom* type, unsigned char** data)
+int EWMHModule::getProp(Window w, char* propName, Atom* type, unsigned char** data)
 {
-	Atom prop_type = XInternAtom(*dpy_, propName, false);
+	Atom prop_type = XInternAtom(globals.dpy, propName, false);
 	int format;
 	unsigned long length;
 	unsigned long after;
-	int status = XGetWindowProperty(*dpy_, w, prop_type,
+	int status = XGetWindowProperty(globals.dpy, w, prop_type,
 							0L, 1L, False,
 							AnyPropertyType, type, &format,
 							&length, &after, data);

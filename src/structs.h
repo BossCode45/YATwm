@@ -2,8 +2,9 @@
 
 #include <X11/Xlib.h>
 
-#include <X11/extensions/Xrandr.h>
+#include <cstdint>
 #include <string>
+#include <sys/types.h>
 #include <vector>
 
 #define noID -1

@@ -12,12 +12,15 @@ using std::cout, std::endl;
 
 static const char* path = "/tmp/YATwm.sock";
 
-IPCServerModule::IPCServerModule(CommandsModule& commandsModule, Config& cfg, Globals& globals)
-	:commandsModule(commandsModule),
-	 cfg(cfg),
-	 globals(globals)
+IPCServerModule::IPCServerModule(Globals& globals, Config& cfg, CommandsModule& commandsModule, EWMHModule& ewmh)
+	:globals(globals)
+	,cfg(cfg)
+	,commandsModule(commandsModule)
+	,ewmh(ewmh)
 {
 }
+
+
 
 void IPCServerModule::init()
 {
@@ -32,7 +35,7 @@ void IPCServerModule::init()
 		cout << "ERROR " << errno << endl;
 	}
 	cout << "SOCKETED" << endl;
-	setIPCPath((unsigned char*)path, strlen(path));
+	ewmh.setIPCPath((unsigned char*)path, strlen(path));
 	ready = true;
 }
 
@@ -85,10 +88,10 @@ void IPCServerModule::quitIPC()
 int IPCServerModule::getFD()
 {
 	if(!ready)
-		return -1;
+		return 0;
 	if(sockfd > 0)
 		return sockfd;
-	return -1;
+	return 0;
 }
 
 IPCClientModule::IPCClientModule()

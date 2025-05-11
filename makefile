@@ -1,7 +1,7 @@
 .PHONY: clean
 CXX := g++
 CXXFLAGS := -std=c++17 `pkg-config --cflags --libs libnotify`# -g -fsanitize=address -fno-omit-frame-pointer
-LINKFLAGS := -lX11 -lXrandr
+LINKFLAGS := -lX11 -lXrandr -lXinerama
 OBJS_DIR := ./build
 OUT_DIR := ./out
 SOURCE_DIR := ./src
@@ -32,10 +32,10 @@ remove: r
 #Files to be compiled
 $(OBJS_DIR)/main.o: $(SOURCE_FILES) $(SOURCE_HEADERS)
 $(OBJS_DIR)/ewmh.o: $(SOURCE_DIR)/ewmh.cpp $(SOURCE_DIR)/ewmh.h
-$(OBJS_DIR)/command.o: $(SOURCE_DIR)/commands.cpp $(SOURCE_DIR)/commands.h $(SOURCE_DIR)/util.h $(SOURCE_DIR)/error.h
+$(OBJS_DIR)/command.o: $(SOURCE_DIR)/commands.cpp $(SOURCE_DIR)/commands.h $(SOURCE_DIR)/util.h  $(SOURCE_DIR)/debug.h $(SOURCE_DIR)/error.h
 $(OBJS_DIR)/util.o: $(SOURCE_DIR)/util.cpp $(SOURCE_DIR)/util.h
 $(OBJS_DIR)/config.o: $(SOURCE_DIR)/config.cpp $(SOURCE_DIR)/config.h
-$(OBJS_DIR)/keybinds.o: $(SOURCE_DIR)/keybinds.cpp $(SOURCE_DIR)/keybinds.h
+$(OBJS_DIR)/keybinds.o: $(SOURCE_DIR)/keybinds.cpp $(SOURCE_DIR)/keybinds.h $(SOURCE_DIR)/debug.h
 $(OBJS_DIR)/ipc.o: $(SOURCE_DIR)/ipc.cpp $(SOURCE_DIR)/ipc.h $(SOURCE_DIR)/commands.h $(SOURCE_DIR)/ewmh.h
 
 clean:
