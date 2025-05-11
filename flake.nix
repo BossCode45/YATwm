@@ -18,7 +18,7 @@
                       pkgs.clang-tools
                   ];
               };
-              packages.x86_64-linux.YATwm =  (pkgs.callPackage ./YATwm.nix {inherit inputs;});
+              packages.x86_64-linux.YATwm = (pkgs.callPackage ./YATwm.nix {inherit inputs;});
               packages.x86_64-linux.default = self.packages.x86_64-linux.YATwm;
               nixosModules.YATwm = import ./nix/module.nix;
               nixosModules.default = self.nixosModules.YATwm;

@@ -8,7 +8,6 @@
 #include <libnotify/notification.h>
 #include <libnotify/notify.h>
 
-#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -17,7 +16,6 @@
 #include <iostream>
 #include <map>
 #include <ostream>
-#include <regex>
 #include <string>
 #include <sys/poll.h>
 #include <sys/select.h>
@@ -54,6 +52,9 @@ char nowString[80];
 	updateTime();				\
 	yatlog << nowString << x << std::endl
 
+
+const char* version = "YATwm for X - v0.0.2";
+
 Display* dpy;
 Window root;
 
@@ -64,7 +65,8 @@ void updateMousePos();
 CommandsModule commandsModule;
 Config cfg(commandsModule);
 KeybindsModule keybindsModule(commandsModule, cfg, globals, &updateMousePos);
-IPCServerModule ipc(commandsModule, cfg, globals);
+EWMHModule ewmh(globals, cfg);
+IPCServerModule ipc(globals, cfg, commandsModule, ewmh);
 
 int sW, sH;
 int bH;
@@ -113,7 +115,7 @@ static int OnXError(Display* display, XErrorEvent* e);
 // Tiling
 // Call this one to tile everything (it does all the fancy stuff trust me just call this one)
 void tileRoots();
-// Call this one to until everything (it handles multiple monitors)
+// Call this one to untile everything (it handles multiple monitors)
 void untileRoots();
 // This is to be called by tileRoots, it takes in the x, y, w, and h of where it's allowed to tile windows to, and returns the ID of a fullscreen client if one is found, or noID (-1) if none are found
 int tile(int frameID, int x, int y, int w, int h);
@@ -154,6 +156,8 @@ void detectScreens()
 		}
 	}
 	XFree(monitors);
+
+	ewmh.updateScreens(screens, nscreens);
 }
 void updateMousePos()
 {
@@ -271,7 +275,7 @@ void cWS(int newWS)
 	focusWindow(getFrame(currWS).rootData->focus);
 
 	//EWMH
-	setCurrentDesktop(currWS);
+	ewmh.setCurrentDesktop(currWS);
 }
 void focusWindow(Window w)
 {
@@ -393,7 +397,7 @@ const void wToWS(const CommandArg* argv)
 	frames.find(argv[0].num)->second.subFrameIDs.push_back(fID);
 
 	//EWMH
-	setWindowDesktop(focusedWindow, argv[0].num);
+	ewmh.setWindowDesktop(focusedWindow, argv[0].num);
 
 	XUnmapWindow(dpy, focusedWindow);
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
@@ -611,7 +615,7 @@ const void fullscreen(const CommandArg* arg)
 	int cID = getFrame(fID).cID;
 	getClient(cID).fullscreen ^= true;
 	tileRoots();
-	setFullscreen(focusedWindow, getClient(cID).fullscreen); 
+	ewmh.setFullscreen(focusedWindow, getClient(cID).fullscreen); 
 }
 
 void configureRequest(XConfigureRequestEvent e)
@@ -697,7 +701,7 @@ void mapRequest(XMapRequestEvent e)
 
 	unsigned char* data;
 	Atom type;
-	int status = getProp(e.window, "_NET_WM_WINDOW_TYPE", &type, &data);
+	int status = ewmh.getProp(e.window, "_NET_WM_WINDOW_TYPE", &type, &data);
 	if (status == Success && type != None && ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", false))
 	{
 		log("\tWindow was bar");
@@ -730,15 +734,15 @@ void mapRequest(XMapRequestEvent e)
 	//Add ID to frameIDS map
 	frameIDS.insert(pair<Window, int>(e.window, f.ID));
 
-	status = getProp(e.window, "_NET_WM_STATE", &type, &data);
+	status = ewmh.getProp(e.window, "_NET_WM_STATE", &type, &data);
 	if(status == Success && type!=None && (((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_MODAL", false) || ((Atom*)data)[0] == XInternAtom(dpy, "_NET_WM_STATE_ABOVE", false)))
 	{
 		cout << "Floating" << endl;
 		clients.find(c.ID)->second.floating = true;
 		frames.find(pID)->second.rootData->floatingFrameIDs.push_back(f.ID);
 		frames.insert(pair<int, Frame>(f.ID, f));
-		setWindowDesktop(e.window, currWS);
-		updateClientList(clients);
+		ewmh.setWindowDesktop(e.window, currWS);
+		ewmh.updateClientList(clients);
 		XFree(data);
 		//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 		tileRoots();
@@ -785,8 +789,8 @@ void mapRequest(XMapRequestEvent e)
 	//Add to frames map
 	frames.insert(pair<int, Frame>(f.ID, f));
 
-	setWindowDesktop(e.window, currWS);
-	updateClientList(clients);
+	ewmh.setWindowDesktop(e.window, currWS);
+	ewmh.updateClientList(clients);
 
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	focusWindow(e.window);
@@ -839,7 +843,7 @@ void destroyNotify(XDestroyWindowEvent e)
 	//tile(currWS, outerGaps, outerGaps, sW - outerGaps*2, sH - outerGaps*2 - bH);
 	tileRoots();
 
-	updateClientList(clients);
+	ewmh.updateClientList(clients);
 }
 void enterNotify(XEnterWindowEvent e)
 {
@@ -902,7 +906,7 @@ void clientMessage(XClientMessageEvent e)
 			int fID = getFrameID(e.window);
 			int cID = getFrame(fID).cID;
 			getClient(cID).fullscreen = (Atom) e.data.l[0] > 0;
-			setFullscreen(e.window, (Atom) e.data.l[0] > 0); 
+			ewmh.setFullscreen(e.window, (Atom) e.data.l[0] > 0); 
 			tileRoots();
 		}
 		XFree(prop1);
@@ -976,7 +980,7 @@ int tile(int frameID, int x, int y, int w, int h)
 				return fullscreenClientID;
 			continue;
 		}
-		Client c = clients.find(f.cID)->second;
+		Client c = getClient(f.cID);
 		if(c.fullscreen)
 			return c.ID;
 		wX += cfg.gaps;
@@ -1019,25 +1023,24 @@ void untile(int frameID)
 
 void printVersion()
 {
-	const char* version =
-	"YATwm for X\n"
-	"version 0.0.1";
 	cout << version << endl;
 }
 
 int main(int argc, char** argv)
 {
 	int versionFlag = 0;
+	int noSocketFlag = 0;
 	bool immediateExit = false;
 	string configLocation = "";
 	while(1)
 	{
 		static option long_options[] = {{"version", no_argument, &versionFlag, 1},
 										{"config", required_argument, NULL, 'c'},
+										{"nosocket", no_argument, &noSocketFlag, 1},
 										{0, 0, 0, 0}};
 		
 		int optionIndex;
-		char c = getopt_long(argc, argv, "c:v", long_options, &optionIndex);
+		char c = getopt_long(argc, argv, "c:nv", long_options, &optionIndex);
 
 		if(c == -1)
 			break;
@@ -1055,6 +1058,8 @@ int main(int argc, char** argv)
 		case 'v':
 			versionFlag = 1;
 			break;
+		case 'n':
+			noSocketFlag = 1;
 		case '?':
 			//Error??
 			break;
@@ -1130,21 +1135,25 @@ int main(int argc, char** argv)
 
 	cout << "Registered commands" << endl;
 
-	if(configLocation != "")
-		cfgErr = cfg.loadFromFile(configLocation);
-	else
+	// if(configLocation != "")
+	// 	cfgErr = cfg.loadFromFile(configLocation);
+	if(configLocation == "")
 	{
 		char* confDir = getenv("XDG_CONFIG_HOME");
 		if(confDir != NULL)
-			cfgErr = cfg.loadFromFile(string(confDir) + "/YATwm/config");
+			configLocation = string(confDir) + "/YATwm/config";
+			// cfgErr = cfg.loadFromFile(string(confDir) + "/YATwm/config");
 		else
 		{
 			string home = getenv("HOME");
-			cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
+			configLocation = home + "/.config/YATwm/config";
+			// cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
 		}
 	}
 
-	cout << "Done config" << endl;
+	cfgErr = cfg.loadFromFile(configLocation);
+
+	cout << "Loaded config" << endl;
 	
 	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
@@ -1152,6 +1161,9 @@ int main(int argc, char** argv)
 
 	//Print starting message
 	log("-------- YATWM STARTING --------");
+	log(version);
+	log("Running from command: " << argv[0]);
+	log("Reading config from file: " << configLocation);
 
 	//Notifications
 	notify_init("YATwm");
@@ -1172,10 +1184,11 @@ int main(int argc, char** argv)
 
 	XDefineCursor(dpy, root, XCreateFontCursor(dpy, XC_top_left_arrow));
 	//EWMH
-	initEWMH(&dpy, &root, cfg.workspaces.size(), cfg.workspaces);
-	setCurrentDesktop(1);
+	ewmh.init();
+	ewmh.setCurrentDesktop(1);
 
-	ipc.init();
+	if(!noSocketFlag)
+		ipc.init();
 
 	for(int i = 1; i < cfg.numWS + 1; i++)
 	{
@@ -1192,18 +1205,15 @@ int main(int argc, char** argv)
 
 	fd_set fdset;
 	int x11fd = ConnectionNumber(dpy);
-	FD_ZERO(&fdset);
-	FD_SET(x11fd, &fdset);
-	FD_SET(ipc.getFD(), &fdset);
-	
 	log("Begin mainloop");
 	while(keepGoing)
 	{
 		FD_ZERO(&fdset);
 		FD_SET(x11fd, &fdset);
-		FD_SET(ipc.getFD(), &fdset);
+		if(!noSocketFlag)
+			FD_SET(ipc.getFD(), &fdset);
 		int ready = select(std::max(x11fd, ipc.getFD()) + 1, &fdset, NULL, NULL, NULL);
-		if(FD_ISSET(ipc.getFD(), &fdset))
+		if(!noSocketFlag && FD_ISSET(ipc.getFD(), &fdset))
 		{
 			ipc.doListen();
 		}
@@ -1248,5 +1258,7 @@ int main(int argc, char** argv)
 
 	//Kill children
 	ipc.quitIPC();
+	delete[] screens;
+	delete[] focusedWorkspaces;
 	XCloseDisplay(dpy);
 }

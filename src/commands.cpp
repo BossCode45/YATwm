@@ -12,6 +12,8 @@
 #include <cstring>
 #include <fstream>
 
+#include "debug.h"
+
 using std::cout, std::endl, std::string, std::vector;
 
 const void CommandsModule::echo(const CommandArg* argv)
@@ -181,7 +183,12 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 	{
 		switch(argTypes[i-1])
 		{
-		case STR: args[i-1].str = (char*)split[i].c_str(); break;
+		case STR:
+		{
+			args[i-1].str = new char[split[i].length() + 1];
+			strncpy(args[i-1].str, split[i].c_str(), split[i].length() + 1);
+			break;
+		}
 		case NUM:
 		{
 			try
@@ -194,6 +201,7 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 				delete[] args;
 				throw Err(CMD_ERR_WRONG_ARGS, split[i] + " is not a number!");
 			}
+			break;
 		}
 		case MOVDIR:
 		{
@@ -221,8 +229,8 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 				if(j != split.size() - 1)
 					rest += " ";
 			}
-			args[i-1].str = new char[rest.size()];
-			strncpy(args[i-1].str, rest.c_str(), rest.size());
+			args[i-1].str = new char[rest.size() + 1];
+			strncpy(args[i-1].str, rest.c_str(), rest.size() + 1);
 			return args;
 		}
 		case NUM_ARR_REST:
@@ -252,6 +260,7 @@ CommandArg* CommandsModule::getCommandArgs(vector<string>& split, const CommandA
 
 void CommandsModule::runCommand(string command)
 {
+	debug(cout << command << endl);
 	vector<string> split = splitCommand(command);
 	vector<string>::const_iterator start = split.begin();
 	int count = 0;
@@ -303,7 +312,7 @@ void CommandsModule::runCommand(vector<string> split)
 	{
 		for(int i = 0; i < cmd->argc; i++)
 		{
-			if(cmd->argTypes[i] == STR_REST)
+			if(cmd->argTypes[i] == STR_REST || cmd->argTypes[i] == STR)
 				delete[] args[i].str;
 		}
 		delete[] args;
@@ -311,7 +320,7 @@ void CommandsModule::runCommand(vector<string> split)
 	}
 	for(int i = 0; i < cmd->argc; i++)
 	{
-		if(cmd->argTypes[i] == STR_REST)
+		if(cmd->argTypes[i] == STR_REST || cmd->argTypes[i] == STR)
 			delete[] args[i].str;
 	}
 	delete[] args;

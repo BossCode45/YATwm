@@ -2,8 +2,14 @@
 
 # Keybinds:
 bindmode emacs
-quitkey s-g
+quitkey C-s-g
 swapmods
+
+
+bind "s-[" spawn playerctl -p firefox play-pause
+bind "s-]" spawn playerctl -p spotify play-pause
+bind "s-S--" bashSpawn emacsclient -c
+
 bind "s-0" changeWS 10
 bind "s-1" changeWS 1
 bind "s-2" changeWS 2
@@ -16,7 +22,7 @@ bind "s-8" changeWS 8
 bind "s-9" changeWS 9
 bind "s-E" exit
 bind "s-R" reload
-bind "s-RET" spawn alacritty
+bind "s-RET" bashSpawn alacritty
 bind "s-S-0" wToWS 10
 bind "s-S-1" wToWS 1
 bind "s-S-2" wToWS 2
