@@ -54,6 +54,9 @@ char nowString[80];
 	updateTime();				\
 	yatlog << nowString << x << std::endl
 
+
+const char* version = "YATwm for X - v0.0.2";
+
 Display* dpy;
 Window root;
 
@@ -113,7 +116,7 @@ static int OnXError(Display* display, XErrorEvent* e);
 // Tiling
 // Call this one to tile everything (it does all the fancy stuff trust me just call this one)
 void tileRoots();
-// Call this one to until everything (it handles multiple monitors)
+// Call this one to untile everything (it handles multiple monitors)
 void untileRoots();
 // This is to be called by tileRoots, it takes in the x, y, w, and h of where it's allowed to tile windows to, and returns the ID of a fullscreen client if one is found, or noID (-1) if none are found
 int tile(int frameID, int x, int y, int w, int h);
@@ -976,7 +979,7 @@ int tile(int frameID, int x, int y, int w, int h)
 				return fullscreenClientID;
 			continue;
 		}
-		Client c = clients.find(f.cID)->second;
+		Client c = getClient(f.cID);
 		if(c.fullscreen)
 			return c.ID;
 		wX += cfg.gaps;
@@ -1019,9 +1022,6 @@ void untile(int frameID)
 
 void printVersion()
 {
-	const char* version =
-	"YATwm for X\n"
-	"version 0.0.1";
 	cout << version << endl;
 }
 
@@ -1130,21 +1130,25 @@ int main(int argc, char** argv)
 
 	cout << "Registered commands" << endl;
 
-	if(configLocation != "")
-		cfgErr = cfg.loadFromFile(configLocation);
-	else
+	// if(configLocation != "")
+	// 	cfgErr = cfg.loadFromFile(configLocation);
+	if(configLocation == "")
 	{
 		char* confDir = getenv("XDG_CONFIG_HOME");
 		if(confDir != NULL)
-			cfgErr = cfg.loadFromFile(string(confDir) + "/YATwm/config");
+			configLocation = string(confDir) + "/YATwm/config";
+			// cfgErr = cfg.loadFromFile(string(confDir) + "/YATwm/config");
 		else
 		{
 			string home = getenv("HOME");
-			cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
+			configLocation = home + "/.config/YATwm/config";
+			// cfgErr = cfg.loadFromFile(home + "/.config/YATwm/config");
 		}
 	}
 
-	cout << "Done config" << endl;
+	cfgErr = cfg.loadFromFile(configLocation);
+
+	cout << "Loaded config" << endl;
 	
 	//Log
 	yatlog.open(cfg.logFile, std::ios_base::app);
@@ -1152,6 +1156,9 @@ int main(int argc, char** argv)
 
 	//Print starting message
 	log("-------- YATWM STARTING --------");
+	log(version);
+	log("Running from command: " << argv[0]);
+	log("Reading config from file: " << configLocation);
 
 	//Notifications
 	notify_init("YATwm");
@@ -1248,5 +1255,7 @@ int main(int argc, char** argv)
 
 	//Kill children
 	ipc.quitIPC();
+	delete[] screens;
+	delete[] focusedWorkspaces;
 	XCloseDisplay(dpy);
 }

@@ -2,7 +2,7 @@
 
 # Keybinds:
 bindmode emacs
-quitkey s-g
+quitkey C-s-g
 swapmods
 bind "s-0" changeWS 10
 bind "s-1" changeWS 1
