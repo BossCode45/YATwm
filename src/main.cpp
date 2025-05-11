@@ -1021,7 +1021,7 @@ void printVersion()
 {
 	const char* version =
 	"YATwm for X\n"
-	"version 0.0.1";
+	"version 0.0.2";
 	cout << version << endl;
 }
 
